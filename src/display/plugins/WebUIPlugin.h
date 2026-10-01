@@ -16,7 +16,11 @@ constexpr size_t UPDATE_CHECK_INTERVAL = 30 * 60 * 1000;
 constexpr size_t DNS_PERIOD = 50;
 
 const String LOCAL_URL = "http://4.4.4.1/";
-const String RELEASE_URL = "https://github.com/jniebuhr/gaggimate/releases/";
+const String RELEASE_URL = "https://github.com/mohamadSherif/bettermate/releases/";
+// The controller stays on stock GaggiMate firmware. Its OTA is pinned to the upstream release that speaks the
+// same wire protocol as this display build (lib/NanoPbComm is untouched), never to a BetterMate release.
+const String CONTROLLER_PINNED_VERSION = "v1.9.0";
+const String CONTROLLER_RELEASE_URL = "https://github.com/jniebuhr/gaggimate/releases/download/v1.9.0/";
 // Headless builds must pull their own release assets; the screen firmware would not boot on them.
 #ifdef GAGGIMATE_HEADLESS
 #define OTA_DISPLAY_FIRMWARE "display-headless-firmware.bin"

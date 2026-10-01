@@ -32,10 +32,14 @@ class GitHubOTA {
     void update(bool controller = true, bool display = true, NimBLEClient *client = nullptr);
     void setReleaseUrl(const String &release_url);
     void setControllerVersion(const String &controller_version);
+    // Take the controller firmware from a fixed release instead of the display's release channel: `version`
+    // ("v1.9.0") is what the controller is compared against, `base_url` the https download folder of that release.
+    void pinController(const String &version, const String &base_url);
 
   private:
     bool flashDisplayFirmware(const String &url);
     void setPhase(uint8_t newPhase);
+    bool controllerUpdateRequired() const;
 
     uint8_t phase = PHASE_IDLE;
     semver_t _version;
@@ -53,6 +57,9 @@ class GitHubOTA {
     progress_callback_t _progress_callback = nullptr;
     bool _controller_update_required = false;
     bool _screen_update_required = false;
+    bool _controller_pinned = false;
+    semver_t _controller_pinned_version = {0, 0, 0, nullptr, nullptr};
+    String _controller_pinned_url;
 };
 
 #endif

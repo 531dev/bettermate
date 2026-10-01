@@ -44,7 +44,8 @@ IDE (CLion/VSCode) it shows up under the `display-sim` environment as the
   the combined third button, hold one for a long press).
 - **WebUI**: open <http://localhost:8080/> while it runs (port 80 is remapped to
   8080 so it needs no root). Live status streams over the WebSocket just like on
-  the device.
+  the device. If 8080 is taken, set `SIM_HTTP_PORT=8090` for both the simulator
+  and `npm run dev`.
 - **Screenshot mode** (renders briefly, writes a BMP, exits — handy for
   validation/CI):
 

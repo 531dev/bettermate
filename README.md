@@ -1,3 +1,15 @@
+# BetterMate
+
+BetterMate is a fork of [GaggiMate](https://github.com/jniebuhr/gaggimate) that keeps all of its machine logic and
+replaces the interface: the 480 px round display and the web UI. It runs on the GaggiMate display and pairs with a
+stock, unmodified GaggiMate controller.
+
+- Forked from upstream tag `v1.9.0`. The wire protocol (`lib/NanoPbComm`) and the controller firmware are untouched.
+- The display updates itself from BetterMate releases. The controller's update stays pinned to upstream `v1.9.0`.
+- Same license as upstream, CC BY-NC-SA 4.0. GaggiMate is the work of its authors; what follows is their README.
+
+---
+
 <p align="center">
 <img src="docs/assets/logo.png" alt="Logo" width="250px" />
 <br />

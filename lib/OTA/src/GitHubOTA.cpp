@@ -56,7 +56,7 @@ void GitHubOTA::checkForUpdates() {
         semver_free(&_latest_version);
         _latest_version = from_string(semver_str.c_str());
         _screen_update_required = update_required(_latest_version, _version);
-        _controller_update_required = update_required(_latest_version, _controller_version);
+        _controller_update_required = controllerUpdateRequired();
     } else {
         _latest_url = _release_url + "/";
         _latest_url.replace("tag", "download");
@@ -72,8 +72,13 @@ void GitHubOTA::checkForUpdates() {
         semver_free(&_latest_version);
         _latest_version = from_string(version.c_str());
         _screen_update_required = update_required(_latest_version, _version);
-        _controller_update_required = update_required(_latest_version, _controller_version);
+        _controller_update_required = controllerUpdateRequired();
     }
+}
+
+// A pinned controller is compared against its own fixed release, not against the display's latest one.
+bool GitHubOTA::controllerUpdateRequired() const {
+    return update_required(_controller_pinned ? _controller_pinned_version : _latest_version, _controller_version);
 }
 
 String GitHubOTA::getCurrentVersion() const { return _latest_version_string; }
@@ -96,17 +101,22 @@ void GitHubOTA::update(bool controller, bool display, NimBLEClient *client) {
 
     bool updateExecuted = false;
 
+    const bool controllerUpdate = controller && controllerUpdateRequired();
+    const bool displayUpdate = display && update_required(_latest_version, _version);
+    // A pinned controller downloads from its own fixed URL, so only that path may run without a display release.
+    const String controllerBaseUrl = _controller_pinned ? _controller_pinned_url : _latest_url;
+
     // checkForUpdates() stores a server-provided Location; never let a downgraded redirect reach the downloads.
-    if (!_latest_url.startsWith("https://")) {
-        ESP_LOGE(TAG, "Refusing non-HTTPS release URL: %s", _latest_url.c_str());
+    if ((displayUpdate && !_latest_url.startsWith("https://")) || (controllerUpdate && !controllerBaseUrl.startsWith("https://"))) {
+        ESP_LOGE(TAG, "Refusing non-HTTPS release URL: %s", displayUpdate ? _latest_url.c_str() : controllerBaseUrl.c_str());
         setPhase(PHASE_FAILED);
         return;
     }
 
-    if (controller && update_required(_latest_version, _controller_version)) {
+    if (controllerUpdate) {
         ESP_LOGI(TAG, "Controller update is required, running firmware update.");
         setPhase(PHASE_CONTROLLER_FW);
-        if (!_controller_ota.update(client, _latest_url + _controller_firmware_name)) {
+        if (!_controller_ota.update(client, controllerBaseUrl + _controller_firmware_name)) {
             ESP_LOGE(TAG, "Controller update failed");
             setPhase(PHASE_FAILED);
             return;
@@ -115,7 +125,7 @@ void GitHubOTA::update(bool controller, bool display, NimBLEClient *client) {
         updateExecuted = true;
     }
 
-    if (display && update_required(_latest_version, _version)) {
+    if (displayUpdate) {
         ESP_LOGI(TAG, "Update is required, running firmware update.");
         setPhase(PHASE_DISPLAY_FW);
         if (!flashDisplayFirmware(_latest_url + _firmware_name)) {
@@ -212,5 +222,13 @@ bool GitHubOTA::flashDisplayFirmware(const String &url) {
 void GitHubOTA::setControllerVersion(const String &controller_version) {
     semver_free(&_controller_version);
     _controller_version = from_string(controller_version.substring(1).c_str());
-    _controller_update_required = update_required(_latest_version, _controller_version);
+    _controller_update_required = controllerUpdateRequired();
+}
+
+void GitHubOTA::pinController(const String &version, const String &base_url) {
+    semver_free(&_controller_pinned_version);
+    _controller_pinned_version = from_string(version.substring(1).c_str());
+    _controller_pinned_url = base_url;
+    _controller_pinned = true;
+    _controller_update_required = controllerUpdateRequired();
 }

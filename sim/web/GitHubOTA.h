@@ -24,6 +24,7 @@ class GitHubOTA {
     void update(bool = true, bool = true, NimBLEClient * = nullptr) {}
     void setReleaseUrl(const String &) {}
     void setControllerVersion(const String &) {}
+    void pinController(const String &, const String &) {}
 
   private:
     String _version;

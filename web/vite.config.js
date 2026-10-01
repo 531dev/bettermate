@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import tailwindcss from '@tailwindcss/vite';
 
+// The simulator serves /api and /ws on 8080 unless SIM_HTTP_PORT moves it (see sim/README.md).
+const simPort = process.env.SIM_HTTP_PORT || 8080;
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [preact(), tailwindcss()],
@@ -25,11 +28,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: `http://localhost:${simPort}`,
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://localhost:8080',
+        target: `ws://localhost:${simPort}`,
         ws: true,
       },
     },

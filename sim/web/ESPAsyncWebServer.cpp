@@ -299,6 +299,12 @@ void AsyncWebServer::begin() {
     if (_listenFd >= 0)
         return;
     uint16_t port = _port < 1024 ? 8080 : _port; // avoid needing root for :80
+    // SIM_HTTP_PORT moves the WebUI off 8080 when something else already owns it (web/vite.config.js reads it too).
+    if (const char *env = getenv("SIM_HTTP_PORT")) {
+        const long requested = strtol(env, nullptr, 10);
+        if (requested >= 1024 && requested <= 65535)
+            port = static_cast<uint16_t>(requested);
+    }
     _listenFd = socket(AF_INET, SOCK_STREAM, 0);
     int yes = 1;
     setsockopt(_listenFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
