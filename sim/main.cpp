@@ -4,25 +4,31 @@
 // are no-ops in the simulator.
 #include "ESPAsyncWebServer.h"
 #include "SdlDriver.h"
+#include "SimScript.h"
 #include <Arduino.h>
 #include <cstdlib>
 #include <cstring>
 #include <display/core/Controller.h>
 #include <display/plugins/ShotHistoryPlugin.h>
-#include <display/ui/default/DefaultUI.h>
+#include <display/ui/UI.h>
 
 // The generated UI event handlers reference this global (see main.h on device).
 Controller controller;
 
 int main(int argc, char **argv) {
     // Optional: `--screenshot <path> [delayMs]` renders for a bit, saves a BMP, exits.
+    // Optional: `--script "<commands>"` drives touch input and captures along the way (see SimScript.h).
     const char *shotPath = nullptr;
     unsigned long shotDelayMs = 4000;
+    SimScript script;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--screenshot") == 0 && i + 1 < argc) {
             shotPath = argv[++i];
             if (i + 1 < argc)
                 shotDelayMs = strtoul(argv[i + 1], nullptr, 10);
+        } else if (strcmp(argv[i], "--script") == 0 && i + 1 < argc) {
+            if (!script.parse(argv[++i]))
+                return 2;
         }
     }
 
@@ -39,7 +45,7 @@ int main(int argc, char **argv) {
         settings.setWifiPassword("simulator");
 
     SdlDriver *drv = SdlDriver::getInstance();
-    DefaultUI *ui = controller.getUI();
+    DisplayUI *ui = controller.getUI();
     const unsigned long start = millis();
     bool shotTaken = false;
 
@@ -75,6 +81,9 @@ int main(int argc, char **argv) {
         }
 
         drv->pumpAndRender();
+
+        if (!script.empty() && script.run(drv))
+            break;
 
         if (shotPath && !shotTaken && millis() - start >= shotDelayMs) {
             drv->screenshot(shotPath);

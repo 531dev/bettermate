@@ -23,6 +23,7 @@ class SdlDriver : public Driver {
     void pumpAndRender(); // poll SDL events + present the LVGL framebuffer
     bool shouldQuit() const;
     void screenshot(const char *path); // writes a BMP of the current frame
+    void injectPointer(int x, int y, bool pressed); // scripted touch (see --script in sim/main.cpp)
 
   private:
     static SdlDriver *instance;

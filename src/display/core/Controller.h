@@ -15,7 +15,7 @@
 #include <vector>
 #ifndef GAGGIMATE_HEADLESS
 #include <display/drivers/Driver.h>
-#include <display/ui/default/DefaultUI.h>
+#include <display/ui/UI.h>
 #endif
 
 const IPAddress WIFI_AP_IP(4, 4, 4, 1); // the IP address the web server, Samsung requires the IP to be in public space
@@ -89,7 +89,7 @@ class Controller {
     Settings &getSettings() { return settings; }
     ProfileManager *getProfileManager() { return profileManager; }
 #ifndef GAGGIMATE_HEADLESS
-    DefaultUI *getUI() const { return ui; }
+    DisplayUI *getUI() const { return ui; }
 #endif
     bool isErrorState() const { return error > 0; }
     int getError() const { return error; }
@@ -194,7 +194,7 @@ class Controller {
 
     // Private Attributes
 #ifndef GAGGIMATE_HEADLESS
-    DefaultUI *ui = nullptr;
+    DisplayUI *ui = nullptr;
     Driver *driver = nullptr;
 #endif
     GaggiMateClient comms;
