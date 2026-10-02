@@ -25,6 +25,7 @@ enum class BrewScreenState { Brew, Settings };
 class DefaultUI {
   public:
     DefaultUI(Controller *controller, Driver *driver, PluginManager *pluginManager);
+    virtual ~DefaultUI() = default;
 
     // Default work methods
     void init();
@@ -65,7 +66,14 @@ class DefaultUI {
         return is_task_healthy(eTaskGetState(taskHandle)) && is_task_healthy(eTaskGetState(profileTaskHandle));
     }
 
-  private:
+  protected:
+    // For a UI that takes over individual screens while the rest stay stock (ui/bettermate): it derives from this
+    // class, starts the UI task itself once it is fully built, and is told when a screen is shown or refreshed.
+    DefaultUI(Controller *controller, Driver *driver, PluginManager *pluginManager, bool startUiTask);
+    void startTask();
+    virtual void onScreenShown(ScreensEnum screen) {}
+    virtual void onRendered() {}
+
     void setupPanel();
     void setupState();
 

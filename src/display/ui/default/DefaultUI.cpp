@@ -56,8 +56,16 @@ int16_t calculate_angle(int set_temp, int range, int offset) {
 void DefaultUI::reloadProfiles() { profileLoaded = 0; }
 
 DefaultUI::DefaultUI(Controller *controller, Driver *driver, PluginManager *pluginManager)
+    : DefaultUI(controller, driver, pluginManager, true) {}
+
+DefaultUI::DefaultUI(Controller *controller, Driver *driver, PluginManager *pluginManager, bool startUiTask)
     : controller(controller), panelDriver(driver), pluginManager(pluginManager) {
     setupPanel();
+    if (startUiTask)
+        startTask();
+}
+
+void DefaultUI::startTask() {
     xTaskCreatePinnedToCore(loopTask, "DefaultUI::loop", configMINIMAL_STACK_SIZE * 6, this, 1, &taskHandle, 1);
 }
 
@@ -272,6 +280,7 @@ void DefaultUI::loop() {
                 }
             }
         }
+        onRendered();
     }
 
     ui_tick();
@@ -455,6 +464,7 @@ void DefaultUI::handleScreenChange() {
         }
         eez_flow_set_screen(targetScreen, LV_SCR_LOAD_ANIM_NONE, 0, 0);
         animateGaugeTicks(currentScreen, targetScreen);
+        onScreenShown(targetScreen);
         rerender = true;
     }
 }
