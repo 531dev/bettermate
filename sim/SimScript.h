@@ -7,7 +7,13 @@
 //   hold <x> <y> <ms>              press, keep it down, release
 //   swipe <x1> <y1> <x2> <y2> [ms] drag from one point to another (default 250 ms)
 //   key <1|2> <down|up>            the controller board's brew / steam inputs
-//   theme <n>                      set the display theme setting (0 dark, 1 light)
+//   theme <n>                      set the display theme setting (0 dark, 1 light, 2 AMOLED)
+//   controller <connected|disconnected> simulate controller link availability
+//   protocol <version>             report a controller protocol version (the sim uses 3)
+//   error <code>                   report a controller error (0 clears, 4 is temperature runaway)
+//   autotune                       start a mocked autotune (finishes after 1.5 s)
+//   update                         enter the OTA updating state
+//   expect <screen|mode|active> <n> check screen ID, MODE_* or process active (0/1); fail fast
 //   shot <path>                    write a BMP of the current frame
 //   quit                           leave the simulator
 #pragma once
@@ -27,7 +33,7 @@ class SimScript {
     bool run(SdlDriver *driver);
 
   private:
-    enum class Kind { Wait, Pointer, Key, Theme, Shot, Quit };
+    enum class Kind { Wait, Pointer, Key, Theme, Connection, Protocol, Error, Autotune, Update, Expect, Shot, Quit };
     struct Step {
         Kind kind;
         int a = 0;

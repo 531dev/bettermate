@@ -19,6 +19,8 @@ GaggiMateClient::GaggiMateClient() {
 void GaggiMateClient::init(const String &) { _initialized = true; }
 
 bool GaggiMateClient::connectToServer() {
+    if (!_connectionAvailable)
+        return false;
     if (_connected)
         return true;
     _connected = true;
@@ -31,8 +33,7 @@ void GaggiMateClient::loop() {
         _pendingConnect = false;
         if (_connCb)
             _connCb(true);
-        if (_systemInfoCb)
-            _systemInfoCb("GaggiMate Sim", "sim-3.0", gm_proto::PROTOCOL_VERSION, true, true, true, true, {});
+        simulateProtocol(gm_proto::PROTOCOL_VERSION);
         _mock.begin();
     }
     if (_autotunePending && (int32_t)(millis() - _autotuneDueMs) >= 0) {

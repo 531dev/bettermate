@@ -3,6 +3,7 @@
 #include "SdlDriver.h"
 #include <Arduino.h>
 #include <cstdio>
+#include <cstdlib>
 #include <display/main.h>
 #include <sstream>
 
@@ -61,6 +62,21 @@ bool SimScript::parse(const char *text) {
             int mode = 0;
             ok = static_cast<bool>(words >> mode);
             steps.push_back({Kind::Theme, mode, 0, false, {}});
+        } else if (verb == "controller") {
+            std::string state;
+            ok = static_cast<bool>(words >> state) && (state == "connected" || state == "disconnected");
+            steps.push_back({Kind::Connection, 0, 0, state == "connected", {}});
+        } else if (verb == "protocol" || verb == "error") {
+            int value = 0;
+            ok = static_cast<bool>(words >> value) && value >= 0;
+            steps.push_back({verb == "protocol" ? Kind::Protocol : Kind::Error, value, 0, false, {}});
+        } else if (verb == "expect") {
+            std::string field;
+            int expected = 0;
+            ok = static_cast<bool>(words >> field >> expected) && (field == "screen" || field == "mode" || field == "active");
+            steps.push_back({Kind::Expect, expected, 0, false, field});
+        } else if (verb == "autotune" || verb == "update") {
+            steps.push_back({verb == "autotune" ? Kind::Autotune : Kind::Update, 0, 0, false, {}});
         } else if (verb == "shot") {
             std::string path;
             ok = static_cast<bool>(words >> path);
@@ -94,6 +110,32 @@ bool SimScript::run(SdlDriver *driver) {
         case Kind::Theme:
             controller.getSettings().setThemeMode(step.a);
             break;
+        case Kind::Connection:
+            controller.getClientController()->simulateConnection(step.flag);
+            break;
+        case Kind::Protocol:
+            controller.getClientController()->simulateProtocol(step.a);
+            break;
+        case Kind::Error:
+            controller.getClientController()->simulateError(step.a);
+            break;
+        case Kind::Autotune:
+            controller.autotune(120, 10, 1200);
+            break;
+        case Kind::Update:
+            controller.onOTAUpdate();
+            break;
+        case Kind::Expect: {
+            const int actual = step.path == "screen" ? eez_flow_get_current_screen()
+                               : step.path == "mode" ? controller.getMode()
+                                                     : controller.isActive();
+            if (actual != step.a) {
+                fprintf(stderr, "[sim-script] expected %s %d, got %d\n", step.path.c_str(), step.a, actual);
+                std::exit(3);
+            }
+            fprintf(stderr, "[sim-script] verified %s %d\n", step.path.c_str(), actual);
+            break;
+        }
         case Kind::Shot:
             driver->screenshot(step.path.c_str());
             break;

@@ -53,7 +53,7 @@ class GaggiMateClient {
     void init(const String &deviceName);
     void loop();
 
-    bool isReadyForConnection() const { return _initialized; }
+    bool isReadyForConnection() const { return _initialized && _connectionAvailable; }
     bool connectToServer();
     bool isConnected() const { return _connected; }
     void disconnect() { _connected = false; }
@@ -105,6 +105,26 @@ class GaggiMateClient {
         if (_buttonCb)
             _buttonCb(index, pressed);
     }
+    // Sim only: exercise the same callbacks as a lost link, incompatible firmware or machine error.
+    void simulateConnection(bool available) {
+        _connectionAvailable = available;
+        if (available) {
+            connectToServer();
+        } else {
+            _connected = false;
+            _pendingConnect = false;
+            if (_connCb)
+                _connCb(false);
+        }
+    }
+    void simulateProtocol(uint32_t version) {
+        if (_systemInfoCb)
+            _systemInfoCb("GaggiMate Sim", "sim-3.0", version, true, true, true, true, {});
+    }
+    void simulateError(int code) {
+        if (_errorCb)
+            _errorCb(code);
+    }
     void onAutotuneResult(AutotuneResultCallback cb) { _autotuneResultCb = std::move(cb); }
     void onVolumetricMeasurement(VolumetricCallback cb) { _volumetricCb = std::move(cb); }
     void onTofMeasurement(TofCallback cb) { _tofCb = std::move(cb); }
@@ -115,6 +135,7 @@ class GaggiMateClient {
     NimBLEClient _nativeClient;
 
     bool _initialized = false;
+    bool _connectionAvailable = true;
     bool _connected = false;
     bool _pendingConnect = false;
     bool _autotunePending = false;

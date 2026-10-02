@@ -1,0 +1,33 @@
+<!-- @dsCard group="Round display" height=540 width=520 subtitle="480 px circular LVGL screen: tick rings, one hero number" page -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Display · Brew — preview</title>
+<style>
+  body { display:flex; justify-content:center; padding: var(--space-4) 0; }
+  .bm-screen__top { position:absolute; top:52px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:2px; }
+</style>
+</head>
+<body>
+<div class="bm-screen bm-screen--framed" role="img" aria-label="Brew screen: Adaptive v2, 28 seconds, 9.0 of 9 bar, 93.4 of 93 degrees">
+  <svg class="bm-screen__gauges" viewBox="0 0 480 480" aria-hidden="true">
+  <path class="track" d="M166.8,441.1 A214,214 0 0 1 166.8,38.9"/>
+  <path class="fill is-temperature" d="M166.8,441.1 A214,214 0 0 1 133.6,54.3"/>
+  <path class="track" d="M313.2,441.1 A214,214 0 0 0 313.2,38.9"/>
+  <path class="fill is-pressure" d="M313.2,441.1 A214,214 0 0 0 415.3,117.3"/>
+</svg>
+  <div class="bm-screen__top">
+    <span class="bm-screen__label">Brew</span>
+    <span class="bm-screen__title">Adaptive v2</span>
+  </div>
+  <div class="bm-screen__center" style="gap:var(--space-1)">
+    <span class="bm-screen__label">Shot time</span>
+    <span class="bm-screen__metric">00:28</span>
+    <div class="bm-screen__row" style="margin-top:var(--space-3)">
+      <div class="bm-screen__pair is-temperature"><span class="bm-screen__label">Temp</span><span class="bm-screen__metric-sm"><b>93.4</b><span>/ 93 °C</span></span></div>
+      <div class="bm-screen__pair is-pressure"><span class="bm-screen__label">Pressure</span><span class="bm-screen__metric-sm"><b>9.0</b><span>/ 9 bar</span></span></div>
+    </div>
+  </div>
+  <button class="bm-screen__cta" type="button" aria-label="Stop"><svg class="bm-icon" viewBox="0 0 24 24"><path d="M4 4h16v1H4zM4 5h16v1H4zM4 6h16v1H4zM4 7h16v1H4zM4 8h16v1H4zM4 9h16v1H4zM4 10h16v1H4zM4 11h16v1H4zM4 12h16v1H4zM4 13h16v1H4zM4 14h16v1H4zM4 15h16v1H4zM4 16h16v1H4zM4 17h16v1H4zM4 18h16v1H4zM4 19h16v1H4z"/></svg></button>
+</div>
+</body>
+</html>

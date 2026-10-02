@@ -89,7 +89,9 @@ def gen_tokens():
             m = re.fullmatch(r"(\d+)px", str(t["value"]))
             if not m:
                 continue
-            lines.append(f"inline constexpr int {upper_snake(t['name'])} = {m.group(1)};\n")
+            # Arduino.h defines DISPLAY as a macro; keep the token source unchanged but avoid that C++ name.
+            name = "DISPLAY_SIZE" if t["name"] == "display" else upper_snake(t["name"])
+            lines.append(f"inline constexpr int {name} = {m.group(1)};\n")
 
     px_family("spacing", "Spacing, px (a 4 px grid)")
     px_family("radius", "Corner radii, px (radius-pill is LV_RADIUS_CIRCLE on the display)")

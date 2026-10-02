@@ -57,6 +57,17 @@ IDE (CLion/VSCode) it shows up under the `display-sim` environment as the
 - **State** (settings, profiles, shot history) persists under `sim_data/`
   (git-ignored). Delete it to start fresh.
 
+BetterMate's Standby checks capture all three themes, 12-hour time, a scheduled wake, AMOLED rest and drift,
+return navigation, and controller wake guards in isolated scratch directories:
+
+```shell
+python3 scripts/verify_display_standby.py
+```
+
+The scripted input verbs are documented in `sim/SimScript.h`. `expect screen`, `expect mode` and `expect active`
+exit with status 3 if a navigation or process assertion fails. Fault injection affects the simulated controller only;
+its protocol version is 3, independent of the real controller protocol. Inspect the captured BMPs for visual checks.
+
 ## 3. How it works
 
 Everything simulator-only lives here in `sim/`; the firmware in `src/` is built

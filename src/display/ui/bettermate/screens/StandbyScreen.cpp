@@ -150,9 +150,6 @@ void StandbyScreen::update(const UiState &s) {
 
     const bool blocked = s.system == SystemPhase::ProtocolMismatch || s.system == SystemPhase::Error;
     const StandbyStatus now = describe(s, buf, sizeof(buf));
-    // Only a machine with nothing to report may go dark around its clock.
-    const bool resting = theme().id() == ThemeId::Amoled && s.system == SystemPhase::Ready &&
-                         s.now - shownAt >= REST_AFTER_MS;
 
     ui::setBadge(badge, now.tone, now.word);
     ui::setVisible(sentence, now.sentence != nullptr);
@@ -162,6 +159,9 @@ void StandbyScreen::update(const UiState &s) {
     ui::Tone warningTone = ui::Tone::Warning;
     const char *warningWord = nullptr;
     const bool warned = !blocked && standbyWarning(s, warningTone, warningWord);
+    // Keep warnings and faults visible even after the AMOLED rest timeout.
+    const bool resting =
+        theme().id() == ThemeId::Amoled && s.system == SystemPhase::Ready && !warned && s.now - shownAt >= REST_AFTER_MS;
     if (warned)
         ui::setBadge(warning, warningTone, warningWord);
     ui::setVisible(warning.root, warned && !resting);
@@ -210,8 +210,7 @@ void StandbyScreen::updateHint(const UiState &s, bool visible) {
     if (s.wakeInMinutes < 24 * 60)
         snprintf(text, sizeof(text), "WAKES %s%s%s", timeBuf, suffix[0] ? " " : "", suffix);
     else
-        snprintf(text, sizeof(text), "WAKES %s %s%s%s", WEEKDAYS_SHORT[s.wakeWeekday % 7], timeBuf, suffix[0] ? " " : "",
-                 suffix);
+        snprintf(text, sizeof(text), "WAKES %s %s%s%s", WEEKDAYS_SHORT[s.wakeWeekday % 7], timeBuf, suffix[0] ? " " : "", suffix);
     ui::setIcon(hintIcon, &bm_icon_clock_24);
     ui::setText(hintText, text);
 }

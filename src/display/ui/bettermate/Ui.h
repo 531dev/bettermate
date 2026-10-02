@@ -8,7 +8,7 @@
 // styles) and takes its colors and type from the shared theme styles, never from literals.
 namespace bm::ui {
 
-constexpr lv_coord_t DISPLAY = tokens::DISPLAY; // the panel is 480 x 480, round
+constexpr lv_coord_t DISPLAY_SIZE = tokens::DISPLAY_SIZE; // the panel is 480 x 480, round
 
 // A full-screen root on surface-0. Text inside defaults to ink in the body style.
 lv_obj_t *screen();
