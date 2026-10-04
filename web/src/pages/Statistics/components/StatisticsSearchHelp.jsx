@@ -1,5 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons/faCircleQuestion';
+import { Icon } from '../../../components/Icon.jsx';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { createPortal } from 'preact/compat';
 import { getAnalyzerIconButtonClasses } from '../../ShotAnalyzer/components/analyzerControlStyles';
@@ -21,14 +20,14 @@ function StatisticsSearchHelpContent() {
       <p className='opacity-80'>
         Rules are separated with <code>;</code>. Visual filters and DSL are combined with AND.
       </p>
-      <div className='bg-base-200/60 rounded-lg p-2'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-2'>
         <p className='font-semibold'>Fields</p>
         <p>
           <code>name</code>, <code>profile</code>, <code>id</code>, <code>source</code>,{' '}
           <code>date</code>, <code>pinned</code>
         </p>
       </div>
-      <div className='bg-base-200/60 rounded-lg p-2'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-2'>
         <p className='font-semibold'>Examples</p>
         <p>
           <code>name:325; name:326;</code> (same field = OR)
@@ -46,7 +45,7 @@ function StatisticsSearchHelpContent() {
           <code>date:&gt;=01.02.2026; date:&lt;=07.02.2026 23:59;</code>
         </p>
       </div>
-      <div className='bg-base-200/60 rounded-lg p-2'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-2'>
         <p className='font-semibold'>Date</p>
         <p>
           Use <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>,{' '}
@@ -130,12 +129,12 @@ export function StatisticsSearchHelp() {
       <summary
         className={`${getAnalyzerIconButtonClasses({
           className:
-            'text-base-content/60 hover:text-base-content flex h-9 min-h-0 w-9 list-none items-center justify-center bg-transparent px-0',
+            'hover:text-base-content flex h-9 min-h-0 w-9 list-none items-center justify-center bg-transparent px-0 text-[var(--ink-muted)]',
         })} [&::-webkit-details-marker]:hidden`}
         aria-label='Search help'
         title='Search help'
       >
-        <FontAwesomeIcon icon={faCircleQuestion} className='text-sm' />
+        <Icon name={'info'} className='text-sm' />
       </summary>
       <div className={STATISTICS_SEARCH_HELP_PANEL_CLASS} style={panelStyle}>
         <StatisticsSearchHelpContent />

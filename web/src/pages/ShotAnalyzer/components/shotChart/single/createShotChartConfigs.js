@@ -1,3 +1,4 @@
+import { readCssColorVar } from '../helpers/chartTheme.js';
 /**
  * createShotChartConfigs.js
  *
@@ -404,12 +405,12 @@ export function createShotChartConfigs({
             max: model.mainAxisMax,
             ticks: {
               display: true,
-              font: { size: 10 },
+              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
             grid: {
-              color: 'rgba(200, 200, 200, 0.1)',
+              color: readCssColorVar('--chart-grid', '#d4d4d4'),
             },
           },
           yTempOverlay: {
@@ -441,7 +442,7 @@ export function createShotChartConfigs({
             max: model.weightAxisMax,
             ticks: {
               display: showWeightAxis,
-              font: { size: 10 },
+              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -458,7 +459,7 @@ export function createShotChartConfigs({
             max: model.puckResistanceAxisMax,
             ticks: {
               display: showPuckResistanceAxis,
-              font: { size: 10 },
+              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -475,7 +476,7 @@ export function createShotChartConfigs({
             max: model.liquidResistanceAxisMax,
             ticks: {
               display: showLiquidResistanceAxis,
-              font: { size: 10 },
+              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -533,7 +534,7 @@ export function createShotChartConfigs({
             ticks: {
               display: true,
               autoSkip: false,
-              font: { size: 10 },
+              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
               color: neutralAxisTickColor,
               callback: formatResponsiveXAxisTick,
               padding: 4,
@@ -548,7 +549,7 @@ export function createShotChartConfigs({
             },
             border: {
               display: true,
-              color: 'rgba(200, 200, 200, 0.18)',
+              color: readCssColorVar('--chart-grid', '#d4d4d4'),
             },
           },
           yTemp: {
@@ -558,12 +559,12 @@ export function createShotChartConfigs({
             max: model.tempAxisMax,
             ticks: {
               display: true,
-              font: { size: 10 },
+              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
             grid: {
-              color: 'rgba(200, 200, 200, 0.1)',
+              color: readCssColorVar('--chart-grid', '#d4d4d4'),
             },
           },
           yTempRight: {
@@ -576,7 +577,7 @@ export function createShotChartConfigs({
             border: { display: false },
             ticks: {
               display: showWeightAxis,
-              font: { size: 10 },
+              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
               color: 'rgba(0, 0, 0, 0)',
               callback: formatUniqueAxisTick,
             },

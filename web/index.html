@@ -11,27 +11,31 @@
     <!-- iOS PWA support -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="GaggiMate" />
+    <meta name="apple-mobile-web-app-title" content="BetterMate" />
 
     <link rel="manifest" href="/app.webmanifest" />
-    <link rel="shortcut icon" type="image/svg+xml" href="/gm.svg" />
-    <link rel="apple-touch-icon" href="/gm.png" />
-    <title>Gaggimate Web UI</title>
+    <link rel="shortcut icon" type="image/svg+xml" href="/bettermate.svg" />
+    <link rel="apple-touch-icon" href="/bettermate-192.png" />
+    <title>BetterMate Web UI</title>
     <script>
       // Apply the saved theme synchronously before any module loads, so we
       // never flash the default-light theme on a fresh page load.
       (function () {
         try {
           var key = 'gaggimate-daisyui-theme';
-          var allowed = ['light', 'dark', 'coffee', 'nord'];
+          var allowed = ['system', 'light', 'dark'];
           var saved = localStorage.getItem(key);
-          var theme = allowed.indexOf(saved) >= 0 ? saved : 'light';
+          if (saved === 'coffee') saved = 'dark';
+          if (saved === 'nord') saved = 'light';
+          var theme = allowed.indexOf(saved) >= 0 ? saved : 'system';
+          if (theme === 'system')
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           document.documentElement.setAttribute('data-theme', theme);
         } catch (e) {}
       })();
     </script>
   </head>
-  <body class="bg-base-100">
+  <body>
     <div id="app"></div>
     <script type="module" src="/src/index.jsx"></script>
   </body>

@@ -7,12 +7,48 @@
 
 namespace bm {
 
+enum class Intent : uint8_t {
+    Refresh,
+    Menu,
+    Profile,
+    Adjust,
+    Start,
+    Flush,
+    Tare,
+    ToggleTarget,
+    TempDown,
+    TempUp,
+    TargetDown,
+    TargetUp,
+    DeleteWeight,
+    Accept,
+    Save,
+    SaveAsNew,
+    CancelConfirm,
+    Confirm,
+    Finish,
+    BrewMode,
+    SteamMode,
+    WaterMode,
+    GrindMode,
+    Info,
+    Standby,
+    ToggleWater,
+    ToggleGrind,
+    GrindDown,
+    GrindUp,
+    PreviousProfile,
+    NextProfile,
+    SelectProfile
+};
+
 // What a screen may ask of the UI that owns it. A screen never reaches into the controller or another screen:
 // it states an intent here and the owner carries it out.
 class Host {
   public:
     // Leave standby and switch the machine on in brew mode.
     virtual void wake() = 0;
+    virtual void act(Intent intent) = 0;
 
   protected:
     ~Host() = default;
@@ -41,9 +77,29 @@ class Screen {
   protected:
     virtual void build(lv_obj_t *root) = 0;
 
+    // Bindings belong to the screen, not LVGL object's user data (which Ui uses for color roles).
+    void bind(lv_obj_t *obj, Intent intent, lv_event_code_t event = LV_EVENT_SHORT_CLICKED) {
+        LV_ASSERT(bindingCount < sizeof(bindings) / sizeof(bindings[0]));
+        Binding &binding = bindings[bindingCount++];
+        binding = {&host, intent};
+        lv_obj_add_event_cb(
+            obj,
+            [](lv_event_t *e) {
+                const auto *b = static_cast<Binding *>(lv_event_get_user_data(e));
+                b->host->act(b->intent);
+            },
+            event, &binding);
+    }
+
     Host &host;
 
   private:
+    struct Binding {
+        Host *host;
+        Intent intent;
+    };
+    Binding bindings[32]{};
+    size_t bindingCount = 0;
     lv_obj_t *rootObj = nullptr;
 };
 

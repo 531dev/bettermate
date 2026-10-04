@@ -1,7 +1,5 @@
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon } from '../../components/Icon.jsx';
 import homekitImage from '../../assets/homekit.png';
-import { faCalendarDays } from '@fortawesome/free-solid-svg-icons/faCalendarDays';
 import { computed } from '@preact/signals';
 import { machine } from '../../services/ApiService.js';
 
@@ -18,7 +16,7 @@ export function PluginCard({
 }) {
   return (
     <div className='space-y-4'>
-      <div className='bg-base-200 rounded-lg p-4'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-4'>
         <div className='flex items-center justify-between'>
           <span className='text-xl font-medium'>Automatic Wakeup Schedule</span>
           <input
@@ -108,14 +106,14 @@ export function PluginCard({
                         disabled={!formData.autowakeupEnabled}
                         title='Delete this schedule'
                       >
-                        <FontAwesomeIcon icon={faTrashCan} className='text-base' />
+                        <Icon name={'trash-2'} className='text-base' />
                       </button>
                     ) : (
                       <div
                         className='btn btn-ghost btn-sm md:btn-md grow-1 cursor-not-allowed opacity-30'
                         title='Cannot delete the last schedule'
                       >
-                        <FontAwesomeIcon icon={faTrashCan} className='text-base' />
+                        <Icon name={'trash-2'} className='text-base' />
                       </div>
                     )}
                   </div>
@@ -128,7 +126,7 @@ export function PluginCard({
                   aria-label='Add schedule'
                   title='Add schedule'
                 >
-                  <FontAwesomeIcon icon={faCalendarDays} />
+                  <Icon name={'history'} />
                 </button>
               </div>
             </div>
@@ -136,7 +134,7 @@ export function PluginCard({
         )}
       </div>
 
-      <div className='bg-base-200 rounded-lg p-4'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-4'>
         <div className='flex items-center justify-between'>
           <span className='text-xl font-medium'>HomeKit</span>
           <input
@@ -161,7 +159,7 @@ export function PluginCard({
         )}
       </div>
 
-      <div className='bg-base-200 rounded-lg p-4'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-4'>
         <div className='flex items-center justify-between'>
           <span className='text-xl font-medium'>Boiler Refill Plugin</span>
           <input
@@ -209,7 +207,7 @@ export function PluginCard({
         )}
       </div>
 
-      <div className='bg-base-200 rounded-lg p-4'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-4'>
         <div className='flex items-center justify-between'>
           <span className='text-xl font-medium'>Smart Grind Plugin</span>
           <input
@@ -268,7 +266,7 @@ export function PluginCard({
         )}
       </div>
 
-      <div className='bg-base-200 rounded-lg p-4'>
+      <div className='rounded-lg bg-[var(--surface-2)] p-4'>
         <div className='flex items-center justify-between'>
           <span className='text-xl font-medium'>Home Assistant over MQTT (Deprecated)</span>
           <input
@@ -374,7 +372,7 @@ export function PluginCard({
       </div>
 
       {gearpumpAddon.value && (
-        <div className='bg-base-200 rounded-lg p-4'>
+        <div className='rounded-lg bg-[var(--surface-2)] p-4'>
           <div className='flex items-center justify-between'>
             <span className='text-xl font-medium'>BLDC Pump Settings</span>
           </div>

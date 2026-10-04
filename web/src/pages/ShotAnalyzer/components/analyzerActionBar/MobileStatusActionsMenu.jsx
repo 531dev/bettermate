@@ -1,15 +1,10 @@
+import { Icon } from '../../../../components/Icon.jsx';
 /* global globalThis */
 
 /** Owns the viewport-positioned mobile import and mode actions menu. */
 
 import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons/faCircleNotch';
-import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons/faEllipsisVertical';
-import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
-import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
-import { faLaptopFile } from '@fortawesome/free-solid-svg-icons/faLaptopFile';
 import { analyzerUiColors } from '../../utils/analyzerUtils';
 
 const MOBILE_STATUS_ACTIONS_MENU_WIDTH = 224;
@@ -44,7 +39,7 @@ function MobileStatusActionsMenuPortal({
     <div
       ref={menuRef}
       role='menu'
-      className='bg-base-100/95 border-base-content/10 text-base-content fixed z-[10000] rounded-xl border p-1.5 shadow-xl backdrop-blur-md'
+      className='bg-base-100/95 border-base-content/10 text-base-content fixed z-[10000] rounded-xl border p-1.5'
       style={{
         top: `${menuPosition.top}px`,
         left: `${menuPosition.left}px`,
@@ -61,8 +56,8 @@ function MobileStatusActionsMenuPortal({
         }}
         disabled={isImporting}
       >
-        <FontAwesomeIcon
-          icon={isImporting ? faCircleNotch : faFileImport}
+        <Icon
+          name={isImporting ? 'refresh-cw' : 'plus'}
           spin={isImporting}
           className='w-4 text-sm'
         />
@@ -79,10 +74,7 @@ function MobileStatusActionsMenuPortal({
             handleModeToggle(event);
           }}
         >
-          <FontAwesomeIcon
-            icon={isBrowserImportMode ? faLaptopFile : faEye}
-            className='w-4 text-sm'
-          />
+          <Icon name={isBrowserImportMode ? 'monitor' : 'search'} className='w-4 text-sm' />
           <span>{isBrowserImportMode ? 'Save to Browser' : 'View temporarily'}</span>
         </button>
       ) : null}
@@ -160,7 +152,7 @@ export function MobileStatusActionsMenu({
         aria-haspopup='menu'
         title='More actions'
       >
-        <FontAwesomeIcon icon={faEllipsisVertical} className='text-sm' />
+        <Icon name={'menu'} className='text-sm' />
       </button>
 
       {isOpen ? (

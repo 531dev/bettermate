@@ -1,0 +1,16 @@
+[I] Saving profile 3hnKO4qNNg
+[I] Selecting profile 
+[I] Auto-wakeup plugin initialized
+[I] STA connected: ssid= bssid=00:00:00:00:00:00 ch=0 authmode=0
+[I] STA got IP: 0.0.0.0 gw=0.0.0.0
+[I] Connected to GaggiMate-Sim with IP address 192.168.1.123
+[sim-web] WebUI server on http://localhost:8080/
+[I] Started webserver
+[I] System info: GaggiMate Sim sim-3.0 (proto=3 local=3 dm=1 ps=1 led=1 tof=1)
+[I] Saving changed settings
+[sim-script] verified setpoint 160
+[sim-script] verified setpoint 0
+[sim-script] verified grind-duration 300
+[I] Saving changed settings
+[sim-script] verified grind-weight 2500
+

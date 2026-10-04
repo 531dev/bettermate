@@ -1,12 +1,3 @@
-import { faBullseye } from '@fortawesome/free-solid-svg-icons/faBullseye';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faDroplet } from '@fortawesome/free-solid-svg-icons/faDroplet';
-import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
-import { faFilter } from '@fortawesome/free-solid-svg-icons/faFilter';
-import { faGauge } from '@fortawesome/free-solid-svg-icons/faGauge';
-import { faGaugeHigh } from '@fortawesome/free-solid-svg-icons/faGaugeHigh';
-import { faScaleBalanced } from '@fortawesome/free-solid-svg-icons/faScaleBalanced';
-import { faTemperatureHalf } from '@fortawesome/free-solid-svg-icons/faTemperatureHalf';
 import { fmt } from '../utils/format';
 import { StatisticsMetricHeader } from './StatisticsMetricHeader';
 import { STATISTICS_DENSE_VALUE_CLASS, STATISTICS_SMALL_LABEL_CLASS } from './statisticsUi';
@@ -18,7 +9,7 @@ const METRIC_ROWS = [
     unit: 'g',
     colorClass: 'text-[var(--analyzer-weight-text)]',
     accentColor: 'var(--analyzer-weight-text)',
-    icon: faScaleBalanced,
+    icon: 'scale',
     averageDescription: 'Final shot weight average',
   },
   {
@@ -27,7 +18,7 @@ const METRIC_ROWS = [
     unit: 's',
     colorClass: 'text-[var(--statistics-summary-duration)]',
     accentColor: 'var(--statistics-summary-duration)',
-    icon: faClock,
+    icon: 'clock',
     averageDescription: 'Per-shot duration average',
   },
   {
@@ -36,7 +27,7 @@ const METRIC_ROWS = [
     unit: '\u2103',
     colorClass: 'text-[var(--analyzer-target-temp-text)]',
     accentColor: 'var(--analyzer-target-temp-text)',
-    icon: faBullseye,
+    icon: 'sliders-horizontal',
     averageDescription: 'Time-weighted average target temperature',
   },
   {
@@ -45,7 +36,7 @@ const METRIC_ROWS = [
     unit: '\u2103',
     colorClass: 'text-[var(--analyzer-temp-text)]',
     accentColor: 'var(--analyzer-temp-text)',
-    icon: faTemperatureHalf,
+    icon: 'thermometer',
     averageDescription: 'Time-weighted average temperature',
   },
   {
@@ -54,7 +45,7 @@ const METRIC_ROWS = [
     unit: '\u2103',
     colorClass: 'text-[var(--analyzer-target-temp-text)]',
     accentColor: 'var(--analyzer-target-temp-text)',
-    icon: faBullseye,
+    icon: 'sliders-horizontal',
     digits: 2,
     averageDescription: 'Per-shot absolute delta between measured and target average temperature',
   },
@@ -64,7 +55,7 @@ const METRIC_ROWS = [
     unit: 'bar',
     colorClass: 'text-[var(--analyzer-pressure-text)]',
     accentColor: 'var(--analyzer-pressure-text)',
-    icon: faGauge,
+    icon: 'gauge',
     averageDescription: 'Time-weighted average pressure',
   },
   {
@@ -73,7 +64,7 @@ const METRIC_ROWS = [
     unit: 'bar',
     colorClass: 'text-[var(--analyzer-pressure-text)]',
     accentColor: 'var(--analyzer-pressure-text)',
-    icon: faGaugeHigh,
+    icon: 'gauge',
     averageDescription: 'Average of each shot peak pressure',
   },
   {
@@ -82,7 +73,7 @@ const METRIC_ROWS = [
     unit: 'ml/s',
     colorClass: 'text-[var(--analyzer-flow-text)]',
     accentColor: 'var(--analyzer-flow-text)',
-    icon: faFaucet,
+    icon: 'droplet',
     averageDescription: 'Time-weighted average flow',
   },
   {
@@ -91,7 +82,7 @@ const METRIC_ROWS = [
     unit: 'ml',
     colorClass: 'text-[var(--statistics-summary-water)]',
     accentColor: 'var(--statistics-summary-water)',
-    icon: faDroplet,
+    icon: 'droplet',
     averageDescription: 'Per-shot water drawn average',
   },
   {
@@ -100,7 +91,7 @@ const METRIC_ROWS = [
     unit: 'ml/s',
     colorClass: 'text-[var(--analyzer-puckflow-text)]',
     accentColor: 'var(--analyzer-puckflow-text)',
-    icon: faFilter,
+    icon: 'sliders-horizontal',
     averageDescription: 'Time-weighted average puck flow',
   },
   {
@@ -109,7 +100,7 @@ const METRIC_ROWS = [
     unit: 's·√bar/mL',
     colorClass: 'text-[var(--analyzer-puckresistance-text)]',
     accentColor: 'var(--analyzer-puckresistance-text)',
-    icon: faGaugeHigh,
+    icon: 'gauge',
     averageDescription: 'Time-weighted average puck resistance',
     requiresData: true,
   },
@@ -119,7 +110,7 @@ const METRIC_ROWS = [
     unit: 'bar·s/mL',
     colorClass: 'text-[var(--analyzer-liquidresistance-text)]',
     accentColor: 'var(--analyzer-liquidresistance-text)',
-    icon: faGaugeHigh,
+    icon: 'gauge',
     averageDescription: 'Time-weighted average liquid resistance',
     requiresData: true,
   },
@@ -189,7 +180,7 @@ function MetricRangeViz({ row, metric }) {
   const stdBandPct = Math.round(14 + spreadRatio * 26);
 
   return (
-    <div className='app-card-surface flex h-full min-h-[11rem] flex-col rounded-xl p-3 transition-shadow'>
+    <div className='app-card-surface flex h-full min-h-[11rem] flex-col rounded-xl p-3 transition-colors'>
       <StatisticsMetricHeader
         accentColor={row.accentColor}
         icon={row.icon}
@@ -199,7 +190,7 @@ function MetricRangeViz({ row, metric }) {
       />
 
       <div
-        className='mt-3 rounded-lg px-3 py-2 shadow-sm'
+        className='mt-3 rounded-lg px-3 py-2'
         style={{
           background: 'var(--statistics-summary-surface-strong)',
         }}
@@ -207,7 +198,7 @@ function MetricRangeViz({ row, metric }) {
         <div className='flex items-center justify-between gap-2'>
           <div className={STATISTICS_SMALL_LABEL_CLASS}>Range</div>
           <div className='text-right'>
-            <div className='text-base-content/60 text-[10px]'>Std Dev</div>
+            <div className='text-[10px] text-[var(--ink-muted)]'>Std Dev</div>
             <div className={`text-xs ${STATISTICS_DENSE_VALUE_CLASS}`}>
               {fmt(metric.stdDev, row.digits)}
             </div>
@@ -241,7 +232,7 @@ function MetricRangeViz({ row, metric }) {
               style={{
                 left: `calc(${positions.avgPos}% - 1px)`,
                 backgroundColor: row.accentColor,
-                boxShadow: `0 0 0 2px color-mix(in srgb, ${row.accentColor} 18%, transparent)`,
+                outline: `2px solid color-mix(in srgb, ${row.accentColor} 18%, transparent)`,
               }}
             />
           </div>

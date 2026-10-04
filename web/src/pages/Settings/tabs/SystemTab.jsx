@@ -1,9 +1,8 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hooks';
 import { ApiServiceContext, machine } from '../../../services/ApiService.js';
 import { downloadJson } from '../../../utils/download.js';
 import { SystemTabSkeleton } from '../../../components/skeletons/SettingsSkeletons.jsx';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
 import { Spinner } from '../../../components/Spinner.jsx';
 import Section from '../../../components/Card.jsx';
 
@@ -53,7 +52,7 @@ function OtaProgressView({ phase, progress }) {
       {!failed && <Spinner size={8} />}
       <span className='text-base-content text-xl font-medium'>{getOtaPhaseText(phase)}</span>
       {failed ? (
-        <span role='alert' className='text-base-content/70 max-w-md text-center'>
+        <span role='alert' className='max-w-md text-center text-[var(--ink-muted)]'>
           The update could not be completed and the device kept its current firmware. Check the
           network connection and start the update again.
         </span>
@@ -75,14 +74,14 @@ function StorageAndMemorySection({ formData }) {
       <div className='grid grid-cols-1 gap-6'>
         {formData.spiffsTotal !== undefined && (
           <div className='flex flex-col space-y-2'>
-            <span className='text-base-content/70 text-sm font-medium'>Storage (LittleFS)</span>
+            <span className='text-sm font-medium text-[var(--ink-muted)]'>Storage (LittleFS)</span>
             <div className='bg-base-300 h-3 w-full overflow-hidden rounded'>
               <div
                 className='bg-primary h-full transition-all'
                 style={{ width: `${formData.spiffsUsedPct || 0}%` }}
               />
             </div>
-            <div className='text-base-content/60 text-xs'>
+            <div className='text-xs text-[var(--ink-muted)]'>
               {((formData.spiffsUsed || 0) / 1024).toFixed(1)} KB /{' '}
               {(formData.spiffsTotal / 1024).toFixed(1)} KB ({formData.spiffsUsedPct}%)
             </div>
@@ -91,14 +90,14 @@ function StorageAndMemorySection({ formData }) {
 
         {formData.sdTotal !== undefined && (
           <div className='flex flex-col space-y-2'>
-            <span className='text-base-content/70 text-sm font-medium'>Storage (SD-Card)</span>
+            <span className='text-sm font-medium text-[var(--ink-muted)]'>Storage (SD-Card)</span>
             <div className='bg-base-300 h-3 w-full overflow-hidden rounded'>
               <div
                 className='bg-primary h-full transition-all'
                 style={{ width: `${formData.sdUsedPct || 0}%` }}
               />
             </div>
-            <div className='text-base-content/60 text-xs'>
+            <div className='text-xs text-[var(--ink-muted)]'>
               {((formData.sdUsed || 0) / 1024 / 1024).toFixed(1)} MB /{' '}
               {(formData.sdTotal / 1024 / 1024).toFixed(1)} MB ({formData.sdUsedPct}%)
             </div>
@@ -107,7 +106,7 @@ function StorageAndMemorySection({ formData }) {
 
         {formData.heapTotal !== undefined && (
           <div className='flex flex-col space-y-2'>
-            <span className='text-base-content/70 text-sm font-medium'>Free Memory (Heap)</span>
+            <span className='text-sm font-medium text-[var(--ink-muted)]'>Free Memory (Heap)</span>
             <div className='bg-base-300 h-3 w-full overflow-hidden rounded'>
               <div
                 className='bg-primary h-full transition-all'
@@ -116,7 +115,7 @@ function StorageAndMemorySection({ formData }) {
                 }}
               />
             </div>
-            <div className='text-base-content/60 text-xs'>
+            <div className='text-xs text-[var(--ink-muted)]'>
               {((formData.heapTotal - formData.heapFree || 0) / 1024).toFixed(1)} kB /{' '}
               {(formData.heapTotal / 1024).toFixed(1)} kB (
               {(formData.heapTotal > 0
@@ -169,8 +168,8 @@ function MaintenanceSection({
             </>
           )}
           {rebuilt && (
-            <span className='text-success ml-2'>
-              <FontAwesomeIcon icon={faCheck}></FontAwesomeIcon>
+            <span className='ml-2 text-[var(--success)]'>
+              <Icon name={'check'}></Icon>
             </span>
           )}
         </button>
@@ -178,7 +177,7 @@ function MaintenanceSection({
 
       {rebuilding && (
         <div className='mt-4 max-w-md'>
-          <div className='text-base-content/70 mb-1 text-xs'>
+          <div className='mb-1 text-xs text-[var(--ink-muted)]'>
             {rebuildProgress.status === 'starting' ||
             rebuildProgress.status === 'scanning' ||
             rebuildProgress.total === 0
@@ -347,12 +346,12 @@ export function SystemTab() {
 
         <div className='border-base-content/5 mt-6 grid grid-cols-1 gap-6 border-t pt-6 md:grid-cols-2'>
           <div className='flex flex-col space-y-1'>
-            <span className='text-base-content/70 text-sm font-medium'>Hardware</span>
+            <span className='text-sm font-medium text-[var(--ink-muted)]'>Hardware</span>
             <span className='text-base-content font-semibold'>{formData.hardware}</span>
           </div>
 
           <div className='flex flex-col space-y-1'>
-            <span className='text-base-content/70 text-sm font-medium'>
+            <span className='text-sm font-medium text-[var(--ink-muted)]'>
               Controller Signal Strength
             </span>
             <span className='text-base-content flex items-center gap-2 font-semibold'>
@@ -362,7 +361,7 @@ export function SystemTab() {
           </div>
 
           <div className='flex flex-col space-y-2'>
-            <span className='text-base-content/70 text-sm font-medium'>Controller Version</span>
+            <span className='text-sm font-medium text-[var(--ink-muted)]'>Controller Version</span>
             <div className='flex flex-wrap items-center gap-4'>
               <span className='text-base-content font-semibold break-all'>
                 {formData.controllerVersion}
@@ -384,7 +383,7 @@ export function SystemTab() {
           </div>
 
           <div className='flex flex-col space-y-2'>
-            <span className='text-base-content/70 text-sm font-medium'>Display Version</span>
+            <span className='text-sm font-medium text-[var(--ink-muted)]'>Display Version</span>
             <div className='flex flex-wrap items-center gap-4'>
               <span className='text-base-content font-semibold break-all'>
                 {formData.displayVersion}

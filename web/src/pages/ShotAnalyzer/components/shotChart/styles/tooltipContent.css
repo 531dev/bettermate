@@ -4,7 +4,6 @@
   min-width: 0;
   border-radius: 0.6rem;
   background: var(--statistics-summary-surface-muted);
-  box-shadow: 0 1px 2px color-mix(in srgb, black 6%, transparent);
 }
 
 .shot-chart-tooltip__compact-heading {
@@ -21,7 +20,7 @@
 
 .shot-chart-tooltip__compact-time {
   flex: 0 0 auto;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip__compact-phase {
@@ -71,7 +70,7 @@
 .shot-chart-tooltip__compact-difference-value {
   flex: 0 0 auto;
   color: color-mix(in srgb, var(--color-base-content) 68%, transparent);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip__compact-stop-list {
@@ -100,7 +99,7 @@
   font-size: 0.62rem;
   font-weight: 700;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip__compact-stop-text {
@@ -173,7 +172,7 @@
 .shot-chart-tooltip__compact-metric-value {
   flex: 0 0 auto;
   color: var(--color-base-content);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip--static-empty {
@@ -195,7 +194,6 @@
   border-radius: 0.75rem;
   background: var(--statistics-summary-surface-muted);
   padding: 0.45rem 0.55rem;
-  box-shadow: 0 1px 2px color-mix(in srgb, black 6%, transparent);
 }
 
 .shot-chart-static-metrics__icon {
@@ -241,7 +239,7 @@
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip__static-content {
@@ -254,7 +252,6 @@
   border-radius: 0.75rem;
   background: var(--statistics-summary-surface-muted);
   padding: 0.55rem 0.65rem;
-  box-shadow: 0 1px 2px color-mix(in srgb, black 6%, transparent);
 }
 
 .shot-chart-tooltip__static-context-card {
@@ -270,7 +267,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.15;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip__static-phase-list,
@@ -328,11 +325,8 @@
 }
 
 .shot-chart-tooltip--fullscreen {
-  border-color: var(--app-glass-surface-border);
-  background: var(--app-glass-surface-bg);
-  box-shadow: var(--app-glass-surface-shadow), var(--app-glass-surface-highlight);
-  backdrop-filter: var(--app-glass-surface-filter);
-  -webkit-backdrop-filter: var(--app-glass-surface-filter);
+  border-color: var(--line);
+  background: var(--surface-2);
 }
 
 .shot-chart-tooltip__title {
@@ -384,7 +378,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip__phase-shot {

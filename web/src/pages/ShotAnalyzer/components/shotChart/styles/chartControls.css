@@ -85,7 +85,6 @@
   -webkit-appearance: none;
   border: 0;
   background: transparent;
-  box-shadow: none;
 }
 
 .shot-chart-mobile-scrubber__range::-moz-range-track {
@@ -106,7 +105,6 @@
   height: 3rem;
   border: 0;
   background: transparent;
-  box-shadow: none;
 }
 
 .shot-chart-scrubber-legend {

@@ -30,7 +30,7 @@ function LibraryMobileSectionTabs({ activeSection, onSectionChange }) {
   const getTabClassName = section =>
     `flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
       activeSection === section
-        ? 'bg-base-100 text-base-content shadow-sm'
+        ? 'bg-base-100 text-base-content '
         : getAnalyzerTextButtonClasses({
             className: 'justify-center',
           })
@@ -38,7 +38,7 @@ function LibraryMobileSectionTabs({ activeSection, onSectionChange }) {
 
   return (
     <div className='px-4 pt-4 lg:hidden'>
-      <div className='bg-base-200/60 flex items-center gap-1 rounded-lg p-1'>
+      <div className='flex items-center gap-1 rounded-lg bg-[var(--surface-2)] p-1'>
         <button
           type='button'
           className={getTabClassName('shots')}

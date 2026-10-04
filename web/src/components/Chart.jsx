@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Chart } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import { applyChartTheme } from '../utils/chartTheme.js';
 
 Chart.register(annotationPlugin);
+Chart.defaults.font.family = '"JetBrains Mono", ui-monospace, monospace';
 
 export function ChartComponent({ data, className, chartClassName, style }) {
   const [chart, setChart] = useState(null);
@@ -13,6 +15,8 @@ export function ChartComponent({ data, className, chartClassName, style }) {
     if (!ref.current) return;
 
     const newChart = new Chart(ref.current, data);
+    applyChartTheme(newChart);
+    newChart.update('none');
     setChart(newChart);
 
     // Cleanup function to destroy chart on unmount
@@ -34,6 +38,7 @@ export function ChartComponent({ data, className, chartClassName, style }) {
 
     chart.data = data.data;
     chart.options = data.options;
+    applyChartTheme(chart);
 
     // Restore dataset visibility state
     chart.data.datasets.forEach((dataset, index) => {
@@ -44,6 +49,26 @@ export function ChartComponent({ data, className, chartClassName, style }) {
 
     chart.update();
   }, [data, chart]);
+
+  useEffect(() => {
+    if (!chart) return;
+    let alive = true;
+    const refresh = () => {
+      if (!alive) return;
+      applyChartTheme(chart);
+      chart.update('none');
+    };
+    const observer = new MutationObserver(refresh);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+    document.fonts.ready.then(refresh);
+    return () => {
+      alive = false;
+      observer.disconnect();
+    };
+  }, [chart]);
 
   // Add resize event listener to update chart options dynamically
   useEffect(() => {

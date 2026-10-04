@@ -1,11 +1,10 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { Icon } from '../../../../components/Icon.jsx';
 import { getDisplayStopReasonParts, utilityColors } from '../../utils/analyzerUtils';
 import { isSafetyExitReason } from '../../services/analyzer/exitReasons.js';
 
 export function ComparePhaseLabel({ phase, results }) {
   if (!phase) {
-    return <div className='text-base-content/45 leading-tight font-medium'>-</div>;
+    return <div className='leading-tight font-medium text-[var(--ink-muted)]'>-</div>;
   }
 
   const { skipNotice, stopReason } = getDisplayStopReasonParts(phase.exit?.reason);
@@ -18,7 +17,7 @@ export function ComparePhaseLabel({ phase, results }) {
       </div>
       {skipNotice ? (
         <div
-          className='text-base-content/55 leading-tight font-medium'
+          className='leading-tight font-medium text-[var(--ink-muted)]'
           style={{ fontSize: '0.8em' }}
         >
           {skipNotice}
@@ -37,7 +36,7 @@ export function ComparePhaseLabel({ phase, results }) {
       ) : null}
       {phase.isFinalExecuted && (
         <div
-          className='text-base-content/55 leading-tight font-medium'
+          className='leading-tight font-medium text-[var(--ink-muted)]'
           style={{
             fontSize: '0.8em',
             color: results?.completionTone === 'warning' ? utilityColors.warningOrange : undefined,
@@ -97,12 +96,12 @@ function formatCellNumber(value, digits = 1) {
 
 function renderCellBoolean(value) {
   if (value === true) {
-    return <FontAwesomeIcon icon={faCheck} className='text-success text-[1em]' />;
+    return <Icon name={'check'} className='text-[1em] text-[var(--success)]' />;
   }
   if (value === false) {
-    return <FontAwesomeIcon icon={faTimes} className='text-error text-[1em]' />;
+    return <Icon name={'x'} className='text-[1em] text-[var(--danger)]' />;
   }
-  return <span className='text-base-content/55 font-medium'>-</span>;
+  return <span className='font-medium text-[var(--ink-muted)]'>-</span>;
 }
 
 function formatSystemCellValue(colId, value) {
@@ -211,7 +210,7 @@ function TargetDeltaDisplay({ targetVal, unit, subTextSize }) {
   return (
     <div
       style={subTextSize}
-      className='text-base-content/55 mt-0.5 leading-tight font-medium tracking-normal whitespace-nowrap italic'
+      className='mt-0.5 leading-tight font-medium tracking-normal whitespace-nowrap text-[var(--ink-muted)] italic'
     >
       Target {targetVal} {unit}
     </div>
@@ -279,7 +278,7 @@ function getWeightWarnings({ phase, isWeightCol, subTextSize }) {
         style={{ ...subTextSize, color: utilityColors.warningOrange }}
         className='mt-0.5 flex items-center justify-end gap-1 font-bold'
       >
-        <FontAwesomeIcon icon={faExclamationTriangle} />
+        <Icon name={'triangle-alert'} />
         <span>Scale Lost</span>
       </div>,
     );
@@ -292,7 +291,7 @@ function getWeightWarnings({ phase, isWeightCol, subTextSize }) {
         style={{ ...subTextSize, color: utilityColors.warningOrange }}
         className='mt-0.5 flex items-center justify-end gap-1 font-bold'
       >
-        <FontAwesomeIcon icon={faExclamationTriangle} />
+        <Icon name={'triangle-alert'} />
         <span>
           High Scale Delay
           {phase.estimatedScaleDelayMs ? ` (${phase.estimatedScaleDelayMs} ms)` : ''}
@@ -331,7 +330,7 @@ function renderBooleanCellContent({ booleanContent, booleanAnomaly, subTextSize 
       {booleanAnomaly && (
         <div
           style={subTextSize}
-          className='text-base-content/55 mt-0.5 flex flex-col items-end leading-tight font-medium tracking-normal'
+          className='mt-0.5 flex flex-col items-end leading-tight font-medium tracking-normal text-[var(--ink-muted)]'
           title={`Sample ${booleanAnomaly.sampleInPhase}: ${String(booleanAnomaly.value)}`}
         >
           <span>
@@ -340,7 +339,9 @@ function renderBooleanCellContent({ booleanContent, booleanAnomaly, subTextSize 
               ? ` (${booleanAnomaly.sampleCountInPhase})`
               : ''}
           </span>
-          <span className='text-base-content/55 font-normal'>{String(booleanAnomaly.value)}</span>
+          <span className='font-normal text-[var(--ink-muted)]'>
+            {String(booleanAnomaly.value)}
+          </span>
         </div>
       )}
     </div>

@@ -1,7 +1,5 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
-import { faThumbtack } from '@fortawesome/free-solid-svg-icons/faThumbtack';
 import {
   getAnalyzerIconButtonClasses,
   getAnalyzerSurfaceTriggerClasses,
@@ -62,7 +60,7 @@ function getAccentTriggerClasses(accentTone, hasSelection = false) {
   }
   return hasSelection
     ? 'bg-base-content/10 text-base-content hover:bg-base-content/14'
-    : 'bg-base-content/4 text-base-content/70 hover:bg-base-content/7 hover:text-base-content';
+    : 'bg-base-content/4 text-[var(--ink-muted)] hover:bg-base-content/7 hover:text-base-content';
 }
 
 function getAccentCircleClasses(accentTone, selected) {
@@ -144,7 +142,7 @@ function StatisticsMultiSelectRow({
             onTogglePin(item);
           }}
         >
-          <FontAwesomeIcon icon={faThumbtack} />
+          <Icon name={'check'} />
         </button>
       ) : null}
     </div>
@@ -445,8 +443,8 @@ export function StatisticsMultiSelectDropdown({
       >
         <span className='truncate text-left'>{triggerText}</span>
         <span className='text-[10px] opacity-65'>
-          <FontAwesomeIcon
-            icon={faChevronDown}
+          <Icon
+            name={'chevron-down'}
             className={open ? 'rotate-180 transition-transform' : 'transition-transform'}
           />
         </span>
@@ -480,7 +478,7 @@ export function StatisticsMultiSelectDropdown({
                     }`,
                   })}
                 >
-                  <FontAwesomeIcon icon={faThumbtack} />
+                  <Icon name={'check'} />
                 </button>
               ) : null}
             </div>

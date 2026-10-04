@@ -1,0 +1,15 @@
+
+> lint:check
+> eslint src
+
+
+/Users/mohamadsherif/Developer/betterMate/bettermate/web/src/pages/Statistics/components/statisticsView/hooks.js
+  246:9  warning  The 'matchesPinnedShotMeta' function makes the dependencies of useMemo Hook (at line 270) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'matchesPinnedShotMeta' in its own useCallback() Hook              react-hooks/exhaustive-deps
+  253:9  warning  The 'getProfilePinDisabledReason' function makes the dependencies of useMemo Hook (at line 336) change on every render. Move it inside the useMemo callback. Alternatively, wrap the definition of 'getProfilePinDisabledReason' in its own useCallback() Hook  react-hooks/exhaustive-deps
+  256:9  warning  The 'getShotPinDisabledReason' function makes the dependencies of useMemo Hook (at line 366) change on every render. To fix this, wrap the definition of 'getShotPinDisabledReason' in its own useCallback() Hook                                               react-hooks/exhaustive-deps
+  256:9  warning  The 'getShotPinDisabledReason' function makes the dependencies of useMemo Hook (at line 420) change on every render. To fix this, wrap the definition of 'getShotPinDisabledReason' in its own useCallback() Hook                                               react-hooks/exhaustive-deps
+  778:5  warning  React Hook useMemo has unnecessary dependencies: 'result' and 'runRequest'. Either exclude them or remove the dependency array                                                                                                                                  react-hooks/exhaustive-deps
+  782:5  warning  React Hook useMemo has an unnecessary dependency: 'result'. Either exclude it or remove the dependency array                                                                                                                                                    react-hooks/exhaustive-deps
+
+✖ 6 problems (0 errors, 6 warnings)
+

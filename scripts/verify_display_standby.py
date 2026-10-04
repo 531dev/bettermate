@@ -17,15 +17,22 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def run_case(binary, output, name, script, preferences=None):
+def run_case(binary, output, name, script, preferences=None, profiles=None):
     case = output / name
     case.mkdir()
     if preferences:
         nvs = case / "sim_data" / "nvs"
         nvs.mkdir(parents=True)
         (nvs / "controller.json").write_text(json.dumps(preferences))
+    if profiles:
+        directory = case / "sim_data" / "littlefs" / "p"
+        directory.mkdir(parents=True)
+        for profile in profiles:
+            (directory / f"{profile['id']}.json").write_text(json.dumps(profile))
     print(f"Checking {name}...", flush=True)
-    env = dict(os.environ, SIM_HTTP_PORT="8090")
+    # UI scripts do not need HTTP. A separate port prevents browser checks
+    # from reconnecting to a different test case when another simulator exits.
+    env = dict(os.environ, SIM_HTTP_PORT=str(18000 + os.getpid() % 10000))
     with (case / "simulator.log").open("w") as log:
         subprocess.run([str(binary), "--script", script], cwd=case, env=env, stdout=log,
                        stderr=subprocess.STDOUT, check=True, timeout=140)

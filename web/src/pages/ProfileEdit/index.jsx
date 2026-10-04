@@ -1,3 +1,4 @@
+import { Icon } from '../../components/Icon.jsx';
 import { useLocation, useRoute } from 'preact-iso';
 import { useCallback, useEffect, useState, useContext } from 'preact/hooks';
 import {
@@ -17,8 +18,6 @@ import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { computed } from '@preact/signals';
 import { Spinner } from '../../components/Spinner.jsx';
 import { ExtendedProfileForm } from './ExtendedProfileForm.jsx';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
 
 Chart.register(
   LineController,
@@ -136,7 +135,7 @@ export function ProfileEdit() {
   return (
     <>
       <div className='mb-4 flex flex-row items-center gap-2'>
-        <h2 className='flex-grow text-2xl font-bold sm:text-3xl'>
+        <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
           {params.id === 'new' ? 'Create Profile' : `Edit ${data.label}`}
         </h2>
         {data?.type === 'standard' && pressureAvailable.value && (

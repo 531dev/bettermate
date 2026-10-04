@@ -1,5 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
+import { Icon } from '../Icon.jsx';
 import { PrimaryButton, SecondaryButton } from './Buttons.jsx';
 import { PHASE } from './constants.js';
 
@@ -20,7 +19,7 @@ export default function Footer({ phase, saving, saved, connected, onClose, onSta
       )}
       {(phase === PHASE.RUNNING || phase === PHASE.ANALYZING) && (
         <PrimaryButton disabled>
-          <FontAwesomeIcon icon={faSpinner} spin />
+          <Icon name={'refresh-cw'} spin />
           {phase === PHASE.RUNNING ? 'Running shot...' : 'Analyzing...'}
         </PrimaryButton>
       )}
@@ -28,7 +27,7 @@ export default function Footer({ phase, saving, saved, connected, onClose, onSta
         <>
           <SecondaryButton onClick={onClose}>Discard</SecondaryButton>
           <PrimaryButton onClick={onApply} disabled={saving}>
-            {saving && <FontAwesomeIcon icon={faSpinner} spin />}
+            {saving && <Icon name={'refresh-cw'} spin />}
             {saving ? 'Saving...' : 'Save to machine'}
           </PrimaryButton>
         </>

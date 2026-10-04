@@ -1,11 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faGauge } from '@fortawesome/free-solid-svg-icons/faGauge';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import { faRectangleList } from '@fortawesome/free-solid-svg-icons/faRectangleList';
-import { faThermometerHalf } from '@fortawesome/free-solid-svg-icons/faThermometerHalf';
-import { faWeightScale } from '@fortawesome/free-solid-svg-icons/faWeightScale';
+import { Icon } from '../../components/Icon.jsx';
 import { WarningIcon } from '../../components/WarningIcon.jsx';
 import { activeWarnings, WARNING_LEVEL } from '../../utils/warnings.js';
 import { FlushButton } from './FlushButton.jsx';
@@ -22,9 +15,9 @@ import {
 
 const Metric = ({ icon, current, target, unit }) => (
   <div className='flex items-center gap-1.5'>
-    <FontAwesomeIcon icon={icon} className='text-base-content/60 text-xs' />
-    <span className='text-base-content tabular-nums'>{current}</span>
-    <span className='text-success font-semibold tabular-nums'>
+    <Icon name={icon} className='text-xs text-[var(--ink-muted)]' />
+    <span className='text-base-content font-mono tabular-nums'>{current}</span>
+    <span className='font-mono font-semibold text-[var(--success)] tabular-nums'>
       / {target}
       {unit}
     </span>
@@ -34,7 +27,7 @@ const Metric = ({ icon, current, target, unit }) => (
 const FinishedView = ({ elapsed }) => (
   <div className='space-y-1 text-center'>
     <div className='text-base-content text-lg font-bold'>Finished</div>
-    <div className='text-base-content text-2xl font-bold tabular-nums'>{elapsed}</div>
+    <div className='text-base-content font-mono text-2xl font-bold tabular-nums'>{elapsed}</div>
   </div>
 );
 
@@ -45,14 +38,14 @@ const ActiveView = ({ p, grind }) => {
     <div className='flex w-full max-w-sm min-w-0 flex-col gap-1.5 px-2'>
       <div className='flex min-w-0 items-baseline justify-between gap-2'>
         <div className='flex min-w-0 items-baseline gap-1.5'>
-          <span className='text-base-content/60 shrink-0 text-[0.6rem] font-semibold tracking-[0.16em] uppercase'>
+          <span className='shrink-0 text-[0.6rem] font-semibold tracking-[0.16em] text-[var(--ink-muted)] uppercase'>
             {getPhaseLabel(p, grind)}
           </span>
           {p?.l && (
             <span className='text-base-content min-w-0 truncate text-sm font-bold'>{p.l}</span>
           )}
         </div>
-        <span className='text-base-content shrink-0 text-xl font-bold tabular-nums'>
+        <span className='text-base-content shrink-0 font-mono text-xl font-bold tabular-nums'>
           {fmtElapsed(p?.e)}
         </span>
       </div>
@@ -63,7 +56,7 @@ const ActiveView = ({ p, grind }) => {
         />
       </div>
       {phaseTarget && (
-        <div className='text-base-content/60 self-end text-[0.65rem] tabular-nums'>
+        <div className='self-end font-mono text-[0.65rem] text-[var(--ink-muted)] tabular-nums'>
           target {phaseTarget}
         </div>
       )}
@@ -74,7 +67,7 @@ const ActiveView = ({ p, grind }) => {
 const InfoView = ({ title, hint }) => (
   <div className='space-y-1 text-center'>
     <div className='text-lg font-semibold'>{title}</div>
-    <div className='text-base-content/60 text-xs'>{hint}</div>
+    <div className='text-xs text-[var(--ink-muted)]'>{hint}</div>
   </div>
 );
 
@@ -148,13 +141,13 @@ export default function CompactProcessControls() {
         <div className='flex w-full max-w-sm min-w-0 flex-col items-stretch gap-3'>
           <a
             href='/profiles'
-            className='bg-base-200/70 hover:bg-base-200 flex min-w-0 items-center gap-3 rounded-2xl px-3 py-2 transition-colors'
+            className='flex min-w-0 items-center gap-3 rounded-2xl bg-[var(--surface-2)] px-3 py-2 transition-colors hover:bg-[var(--surface-2)]'
           >
             <span className='bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-xl'>
-              <FontAwesomeIcon icon={faRectangleList} className='text-sm' />
+              <Icon name={'list'} className='text-sm' />
             </span>
             <span className='flex min-w-0 flex-1 flex-col leading-tight'>
-              <span className='text-base-content/50 text-[0.6rem] font-semibold tracking-[0.18em] uppercase'>
+              <span className='text-[0.6rem] font-semibold tracking-[0.18em] text-[var(--ink-muted)] uppercase'>
                 Profile
               </span>
               <span className='text-base-content min-w-0 truncate text-sm font-bold'>
@@ -176,7 +169,7 @@ export default function CompactProcessControls() {
             onDecrease={lowerTemp}
             onIncrease={raiseTemp}
           />
-          <div className='text-base-content/60 text-xs'>
+          <div className='text-xs text-[var(--ink-muted)]'>
             {getSteamHint(currentTemperature, targetTemperature, mode)}
           </div>
         </div>
@@ -200,7 +193,7 @@ export default function CompactProcessControls() {
 
   return (
     <div className='flex h-full min-h-0 w-full min-w-0 flex-col gap-2 overflow-hidden'>
-      <div className='bg-base-200/70 flex h-9 w-full shrink-0 gap-0.5 rounded-full p-0.5'>
+      <div className='bg-base-200 flex h-11 w-full shrink-0 gap-0.5 rounded-full p-0.5'>
         {MODES.filter(m => m.id !== 4 || showGrindTab).map(m => (
           <ModeTab
             key={m.id}
@@ -215,21 +208,21 @@ export default function CompactProcessControls() {
 
       <div className='flex shrink-0 items-center justify-between gap-3 text-[0.65rem]'>
         <Metric
-          icon={faThermometerHalf}
+          icon={'thermometer'}
           current={(currentTemperature ?? 0).toFixed(1)}
           target={targetTemperature ?? 0}
           unit='°C'
         />
         {showWeight && (
           <Metric
-            icon={faWeightScale}
+            icon={'scale'}
             current={(currentWeight ?? 0).toFixed(1)}
             target={(targetWeight ?? 0).toFixed(0)}
             unit='g'
           />
         )}
         <Metric
-          icon={faGauge}
+          icon={'gauge'}
           current={(currentPressure ?? 0).toFixed(1)}
           target={(targetPressure ?? 0).toFixed(1)}
           unit=' bar'
@@ -248,13 +241,13 @@ export default function CompactProcessControls() {
                 key={w.key}
                 icon={w.icon}
                 title={w.label}
-                className={`text-lg ${w.level === WARNING_LEVEL.ERROR ? 'text-error' : 'text-warning'}`}
+                className={`text-lg ${w.level === WARNING_LEVEL.ERROR ? 'text-[var(--danger)]' : 'text-[var(--warning)]'}`}
               />
             ))}
           </div>
           {showFlush && (
             <FlushButton
-              className='btn btn-ghost btn-sm text-base-content/60 hover:text-base-content rounded-full text-xs'
+              className='btn btn-ghost btn-sm hover:text-base-content rounded-full text-xs text-[var(--ink-muted)]'
               isFlushing={isFlushing}
               startFlush={startFlush}
               stopFlush={stopFlush}
@@ -267,7 +260,7 @@ export default function CompactProcessControls() {
               onClick={handlePrimary}
               aria-label={getPrimaryLabel(isActive, isFinished)}
             >
-              <FontAwesomeIcon icon={getPrimaryIcon(isActive, isFinished)} className='text-lg' />
+              <Icon name={getPrimaryIcon(isActive, isFinished)} className='text-lg' />
             </button>
           )}
           <div className='flex-1' aria-hidden='true' />

@@ -1,9 +1,6 @@
 .shot-chart-tooltip--static.shot-chart-tooltip--fullscreen {
   border: 0;
   background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 .shot-chart-tooltip__compact-content {
@@ -59,7 +56,6 @@
   .shot-chart-tooltip__compact-metric-list {
   border-radius: 0;
   background: transparent;
-  box-shadow: none;
 }
 
 .shot-chart-tooltip--static-compact:not(.shot-chart-tooltip--static-empty-content):not(
@@ -225,7 +221,7 @@
   font-weight: 600;
   line-height: 1.15;
   text-align: center;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: font-mono tabular-nums;
 }
 
 .shot-chart-tooltip__compare-compact-phase-grid,
@@ -368,7 +364,6 @@
   .shot-chart-tooltip__compact-metric-list {
   border-radius: 0;
   background: transparent;
-  box-shadow: none;
 }
 
 .shot-chart-tooltip--static-compact-single-line:not(.shot-chart-tooltip--static-empty-content)

@@ -1,15 +1,10 @@
+import { Icon } from '../../../../components/Icon.jsx';
 /**
  * LibrarySection.jsx
  */
 
 import { LibraryRow } from './LibraryRow';
 import { LibraryActionsMenu } from './LibraryActionsMenu';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
-import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
-import { faThumbtack } from '@fortawesome/free-solid-svg-icons/faThumbtack';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons/faCircleNotch';
 import { getShotIdentityKey } from '../../utils/analyzerUtils';
 import {
   getAnalyzerIconButtonClasses,
@@ -191,12 +186,12 @@ export function LibrarySection({
             actions={[
               {
                 label: 'Export All',
-                icon: faFileExport,
+                icon: 'save',
                 onSelect: onExportAll,
               },
               {
                 label: 'Delete All',
-                icon: faTrashCan,
+                icon: 'trash-2',
                 tone: 'error',
                 onSelect: onDeleteAll,
               },
@@ -237,7 +232,7 @@ export function LibrarySection({
       >
         {isLoading && (
           <div className='bg-base-100/90 absolute inset-0 z-20 flex items-center justify-center'>
-            <FontAwesomeIcon icon={faCircleNotch} spin className='text-primary text-3xl' />
+            <Icon name={'refresh-cw'} spin className='text-primary text-3xl' />
           </div>
         )}
 
@@ -277,7 +272,7 @@ export function LibrarySection({
                       aria-label={`Toggle pinned ${isShot ? 'shots' : 'profiles'} first`}
                       title={`Toggle pinned ${isShot ? 'shots' : 'profiles'} first`}
                     >
-                      <FontAwesomeIcon icon={faThumbtack} />
+                      <Icon name={'check'} />
                     </button>
                   ) : (
                     <span className='library-row-grid__pin' aria-hidden='true' />
@@ -292,8 +287,8 @@ export function LibrarySection({
                       title='Filter library source'
                     >
                       {renderLibrarySourceHeaderContent(sourceFilter)}
-                      <FontAwesomeIcon
-                        icon={faChevronDown}
+                      <Icon
+                        name={'chevron-down'}
                         className='library-source-filter-chevron text-[10px] opacity-60'
                       />
                     </summary>
@@ -308,7 +303,7 @@ export function LibrarySection({
                               className: `flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[10px] font-bold ${
                                 sourceFilter === option.value
                                   ? 'bg-base-content/6 text-base-content'
-                                  : 'text-base-content/70'
+                                  : 'text-[var(--ink-muted)]'
                               }`,
                             })}
                             onClick={event => {
@@ -336,7 +331,7 @@ export function LibrarySection({
                     </button>
                   ) : null}
                   {isShot ? (
-                    <span className='library-row-grid__profile text-base-content/70 text-left text-xs font-medium tracking-normal'>
+                    <span className='library-row-grid__profile text-left text-xs font-medium tracking-normal text-[var(--ink-muted)]'>
                       Profile
                     </span>
                   ) : null}

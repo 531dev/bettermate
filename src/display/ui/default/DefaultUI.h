@@ -74,7 +74,7 @@ class DefaultUI {
     virtual void onScreenShown(ScreensEnum screen) {}
     virtual void onRendered() {}
 
-    void setupPanel();
+    void setupPanel(bool animateStartup);
     void setupState();
 
     void handleScreenChange();

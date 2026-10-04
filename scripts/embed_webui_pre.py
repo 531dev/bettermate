@@ -25,3 +25,9 @@ packer = os.path.join(project_dir, "scripts", "embed_webui.py")
 if not os.path.isfile(manifest):
     print("embed_webui_pre: no web bundle found, writing stub (run build_webui.sh for the real UI)")
     subprocess.check_call([sys.executable, packer, "--out", out_dir, "--stub"])
+
+# The assembler's .incbin is invisible to SCons' dependency scanner. Rebuild
+# the object whenever the packed assets change, alongside the generated manifest.
+blob = os.path.join(out_dir, "web_ui.bin")
+blob_object = os.path.join(env.subst("$BUILD_DIR"), "src", "display", "webassets", "web_ui_blob.S.o")
+env.Depends(blob_object, blob)

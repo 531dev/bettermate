@@ -1,10 +1,7 @@
+import { Icon } from '../../components/Icon.jsx';
 import Card from '../../components/Card.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
 import { isNumber } from 'chart.js/helpers';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
 import { Tooltip } from '../../components/Tooltip.jsx';
 import { ProfileMainInformation } from './ProfileMainInformation.jsx';
 import { getProfilePhases, removePhaseAt, updatePhaseAt } from './profilePhases.js';
@@ -73,10 +70,7 @@ export function StandardProfileForm(props) {
               <div key={index}>
                 {index > 0 && (
                   <div className='flex flex-col items-center py-2' aria-hidden='true'>
-                    <FontAwesomeIcon
-                      icon={faChevronDown}
-                      className='text-base-content/60 text-lg'
-                    />
+                    <Icon name={'chevron-down'} className='text-lg text-[var(--ink-muted)]' />
                   </div>
                 )}
                 <Phase
@@ -95,7 +89,7 @@ export function StandardProfileForm(props) {
                 onClick={onPhaseAdd}
                 aria-label='Add new brew phase'
               >
-                <FontAwesomeIcon icon={faPlus} />
+                <Icon name={'plus'} />
                 <span>Add phase</span>
               </button>
             </div>
@@ -161,7 +155,7 @@ function Phase({ phase, index, onChange, onRemove, pressureAvailable }) {
 
   return (
     <div
-      className='bg-base-200 border-base-300 space-y-4 rounded-lg border p-4'
+      className='border-base-300 space-y-4 rounded-lg border bg-[var(--surface-2)] p-4'
       role='group'
       aria-label={`Phase ${index + 1} configuration`}
     >
@@ -198,10 +192,10 @@ function Phase({ phase, index, onChange, onRemove, pressureAvailable }) {
               <button
                 type='button'
                 onClick={onRemove}
-                className='btn btn-sm btn-ghost text-error'
+                className='btn btn-sm btn-ghost text-[var(--danger)]'
                 aria-label={`Delete phase ${index + 1}`}
               >
-                <FontAwesomeIcon icon={faTrashCan} />
+                <Icon name={'trash-2'} />
               </button>
             </Tooltip>
           </div>

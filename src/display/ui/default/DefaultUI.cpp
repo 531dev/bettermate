@@ -60,7 +60,9 @@ DefaultUI::DefaultUI(Controller *controller, Driver *driver, PluginManager *plug
 
 DefaultUI::DefaultUI(Controller *controller, Driver *driver, PluginManager *pluginManager, bool startUiTask)
     : controller(controller), panelDriver(driver), pluginManager(pluginManager) {
-    setupPanel();
+    // A derived UI loads its own initial screen. An in-flight stock fade can
+    // delete that fade's active target when the derived UI replaces it in LVGL 8.
+    setupPanel(startUiTask);
     if (startUiTask)
         startTask();
 }
@@ -366,18 +368,20 @@ void DefaultUI::onVolumetricDelete() {
     profileDirty = true;
 }
 
-void DefaultUI::setupPanel() {
+void DefaultUI::setupPanel(bool animateStartup) {
     ui_init();
     setupState();
     applyTheme();
     ui_tick();
 
-    lv_obj_t *standby = lv_scr_act();
-    lv_obj_t *black = lv_obj_create(nullptr);
-    lv_obj_set_style_bg_color(black, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(black, LV_OPA_COVER, LV_PART_MAIN);
-    lv_scr_load(black);
-    lv_scr_load_anim(standby, LV_SCR_LOAD_ANIM_FADE_ON, STARTUP_FADE_MS, 0, true);
+    if (animateStartup) {
+        lv_obj_t *standby = lv_scr_act();
+        lv_obj_t *black = lv_obj_create(nullptr);
+        lv_obj_set_style_bg_color(black, lv_color_black(), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(black, LV_OPA_COVER, LV_PART_MAIN);
+        lv_scr_load(black);
+        lv_scr_load_anim(standby, LV_SCR_LOAD_ANIM_FADE_ON, STARTUP_FADE_MS, 0, true);
+    }
 
     lv_task_handler();
 

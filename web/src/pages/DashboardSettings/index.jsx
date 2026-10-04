@@ -1,6 +1,5 @@
+import { Icon } from '../../components/Icon.jsx';
 import { useEffect, useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCompress } from '@fortawesome/free-solid-svg-icons/faCompress';
 import Card from '../../components/Card.jsx';
 import { Tooltip } from '../../components/Tooltip.jsx';
 import {
@@ -101,7 +100,9 @@ export function DashboardSettings() {
   return (
     <>
       <div className='mb-4 flex flex-row items-center gap-2'>
-        <h2 className='flex-grow text-2xl font-bold sm:text-3xl'>Dashboard Settings</h2>
+        <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
+          Dashboard Settings
+        </h2>
       </div>
 
       <div
@@ -184,7 +185,7 @@ export function DashboardSettings() {
                 <div className='flex gap-2'>
                   {[0, 1, 2].map(i => (
                     <div key={i} className='flex flex-1 flex-col gap-1'>
-                      <span className='text-base-content/60 text-xs'>Slot {i + 1}</span>
+                      <span className='text-xs text-[var(--ink-muted)]'>Slot {i + 1}</span>
                       <select
                         className='select select-bordered select-sm w-full'
                         value={shotMetricSlots[i]}
@@ -278,10 +279,10 @@ export function DashboardSettings() {
                     className={`btn btn-xs flex h-6 items-center justify-center gap-1 rounded-full px-2 ${
                       isCompact
                         ? 'btn-primary'
-                        : 'border-base-content/20 bg-base-200/60 text-base-content/60 border'
+                        : 'border-base-content/20 border bg-[var(--surface-2)] text-[var(--ink-muted)]'
                     }`}
                   >
-                    <FontAwesomeIcon icon={faCompress} className='h-3 w-3' />
+                    <Icon name={'panel-left-close'} className='h-3 w-3' />
                     <span className='hidden @md:inline'>{isCompact ? 'Compact' : 'Full'}</span>
                   </button>
                 </Tooltip>

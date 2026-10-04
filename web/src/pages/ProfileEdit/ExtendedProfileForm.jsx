@@ -1,13 +1,9 @@
+import { Icon } from '../../components/Icon.jsx';
 import Card from '../../components/Card.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
 import { ExtendedProfileChart } from '../../components/ExtendedProfileChart.jsx';
 import { useState } from 'preact/hooks';
 import { ExtendedPhase } from './ExtendedPhase.jsx';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft';
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
 import { ProfileMainInformation } from './ProfileMainInformation.jsx';
 import { getProfilePhases, removePhaseAt, updatePhaseAt } from './profilePhases.js';
 
@@ -102,7 +98,7 @@ export function ExtendedProfileForm(props) {
                   disabled={currentPhaseIndex === 0}
                   onClick={() => setCurrentPhaseIndex(currentPhaseIndex - 1)}
                 >
-                  <FontAwesomeIcon icon={faChevronLeft} />
+                  <Icon name={'chevron-left'} />
                 </button>
                 <button
                   type='button'
@@ -111,7 +107,7 @@ export function ExtendedProfileForm(props) {
                   disabled={phases.length === 0 || currentPhaseIndex === phases.length - 1}
                   onClick={() => setCurrentPhaseIndex(currentPhaseIndex + 1)}
                 >
-                  <FontAwesomeIcon icon={faChevronRight} />
+                  <Icon name={'chevron-right'} />
                 </button>
               </div>
             </div>
@@ -121,16 +117,16 @@ export function ExtendedProfileForm(props) {
               aria-label='Add phase'
               onClick={() => onPhaseAdd()}
             >
-              <FontAwesomeIcon icon={faPlus} />
+              <Icon name={'plus'} />
             </button>
             <button
               type='button'
-              className={`join-item btn btn-outline text-error max-sm:btn-sm`}
+              className={`join-item btn btn-outline max-sm:btn-sm text-[var(--danger)]`}
               aria-label='Remove phase'
               disabled={phases.length === 0}
               onClick={() => onPhaseRemove(currentPhaseIndex)}
             >
-              <FontAwesomeIcon icon={faTrashCan} />
+              <Icon name={'trash-2'} />
             </button>
           </div>
           <div className='space-y-4' role='group' aria-label='Brew phases configuration'>
@@ -143,7 +139,7 @@ export function ExtendedProfileForm(props) {
                 pressureAvailable={pressureAvailable}
               />
             ) : (
-              <p className='text-base-content/60 text-sm'>
+              <p className='text-sm text-[var(--ink-muted)]'>
                 No phases yet. Add a phase to configure brewing.
               </p>
             )}

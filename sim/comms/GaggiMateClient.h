@@ -119,8 +119,16 @@ class GaggiMateClient {
     }
     void simulateProtocol(uint32_t version) {
         if (_systemInfoCb)
-            _systemInfoCb("GaggiMate Sim", "sim-3.0", version, true, true, true, true, {});
+            _systemInfoCb("GaggiMate Sim", "sim-3.0", version, true, _pressureAvailable, true, true, {});
     }
+    void simulatePressureSensor(bool available) {
+        _pressureAvailable = available;
+        simulateProtocol(gm_proto::PROTOCOL_VERSION);
+    }
+    void simulateScale(bool available) { _scaleAvailable = available; }
+    void simulateWeight(float weight) { _mock.setScaleWeight(weight); }
+    void tareSimulatedScale() { _mock.tareBluetoothScale(); }
+    void onSimulatedScale(VolumetricCallback cb) { _simulatedScaleCb = std::move(cb); }
     void simulateError(int code) {
         if (_errorCb)
             _errorCb(code);
@@ -138,6 +146,8 @@ class GaggiMateClient {
     bool _connectionAvailable = true;
     bool _connected = false;
     bool _pendingConnect = false;
+    bool _pressureAvailable = true;
+    bool _scaleAvailable = false;
     bool _autotunePending = false;
     uint32_t _autotuneDueMs = 0;
 
@@ -148,6 +158,7 @@ class GaggiMateClient {
     ButtonCallback _buttonCb;
     AutotuneResultCallback _autotuneResultCb;
     VolumetricCallback _volumetricCb;
+    VolumetricCallback _simulatedScaleCb;
     TofCallback _tofCb;
     ErrorCallback _errorCb;
 };

@@ -20,7 +20,7 @@ export function ModeHintPortal({
 
   return createPortal(
     <div
-      className='border-base-content/10 bg-base-100/95 pointer-events-none fixed z-[10000] rounded-xl border px-3 py-2 shadow-xl backdrop-blur-sm'
+      className='border-base-content/10 bg-base-100/95 pointer-events-none fixed z-[10000] rounded-xl border px-3 py-2'
       style={{
         top: `${modeHintPosition.top}px`,
         left: `${modeHintPosition.left}px`,

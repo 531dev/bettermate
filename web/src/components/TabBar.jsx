@@ -1,5 +1,5 @@
+import { Icon } from './Icon.jsx';
 import { useLocation } from 'preact-iso';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function TabBar({ tabs, activeTab, onTabChange, basePath, className = '' }) {
   const location = useLocation();
@@ -31,13 +31,13 @@ export default function TabBar({ tabs, activeTab, onTabChange, basePath, classNa
               aria-selected={isActive}
               aria-controls={`panel-${tab.id}`}
               id={`tab-${tab.id}`}
-              className={`tab flex h-12 flex-row items-center justify-center gap-2 text-sm font-medium whitespace-nowrap transition-all duration-150 ${
+              className={`tab flex h-11 flex-row items-center justify-center gap-2 text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
                 isActive
                   ? 'tab-active text-primary'
-                  : 'text-base-content/60 hover:text-base-content/85'
+                  : 'hover:text-base-content/85 text-[var(--ink-muted)]'
               }`}
             >
-              {tab.icon && <FontAwesomeIcon icon={tab.icon} className='h-4 w-4 shrink-0' />}
+              {tab.icon && <Icon name={tab.icon} className='h-4 w-4 shrink-0' />}
               {tab.label}
             </a>
           );

@@ -10,6 +10,10 @@ GaggiMateClient::GaggiMateClient() {
         if (_volumetricCb)
             _volumetricCb(v);
     };
+    _mock.onScale = [this](float v) {
+        if (_simulatedScaleCb && _scaleAvailable)
+            _simulatedScaleCb(v);
+    };
     _mock.onTof = [this](uint32_t d) {
         if (_tofCb)
             _tofCb(d);

@@ -1,9 +1,8 @@
+import { Icon } from '../../../components/Icon.jsx';
 /* global globalThis */
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 import Chart from 'chart.js/auto';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
 import {
   aggregateTrendsByGranularity,
   formatTrendBucketTickLabel,
@@ -124,7 +123,7 @@ function formatUniqueTrendMetricTick(value, index, ticks, metricKey) {
   return label === previousLabel ? '' : label;
 }
 
-const CHART_FONT_FAMILY = 'Montserrat, sans-serif';
+const CHART_FONT_FAMILY = '"JetBrains Mono", ui-monospace, monospace';
 const CHART_TICK_FONT = { family: CHART_FONT_FAMILY, size: 10, weight: '400' };
 const CHART_TOOLTIP_TITLE_FONT = { family: CHART_FONT_FAMILY, size: 11, weight: '700' };
 const CHART_TOOLTIP_BODY_FONT = { family: CHART_FONT_FAMILY, size: 10, weight: '400' };
@@ -275,7 +274,7 @@ export function TrendChart({ trends }) {
           >
             <select
               className={getAnalyzerSurfaceTriggerClasses({
-                className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} w-[8.75rem] max-w-[8.75rem] appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium shadow-none outline-none`,
+                className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} w-[8.75rem] max-w-[8.75rem] appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium outline-none`,
               })}
               value={selectedMetric}
               onChange={e => setSelectedMetric(e.target.value)}
@@ -288,8 +287,8 @@ export function TrendChart({ trends }) {
                 </option>
               ))}
             </select>
-            <span className='text-base-content/60 pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[10px]'>
-              <FontAwesomeIcon icon={faChevronDown} />
+            <span className='pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[10px] text-[var(--ink-muted)]'>
+              <Icon name={'chevron-down'} />
             </span>
           </div>
           <div
@@ -297,7 +296,7 @@ export function TrendChart({ trends }) {
           >
             <select
               className={getAnalyzerSurfaceTriggerClasses({
-                className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} w-[5rem] max-w-[5rem] appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium shadow-none outline-none`,
+                className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} w-[5rem] max-w-[5rem] appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium outline-none`,
               })}
               value={selectedGranularity}
               onChange={e => setSelectedGranularity(e.target.value)}
@@ -310,8 +309,8 @@ export function TrendChart({ trends }) {
                 </option>
               ))}
             </select>
-            <span className='text-base-content/60 pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[10px]'>
-              <FontAwesomeIcon icon={faChevronDown} />
+            <span className='pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[10px] text-[var(--ink-muted)]'>
+              <Icon name={'chevron-down'} />
             </span>
           </div>
         </div>

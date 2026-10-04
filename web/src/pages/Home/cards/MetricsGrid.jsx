@@ -1,23 +1,22 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import PropTypes from 'prop-types';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import {
   metricsColumnsSignal,
   metricsLastRowFillSignal,
   METRICS_LAST_ROW_FILLS,
 } from '../../../utils/dashboardManager.js';
 
-function AdjBtn({ icon, onClick, visible, disabled }) {
-  if (!visible) return <span className='h-6 w-6 shrink-0' />;
+function AdjBtn({ icon, onClick, visible, disabled, label }) {
+  if (!visible) return null;
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className='btn btn-ghost btn-xs flex h-6 w-6 items-center justify-center rounded-full p-0'
+      aria-label={`${icon === 'minus' ? 'Decrease' : 'Increase'} ${label.toLowerCase()} target`}
+      className='btn btn-ghost btn-xs flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface-2)] p-0'
     >
-      <FontAwesomeIcon icon={icon} className='h-2.5 w-2.5' />
+      <Icon name={icon} className='h-2.5 w-2.5' />
     </button>
   );
 }
@@ -37,29 +36,57 @@ function MetricCell({
   const showAdj = adjustable && !compact;
   return (
     <div
-      className={`flex flex-col items-center justify-between rounded-xl ${compact ? 'gap-0.5 p-1' : 'gap-1 p-2'} ${inCard ? 'bg-base-200/60' : 'card bg-base-100'}`}
+      className={`flex flex-col items-center justify-between rounded-xl ${compact ? 'gap-1 p-2' : 'gap-2 p-3'} ${inCard ? 'bg-[var(--surface-2)]' : 'card bg-base-100'}`}
     >
-      <div className='text-base-content/50 text-[0.6rem] font-semibold tracking-wider uppercase'>
+      <div className='flex items-center gap-1.5 font-mono text-[11px] font-medium tracking-[0.1em] text-[var(--ink-muted)] uppercase'>
+        <span
+          className='h-1.5 w-1.5 rounded-full'
+          style={{
+            background: label.toLowerCase().includes('temp')
+              ? 'var(--series-temperature)'
+              : label.toLowerCase().includes('pressure')
+                ? 'var(--series-pressure)'
+                : label.toLowerCase().includes('flow')
+                  ? 'var(--series-flow)'
+                  : 'var(--series-weight)',
+          }}
+        />
         {label}
       </div>
       <div className='flex w-full items-center justify-between'>
         {!compact && (
-          <AdjBtn icon={faMinus} onClick={onDecrease} visible={showAdj} disabled={disabled} />
+          <AdjBtn
+            icon={'minus'}
+            label={label}
+            onClick={onDecrease}
+            visible={showAdj}
+            disabled={disabled}
+          />
         )}
-        <div className='flex-1 text-center tabular-nums'>
-          <span className='text-base-content text-sm font-bold'>{current}</span>
+        <div className='flex-1 text-center font-mono tabular-nums'>
+          <span
+            className={`text-base-content block font-medium ${compact ? 'text-[15px]' : 'text-[20px]'}`}
+          >
+            {current}
+          </span>
           {target != null && (
-            <>
-              <span className='text-base-content/30 mx-0.5 text-xs'>/</span>
-              <span className='text-success text-xs font-semibold'>
+            <span className='block'>
+              <span className='mx-0.5 text-xs text-[var(--ink-muted)]'>/</span>
+              <span className='text-[13px] font-medium text-[var(--ink-muted)]'>
                 {target}
                 {unit}
               </span>
-            </>
+            </span>
           )}
         </div>
         {!compact && (
-          <AdjBtn icon={faPlus} onClick={onIncrease} visible={showAdj} disabled={disabled} />
+          <AdjBtn
+            icon={'plus'}
+            label={label}
+            onClick={onIncrease}
+            visible={showAdj}
+            disabled={disabled}
+          />
         )}
       </div>
     </div>
@@ -88,7 +115,7 @@ export function MetricsGrid({ metrics = [], inCard = false, compact = false }) {
   const userCols = metricsColumnsSignal.value;
   const lastRowFill = metricsLastRowFillSignal.value;
   const [effectiveCols, setEffectiveCols] = useState(userCols);
-  const minCellWidth = compact ? 90 : 125;
+  const minCellWidth = compact ? 100 : 160;
 
   useEffect(() => {
     const el = containerRef.current;

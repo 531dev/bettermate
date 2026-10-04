@@ -55,9 +55,10 @@ export function AnalysisTable({
   const subtleDividerClass = 'border-base-content/5';
   const strongDividerClass = 'border-base-content/12 border-r-2';
   const tableHeaderTextClass = 'text-base-content leading-tight font-medium tracking-normal';
-  const tableHeaderSubtextClass = 'text-base-content/55 leading-tight font-medium tracking-normal';
+  const tableHeaderSubtextClass =
+    'text-[var(--ink-muted)] leading-tight font-medium tracking-normal';
   const primaryTableTextClass = 'text-base-content/90 font-medium';
-  const tableSubtextClass = 'text-base-content/55 leading-tight font-medium';
+  const tableSubtextClass = 'text-[var(--ink-muted)] leading-tight font-medium';
   const tableLegendTextClass = 'text-base-content/75 text-xs font-normal tracking-normal';
   const analysisWarningBadges = buildAnalysisWarningBadges(results);
   return (
@@ -144,7 +145,7 @@ export function AnalysisTable({
               <tbody>
                 {Array.from({ length: maxComparePhaseCount }, (_, phaseIndex) => (
                   <Fragment key={`phase-group-${phaseIndex}`}>
-                    <tr className='bg-base-200/55'>
+                    <tr className='bg-[var(--surface-2)]'>
                       <td
                         colSpan={compareTableColumnCount}
                         className={`border-base-content/10 px-3 py-2 text-left text-xs ${tableHeaderTextClass}`}
@@ -167,7 +168,7 @@ export function AnalysisTable({
                             <div className='flex min-w-0 items-center gap-1.5'>
                               <span
                                 className={[
-                                  'analyzer-compare-shot-badge analysis-table-compare-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs leading-none font-semibold tabular-nums',
+                                  'analyzer-compare-shot-badge analysis-table-compare-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs leading-none font-semibold tabular-nums',
                                   compareIndex === 1 ? 'analyzer-compare-shot-badge--striped' : '',
                                 ]
                                   .filter(Boolean)
@@ -200,7 +201,7 @@ export function AnalysisTable({
                           {visibleColumns.map(col => (
                             <td
                               key={`${entry.key}-${phaseIndex}-${col.id}`}
-                              className={`border-l px-3 py-2 text-right whitespace-nowrap tabular-nums ${subtleDividerClass}`}
+                              className={`border-l px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums ${subtleDividerClass}`}
                             >
                               <CellContent phase={phase} col={col} results={entry.results} />
                             </td>
@@ -211,7 +212,7 @@ export function AnalysisTable({
                   </Fragment>
                 ))}
 
-                <tr className='bg-base-200/75'>
+                <tr className='bg-[var(--surface-2)]'>
                   <td
                     colSpan={compareTableColumnCount}
                     className={`border-base-content/10 border-t-2 px-3 py-2 text-left text-xs ${tableHeaderTextClass}`}
@@ -229,7 +230,7 @@ export function AnalysisTable({
                       <div className='flex min-w-0 items-center gap-1.5'>
                         <span
                           className={[
-                            'analyzer-compare-shot-badge analysis-table-compare-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs leading-none font-semibold tabular-nums',
+                            'analyzer-compare-shot-badge analysis-table-compare-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs leading-none font-semibold tabular-nums',
                             compareIndex === 1 ? 'analyzer-compare-shot-badge--striped' : '',
                           ]
                             .filter(Boolean)
@@ -253,7 +254,7 @@ export function AnalysisTable({
                     {visibleColumns.map(col => (
                       <td
                         key={`${entry.key}-total-${col.id}`}
-                        className={`border-l px-3 py-2 text-right tabular-nums ${subtleDividerClass} ${primaryTableTextClass}`}
+                        className={`border-l px-3 py-2 text-right font-mono tabular-nums ${subtleDividerClass} ${primaryTableTextClass}`}
                       >
                         <CellContent
                           phase={null}
@@ -296,7 +297,7 @@ export function AnalysisTable({
                       {visibleColumns.map(col => (
                         <td
                           key={col.id}
-                          className={`border-l px-3 py-2 text-right whitespace-nowrap tabular-nums ${subtleDividerClass}`}
+                          className={`border-l px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums ${subtleDividerClass}`}
                         >
                           <CellContent phase={phase} col={col} results={results} />
                         </td>
@@ -316,7 +317,7 @@ export function AnalysisTable({
                     {visibleColumns.map(col => (
                       <td
                         key={col.id}
-                        className={`border-l px-3 py-2 text-right tabular-nums ${subtleDividerClass} ${primaryTableTextClass}`}
+                        className={`border-l px-3 py-2 text-right font-mono tabular-nums ${subtleDividerClass} ${primaryTableTextClass}`}
                       >
                         <CellContent phase={null} col={col} results={results} isTotal={true} />
                       </td>

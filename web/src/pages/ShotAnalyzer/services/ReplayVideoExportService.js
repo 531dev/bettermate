@@ -10,7 +10,6 @@ const EXPORT_CARD_RADIUS = 18;
 const EXPORT_LEGEND_GAP = 10;
 const EXPORT_LEGEND_ITEM_GAP = 18;
 const EXPORT_LEGEND_ROW_GAP = 12;
-const EXPORT_CARD_SHADOW_BLUR = 28;
 const EXPORT_OVERLAY_LANDSCAPE = { width: 1920, height: 1080 };
 const EXPORT_OVERLAY_PORTRAIT = { width: 1080, height: 1920 };
 
@@ -124,7 +123,6 @@ function getExportThemeColors() {
     surface: readCssVar('--statistics-summary-surface-muted', 'rgba(255, 255, 255, 0.96)'),
     surfaceStrong: readCssVar('--statistics-summary-surface-strong', 'rgba(255, 255, 255, 0.985)'),
     border: readCssVar('--statistics-summary-border', 'rgba(15, 23, 42, 0.08)'),
-    shadow: readCssVar('--statistics-summary-shadow', 'rgba(15, 23, 42, 0.12)'),
   };
 }
 
@@ -145,14 +143,9 @@ function createRoundedRectPath(ctx, x, y, width, height, radius) {
 
 function drawCard(ctx, x, y, width, height, colors) {
   ctx.save();
-  ctx.shadowColor = colors.shadow;
-  ctx.shadowBlur = EXPORT_CARD_SHADOW_BLUR;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 10;
   createRoundedRectPath(ctx, x, y, width, height, EXPORT_CARD_RADIUS);
   ctx.fillStyle = colors.surfaceStrong;
   ctx.fill();
-  ctx.shadowColor = 'transparent';
   ctx.lineWidth = 1;
   ctx.strokeStyle = colors.border;
   ctx.stroke();
@@ -224,7 +217,7 @@ function drawLegend(ctx, legendItems, bounds, colors) {
   if (!legendItems.length) return;
 
   ctx.save();
-  ctx.font = '600 14px Montserrat, sans-serif';
+  ctx.font = '500 14px "JetBrains Mono", ui-monospace, monospace';
   ctx.textBaseline = 'middle';
   const rows = measureLegendRows(ctx, legendItems, bounds.width);
 
@@ -311,7 +304,7 @@ function resolveCompositionLayout({ config, mainCanvas, tempCanvas, legendItems 
     const measurementCanvas = createExportCanvas();
     const measurementCtx = measurementCanvas.getContext('2d');
     if (measurementCtx) {
-      measurementCtx.font = '600 14px Montserrat, sans-serif';
+      measurementCtx.font = '500 14px "JetBrains Mono", ui-monospace, monospace';
       const maxLegendWidth = baseCanvasSize.width - EXPORT_PADDING * 2 - EXPORT_CARD_PADDING * 2;
       const legendRows = measureLegendRows(measurementCtx, legendItems, maxLegendWidth);
       legendSectionHeight =

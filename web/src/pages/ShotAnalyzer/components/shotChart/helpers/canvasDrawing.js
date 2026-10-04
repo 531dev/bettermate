@@ -1,5 +1,6 @@
-export const CHART_LABEL_FONT_FAMILY =
-  'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+import { iconPaths } from '../../../../../design/iconPaths.js';
+
+export const CHART_LABEL_FONT_FAMILY = '"JetBrains Mono", ui-monospace, monospace';
 
 export function getChartLabelScale(chart) {
   const width = Number(chart?.width) || 0;
@@ -8,13 +9,12 @@ export function getChartLabelScale(chart) {
   return 1;
 }
 
-export function drawFontAwesomeIcon(ctx, { iconDef, x, y, size, color }) {
-  const icon = iconDef?.icon;
-  const pathData = icon?.[4];
+export function drawPixelIcon(ctx, { iconDef, x, y, size, color }) {
+  const pathData = iconPaths[iconDef];
   if (!pathData) return;
 
-  const width = Number(icon?.[0]) || 512;
-  const height = Number(icon?.[1]) || 512;
+  const width = 24;
+  const height = 24;
   const scale = size / Math.max(width, height);
 
   ctx.save();

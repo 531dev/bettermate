@@ -1,7 +1,7 @@
 import { getNeutralAxisTickColor } from './axisPlugins';
 import {
   CHART_LABEL_FONT_FAMILY,
-  drawFontAwesomeIcon,
+  drawPixelIcon,
   drawRoundedRect,
   getChartLabelScale,
 } from './canvasDrawing';
@@ -18,20 +18,6 @@ const STOP_ICON_BADGE_DROP_HEIGHT_RATIO = 3.24;
 const STOP_ICON_BADGE_ICON_Y_OFFSET_RATIO = -0.14;
 
 const STOP_ICON_SIZE = 12;
-
-const GLASS_SURFACE_SHADOW_FALLBACK = {
-  offsetX: 0,
-  offsetY: 14,
-  blur: 36,
-  color: 'rgba(15, 23, 42, 0.16)',
-};
-
-const CSS_LENGTH_PATTERN = /^(-?\d+(?:\.\d+)?)(?:px)?$/;
-
-function parseShadowLengthToken(token) {
-  const match = CSS_LENGTH_PATTERN.exec(String(token || ''));
-  return match ? Number(match[1]) : null;
-}
 
 export const hoverGuidePlugin = {
   id: 'hoverGuide',
@@ -193,18 +179,9 @@ function resolveStopIconLayout(chart, stop, labelScale) {
   };
 }
 
-function getStopIconShadowOffset(value, fallback) {
-  const numericValue = Number(value);
-  return Number.isFinite(numericValue) ? numericValue : fallback;
-}
-
-function drawStopIcon(ctx, stop, layout, shadow) {
+function drawStopIcon(ctx, stop, layout) {
   const { badgeHeight, badgeWidth, centerX, centerY, labelScale } = layout;
   ctx.save();
-  ctx.shadowColor = stop.shadowColor || shadow.color;
-  ctx.shadowBlur = Number(stop.shadowBlur) || shadow.blur;
-  ctx.shadowOffsetX = getStopIconShadowOffset(stop.shadowOffsetX, shadow.offsetX);
-  ctx.shadowOffsetY = getStopIconShadowOffset(stop.shadowOffsetY, shadow.offsetY);
   ctx.fillStyle = stop.backgroundColor || '#dc2626';
   ctx.beginPath();
   drawStopBadgeDropPath(ctx, {
@@ -216,7 +193,7 @@ function drawStopIcon(ctx, stop, layout, shadow) {
   ctx.fill();
   ctx.restore();
 
-  drawFontAwesomeIcon(ctx, {
+  drawPixelIcon(ctx, {
     iconDef: stop.iconDef,
     x: centerX,
     y: centerY + badgeHeight * STOP_ICON_BADGE_ICON_Y_OFFSET_RATIO,
@@ -237,35 +214,14 @@ export const stopIconOverlayPlugin = {
     const stopRevealX = Number(chart.$replayStopRevealX);
     const shouldFilterByReplayTime =
       chart.$replayStopRevealEnabled === true && Number.isFinite(stopRevealX);
-    const shadow = getGlassSurfaceShadowSettings();
 
     for (const stop of [...stops].reverse()) {
       if (!shouldDrawStopIcon(stop, shouldFilterByReplayTime, stopRevealX)) continue;
       const layout = resolveStopIconLayout(chart, stop, labelScale);
-      if (layout) drawStopIcon(chart.ctx, stop, layout, shadow);
+      if (layout) drawStopIcon(chart.ctx, stop, layout);
     }
   },
 };
-
-function getGlassSurfaceShadowSettings() {
-  const value = readCssColorVar('--app-glass-surface-shadow', '0 14px 36px rgba(15, 23, 42, 0.16)');
-  const [offsetXToken, offsetYToken, blurToken, ...colorTokens] = String(value).trim().split(/\s+/);
-  const offsetX = parseShadowLengthToken(offsetXToken);
-  const offsetY = parseShadowLengthToken(offsetYToken);
-  const blur = parseShadowLengthToken(blurToken);
-  const color = colorTokens.join(' ').trim();
-
-  if (offsetX === null || offsetY === null || blur === null || !color) {
-    return GLASS_SURFACE_SHADOW_FALLBACK;
-  }
-
-  return {
-    offsetX,
-    offsetY,
-    blur,
-    color,
-  };
-}
 
 function drawStopBadgeDropPath(ctx, { centerX, centerY, width, height }) {
   const halfWidth = width / 2;

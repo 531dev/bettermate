@@ -19,10 +19,14 @@ class MockController {
     void setBoiler(const BoilerCommand &c);
     void setPump(const PumpCommand &c);
     void setRelay(const RelayCommand &c);
-    void tareScale() { weight = 0.0f; }
+    // Controller-side flow estimation is tared after a stop; the Bluetooth cup scale is independent.
+    void tareScale() { flowVolume = 0.0f; }
+    void tareBluetoothScale() { weight = 0.0f; }
+    void setScaleWeight(float value) { weight = value; }
 
     SensorFn onSensor;
     VolumetricFn onVolumetric;
+    VolumetricFn onScale;
     TofFn onTof;
 
   private:
@@ -44,4 +48,5 @@ class MockController {
     float pressure = 0.0f; // bar
     float flow = 0.0f;     // ml/s
     float weight = 0.0f;   // g accumulated on the scale
+    float flowVolume = 0.0f;
 };

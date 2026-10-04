@@ -1,11 +1,9 @@
+import { Icon } from '../../../components/Icon.jsx';
 /** Renders the responsive chart, details, and analysis-table composition. */
 
 /* global globalThis */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft';
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
 import { AnalysisTable } from '../components/AnalysisTable';
 import { ShotChart } from '../components/ShotChart';
 import { ShotDetailsPanel, ShotMobilePrimaryCards } from '../components/ShotDetailsPanel';
@@ -71,11 +69,11 @@ function MobileAnalyzerSubpageHeader({ onBack, subtitle, title }) {
         onClick={onBack}
         aria-label='Back to analyzer'
       >
-        <FontAwesomeIcon icon={faChevronLeft} aria-hidden='true' />
+        <Icon name={'chevron-left'} aria-hidden='true' />
       </button>
       <div className='min-w-0'>
         <div className='text-base-content text-sm font-semibold'>{title}</div>
-        <div className='text-base-content/55 truncate text-xs'>{subtitle}</div>
+        <div className='truncate text-xs text-[var(--ink-muted)]'>{subtitle}</div>
       </div>
     </div>
   );
@@ -85,15 +83,11 @@ function MobileAnalyzerSubpageAction({ label, onClick }) {
   return (
     <button
       type='button'
-      className='app-card-surface hover:bg-base-200/60 relative z-0 flex min-h-14 w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-left transition-colors'
+      className='app-card-surface relative z-0 flex min-h-14 w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]'
       onClick={onClick}
     >
       <span className='text-base-content text-sm font-semibold'>{label}</span>
-      <FontAwesomeIcon
-        icon={faChevronRight}
-        className='text-base-content/45 text-xs'
-        aria-hidden='true'
-      />
+      <Icon name={'chevron-right'} className='text-xs text-[var(--ink-muted)]' aria-hidden='true' />
     </button>
   );
 }

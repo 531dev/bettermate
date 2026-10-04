@@ -2,9 +2,9 @@
 // dark panel across all DaisyUI themes (light/dark/coffee/nord).
 
 const LOG_TONE_CLASS = {
-  err: 'text-error',
-  ok: 'text-success',
-  warn: 'text-warning',
+  err: 'text-[var(--danger)]',
+  ok: 'text-[var(--success)]',
+  warn: 'text-[var(--warning)]',
 };
 
 const LOG_TONE_PREFIX = { err: '✗', ok: '✓', warn: '!' };

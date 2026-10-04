@@ -1,10 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightLong } from '@fortawesome/free-solid-svg-icons/faArrowRightLong';
-import { faCalendarDays } from '@fortawesome/free-solid-svg-icons/faCalendarDays';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
-import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import { faUndo } from '@fortawesome/free-solid-svg-icons/faUndo';
+import { Icon } from '../../../../components/Icon.jsx';
 // Render-only sub-components for StatisticsToolbar: dropdown trigger buttons, profile/shot menu items, and search help trigger
 import { SourceMarker } from '../../../ShotAnalyzer/components/SourceMarker';
 import { StatisticsSearchHelp } from '../StatisticsSearchHelp';
@@ -45,14 +39,14 @@ function renderCombinedSourceSummary({ shotOption, profileOption }) {
     <span className='inline-flex min-w-0 items-center gap-1.5'>
       <span className='inline-flex min-w-0 items-center gap-1.5'>
         <span className='shrink-0'>{renderCompactSourceSummary(shotOption)}</span>
-        <span className='text-base-content/70 min-w-0 truncate text-[11px] font-semibold'>
+        <span className='min-w-0 truncate text-[11px] font-semibold text-[var(--ink-muted)]'>
           Shots
         </span>
       </span>
-      <span className='text-base-content/35 shrink-0'>·</span>
+      <span className='shrink-0 text-[var(--ink-muted)]'>·</span>
       <span className='inline-flex min-w-0 items-center gap-1.5'>
         <span className='shrink-0'>{renderCompactSourceSummary(profileOption)}</span>
-        <span className='text-base-content/70 min-w-0 truncate text-[11px] font-semibold'>
+        <span className='min-w-0 truncate text-[11px] font-semibold text-[var(--ink-muted)]'>
           Profiles
         </span>
       </span>
@@ -79,7 +73,7 @@ export function ToolbarBusyOverlay({ visible }) {
 
   return (
     <div className='pointer-events-none absolute inset-0 z-30 flex items-center justify-center'>
-      <span className='loading loading-spinner loading-md text-base-content/35' />
+      <span className='loading loading-spinner loading-md text-[var(--ink-muted)]' />
     </div>
   );
 }
@@ -94,7 +88,7 @@ export function CollapsedToolbarStrip({
     <button
       type='button'
       onClick={onExpand}
-      className='text-base-content/70 hover:bg-base-content/4 hover:text-base-content -mx-1.5 -my-1.5 flex h-6 min-h-0 w-[calc(100%+0.75rem)] cursor-pointer items-center rounded-lg bg-transparent px-2 text-[10px] font-semibold transition-colors duration-150 sm:-mx-2 sm:-my-2 sm:w-[calc(100%+1rem)]'
+      className='hover:bg-base-content/4 hover:text-base-content -mx-1.5 -my-1.5 flex h-6 min-h-0 w-[calc(100%+0.75rem)] cursor-pointer items-center rounded-lg bg-transparent px-2 text-[10px] font-semibold text-[var(--ink-muted)] transition-colors duration-150 sm:-mx-2 sm:-my-2 sm:w-[calc(100%+1rem)]'
       aria-label='Expand statistics toolbar'
       title='Expand statistics toolbar'
     >
@@ -110,8 +104,8 @@ export function CollapsedToolbarStrip({
           </span>
           <span className='min-w-0 truncate'>{collapsedDateRangeText}</span>
         </div>
-        <span className='text-base-content/55 inline-flex h-4 w-4 shrink-0 items-center justify-center text-[10px]'>
-          <FontAwesomeIcon icon={faPlus} />
+        <span className='inline-flex h-4 w-4 shrink-0 items-center justify-center text-[10px] text-[var(--ink-muted)]'>
+          <Icon name={'plus'} />
         </span>
       </div>
     </button>
@@ -138,7 +132,7 @@ export function ModeSelectionDropdown({
         title='Select statistics mode'
       >
         <span className='truncate'>{currentModeOption.label}</span>
-        <FontAwesomeIcon icon={faChevronDown} className='-ml-0.5 text-[10px] opacity-70' />
+        <Icon name={'chevron-down'} className='-ml-0.5 text-[10px] opacity-70' />
       </summary>
 
       <div
@@ -276,7 +270,7 @@ export function SourceSelectionDropdown({
             profileOption: currentProfileSourceOption,
           })}
         </span>
-        <FontAwesomeIcon icon={faChevronDown} className='-ml-0.5 text-[10px] opacity-70' />
+        <Icon name={'chevron-down'} className='-ml-0.5 text-[10px] opacity-70' />
       </summary>
 
       <div
@@ -286,7 +280,7 @@ export function SourceSelectionDropdown({
         <div className='grid gap-2'>
           {sourceGroups.map(group => (
             <div key={group.label} className='grid gap-1.5'>
-              <div className='text-base-content/55 px-1 text-xs font-medium'>{group.label}</div>
+              <div className='px-1 text-xs font-medium text-[var(--ink-muted)]'>{group.label}</div>
               <div className='grid grid-cols-3 gap-1'>
                 {SOURCE_OPTIONS.map(opt => (
                   <button
@@ -338,28 +332,28 @@ export function DateRangeDropdown({
         aria-label='Edit date range filter'
         title='Edit date range filter'
       >
-        <FontAwesomeIcon
-          icon={faCalendarDays}
-          className={`shrink-0 ${hasDateFilter ? 'text-base-content/70' : 'text-base-content/45'}`}
+        <Icon
+          name={'history'}
+          className={`shrink-0 ${hasDateFilter ? 'text-[var(--ink-muted)]' : 'text-[var(--ink-muted)]'}`}
         />
         {showDateRangeLabelInTrigger && (
           <>
             <span className='shrink-0 font-semibold tracking-wide'>{dateRangeDisplay.label}</span>
-            <span className='text-base-content/35 shrink-0'>·</span>
+            <span className='shrink-0 text-[var(--ink-muted)]'>·</span>
           </>
         )}
         <span className='min-w-0 flex-1 truncate'>
           {dateRangeDisplay.fromText || 'No dates'}
           {dateRangeDisplay.toText && (
             <>
-              <span className='text-base-content/35 mx-1.5 inline-block align-middle'>
-                <FontAwesomeIcon icon={faArrowRightLong} className='text-[9px]' />
+              <span className='mx-1.5 inline-block align-middle text-[var(--ink-muted)]'>
+                <Icon name={'chevron-right'} className='text-[9px]' />
               </span>
               {dateRangeDisplay.toText}
             </>
           )}
         </span>
-        <FontAwesomeIcon icon={faChevronDown} className='-ml-0.5 shrink-0 text-[9px] opacity-50' />
+        <Icon name={'chevron-down'} className='-ml-0.5 shrink-0 text-[9px] opacity-50' />
       </summary>
 
       <div
@@ -395,7 +389,7 @@ export function DateRangeDropdown({
         </div>
 
         <div className='mt-3 flex items-center justify-between gap-2'>
-          <div className='text-base-content/55 text-[10px]'>{dateModeText}</div>
+          <div className='text-[10px] text-[var(--ink-muted)]'>{dateModeText}</div>
           <button
             type='button'
             onClick={() => {
@@ -582,8 +576,8 @@ export function ExpandedToolbarControls({
             aria-label={`Clear filters and selections (${resetAriaCount})`}
             title={`Clear filters and selections (${resetAriaCount})`}
           >
-            <FontAwesomeIcon icon={faUndo} className='text-lg leading-none' />
-            <span className='text-[10px] leading-none font-semibold tabular-nums'>
+            <Icon name={'refresh-cw'} className='text-lg leading-none' />
+            <span className='font-mono text-[10px] leading-none font-semibold tabular-nums'>
               {candidateLabel}
             </span>
           </button>
@@ -599,7 +593,7 @@ export function ExpandedToolbarControls({
             aria-label='Play statistics'
             title='Play statistics'
           >
-            <FontAwesomeIcon icon={faPlay} className='text-[1.35rem]' />
+            <Icon name={'play'} className='text-[1.35rem]' />
           </button>
         </div>
       </div>
@@ -716,7 +710,8 @@ export function ToolbarNotice({
 }) {
   if (!visible || !noticeMessage) return null;
 
-  const messageClass = noticeTone === 'error' ? 'text-error font-semibold' : 'font-semibold';
+  const messageClass =
+    noticeTone === 'error' ? 'text-[var(--danger)] font-semibold' : 'font-semibold';
   const messageStyle = noticeTone === 'error' ? undefined : WARNING_ORANGE_TEXT_STYLE;
 
   return (
@@ -763,7 +758,7 @@ export function DslSelectionPreview({
 
   return (
     <div
-      className={`bg-base-100/55 border-base-content/10 flex w-full min-w-0 flex-col gap-3 rounded-lg border p-3 shadow-sm ${toolbarPassiveLayerClass}`.trim()}
+      className={`bg-base-100/55 border-base-content/10 flex w-full min-w-0 flex-col gap-3 rounded-lg border p-3 ${toolbarPassiveLayerClass}`.trim()}
     >
       {profilePreviewItems.length > 0 && (
         <div className='min-w-0 space-y-2'>
@@ -796,7 +791,7 @@ export function DslSelectionPreview({
                     {item.fileStem || item.primary}
                   </div>
                   {(item.shotId || item.secondary) && (
-                    <div className='text-base-content/55 truncate text-[10px]'>
+                    <div className='truncate text-[10px] text-[var(--ink-muted)]'>
                       {item.shotId ? `ID: ${item.shotId}` : ''}
                       {item.shotId && item.secondary ? ' • ' : ''}
                       {item.secondary || ''}

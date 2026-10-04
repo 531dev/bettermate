@@ -1,6 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons/faCircleNotch';
-import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
+import { Icon } from '../../../../components/Icon.jsx';
 import { cleanName } from '../../utils/analyzerUtils';
 import { SourceMarker } from '../SourceMarker';
 import { getAnalyzerShotDisplayName, getShotDateTimeLabel } from '../useShotNotesState';
@@ -121,18 +119,18 @@ export function ShotMainInfoCard({
         <div className='min-w-0 flex-1'>
           <div className='text-base-content truncate text-sm font-semibold'>
             {shotLabel}
-            <span className='text-base-content/45 ml-1.5 text-xs font-normal'>
+            <span className='ml-1.5 text-xs font-normal text-[var(--ink-muted)]'>
               · {getRelativeDayLabel(entry?.shot?.timestamp)}
             </span>
           </div>
-          <div className='text-base-content/60 truncate text-xs'>{profileLabel}</div>
+          <div className='truncate text-xs text-[var(--ink-muted)]'>{profileLabel}</div>
         </div>
         <div className='flex shrink-0 items-center gap-2'>
           {loading ? (
-            <FontAwesomeIcon icon={faCircleNotch} spin className='text-base-content/35 text-xs' />
+            <Icon name={'refresh-cw'} spin className='text-xs text-[var(--ink-muted)]' />
           ) : null}
           {entry?.shot?.source === 'temp' ? (
-            <FontAwesomeIcon icon={faEye} className='text-base-content/45 text-xs' />
+            <Icon name={'search'} className='text-xs text-[var(--ink-muted)]' />
           ) : (
             <SourceMarker source={entry?.shot?.source} variant='library' />
           )}
@@ -146,8 +144,8 @@ export function ShotMainInfoCard({
       </div>
 
       <div className='mt-3 flex items-center justify-between'>
-        <span className='text-base-content/45 text-xs italic'>{dateLabel}</span>
-        <span className='text-base-content/45 text-xs italic'>
+        <span className='text-xs text-[var(--ink-muted)] italic'>{dateLabel}</span>
+        <span className='text-xs text-[var(--ink-muted)] italic'>
           <span
             style={
               entry?.results?.completionTone === 'warning'

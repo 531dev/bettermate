@@ -33,6 +33,8 @@ int main(int argc, char **argv) {
     }
 
     controller.setup(); // builds the UI, installs the SDL driver, marks screen ready
+    controller.getClientController()->onSimulatedScale(
+        [](float weight) { controller.onVolumetricMeasurement(weight, VolumetricMeasurementSource::BLUETOOTH); });
 
     // The sim has a real network (the WebUI is reachable), so present as Wi-Fi
     // connected: seeding credentials sends setupWifi() down the STA path, and the

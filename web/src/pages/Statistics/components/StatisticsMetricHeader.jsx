@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon } from '../../../components/Icon.jsx';
 import { STATISTICS_DENSE_VALUE_CLASS, STATISTICS_METRIC_LABEL_CLASS } from './statisticsUi';
 
 export function StatisticsMetricHeader({
@@ -17,7 +17,7 @@ export function StatisticsMetricHeader({
           color: accentColor,
         }}
       >
-        <FontAwesomeIcon icon={icon} className='text-xl sm:text-[1.35rem]' />
+        <Icon name={icon} className='text-xl sm:text-[1.35rem]' />
       </div>
 
       <div className='min-w-0 flex-1'>
@@ -25,7 +25,7 @@ export function StatisticsMetricHeader({
           <span className={`truncate ${valueClassName} ${STATISTICS_DENSE_VALUE_CLASS}`}>
             {value}
           </span>
-          {unit ? <span className='text-base-content/55 text-xs'>{unit}</span> : null}
+          {unit ? <span className='text-xs text-[var(--ink-muted)]'>{unit}</span> : null}
         </div>
         <div className={`mt-1 truncate ${STATISTICS_METRIC_LABEL_CLASS}`}>{label}</div>
       </div>

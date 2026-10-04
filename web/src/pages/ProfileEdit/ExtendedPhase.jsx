@@ -1,8 +1,7 @@
+import { Icon } from '../../components/Icon.jsx';
 import { ExtendedPhaseTarget, TargetTypes } from './ExtendedPhaseTarget.jsx';
 import { isNumber } from 'chart.js/helpers';
 import { useCallback } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { Tooltip } from '../../components/Tooltip.jsx';
 
 export function ExtendedPhase({ phase, index, onChange, onRemove, pressureAvailable }) {
@@ -530,13 +529,10 @@ export function ExtendedPhase({ phase, index, onChange, onRemove, pressureAvaila
               className='join-item btn btn-sm btn-outline'
               aria-label='Add target'
             >
-              <FontAwesomeIcon icon={faPlus} />
+              <Icon name={'plus'} />
             </div>
           </Tooltip>
-          <ul
-            tabIndex='0'
-            className='menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm'
-          >
+          <ul tabIndex='0' className='menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2'>
             {availableTargetTypes.map(t => (
               <li key={`${t.type}-${t.operator}`}>
                 <span

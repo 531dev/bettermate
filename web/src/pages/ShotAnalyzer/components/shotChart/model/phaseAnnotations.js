@@ -1,11 +1,5 @@
 /** Builds phase, stop, and overview metadata shared by chart rendering and tooltips. */
 
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faDroplet } from '@fortawesome/free-solid-svg-icons/faDroplet';
-import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
-import { faGauge } from '@fortawesome/free-solid-svg-icons/faGauge';
-import { faScaleBalanced } from '@fortawesome/free-solid-svg-icons/faScaleBalanced';
-import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons/faTriangleExclamation';
 import { getPhaseName } from '../helpers';
 import { getDisplayStopReasonParts } from '../../../utils/analyzerUtils';
 import { getLastNonExtendedIndex } from '../../../services/analyzer/weightRate';
@@ -160,13 +154,13 @@ const STOP_BADGE_X_ADJUST = 18;
 const STOP_BADGE_Y_ADJUST = -30;
 
 const STOP_ICON_BY_TYPE = {
-  pressure: faGauge,
-  flow: faFaucet,
-  weight: faScaleBalanced,
-  volumetric: faScaleBalanced,
-  duration: faClock,
-  pumped: faDroplet,
-  safety: faTriangleExclamation,
+  pressure: 'gauge',
+  flow: 'droplet',
+  weight: 'scale',
+  volumetric: 'scale',
+  duration: 'clock',
+  pumped: 'droplet',
+  safety: 'triangle-alert',
 };
 const WEIGHT_STOP_LEFT_X_ADJUST = -STOP_BADGE_X_ADJUST;
 const WEIGHT_STOP_LEFT_Y_ADJUST = STOP_BADGE_Y_ADJUST;

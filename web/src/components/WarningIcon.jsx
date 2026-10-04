@@ -1,20 +1,9 @@
 import PropTypes from 'prop-types';
+import { Icon } from './Icon.jsx';
 
-// Inline one of the display's warning SVGs so it follows the text color.
+// Warning keys resolve to the same pixel glyphs as the round display.
 export function WarningIcon({ icon, title, className = '' }) {
-  const svg = icon
-    .replace(/ id="[^"]*"| data-name="[^"]*"/g, '')
-    .replace('<svg ', '<svg fill="currentColor" width="1em" height="1em" ');
-  return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center ${className}`}
-      title={title}
-      role={title ? 'img' : undefined}
-      aria-label={title}
-      aria-hidden={title ? undefined : true}
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  );
+  return <Icon name={icon} title={title} className={className} />;
 }
 
 WarningIcon.propTypes = {

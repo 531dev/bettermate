@@ -20,8 +20,7 @@ export const DATE_BASIS_OPTIONS = [
 export const STATISTICS_RUN_BUTTON_TONE_CLASS =
   'bg-success text-success-content hover:bg-success/92 hover:text-success-content';
 
-export const STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS =
-  'btn btn-md h-10 min-h-10 border-none shadow-none';
+export const STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS = 'btn btn-md h-10 min-h-10 border-none ';
 
 export const SEGMENT_GROUP_CLASS =
   'inline-flex overflow-hidden rounded-lg bg-base-content/4 divide-x divide-base-content/10';

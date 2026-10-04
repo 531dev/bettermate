@@ -1,9 +1,7 @@
+import { Icon } from '../../components/Icon.jsx';
 import { useState, useEffect, useContext, useCallback } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ApiServiceContext } from '../../services/ApiService.js';
 import { Spinner } from '../../components/Spinner.jsx';
-import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit';
-import { faSave } from '@fortawesome/free-solid-svg-icons/faSave';
 
 export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
   const apiService = useContext(ApiServiceContext);
@@ -206,7 +204,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
         <h3 className='text-lg font-semibold'>Shot Notes</h3>
         {!isEditing ? (
           <button onClick={() => setIsEditing(true)} className='btn btn-sm btn-outline'>
-            <FontAwesomeIcon icon={faEdit} />
+            <Icon name={'pencil'} />
             Edit
           </button>
         ) : (
@@ -223,7 +221,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
                 <Spinner size={4} />
               ) : (
                 <>
-                  <FontAwesomeIcon icon={faSave} />
+                  <Icon name={'save'} />
                   Save
                 </>
               )}
@@ -251,7 +249,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
               placeholder='e.g., Single Origin, Blend'
             />
           ) : (
-            <div className='input input-bordered bg-base-200 w-full cursor-default'>
+            <div className='input input-bordered w-full cursor-default bg-[var(--surface-2)]'>
               {notes.beanType || '—'}
             </div>
           )}
@@ -270,7 +268,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
               placeholder='18.0'
             />
           ) : (
-            <div className='input input-bordered bg-base-200 w-full cursor-default'>
+            <div className='input input-bordered w-full cursor-default bg-[var(--surface-2)]'>
               {notes.doseIn || '—'}
             </div>
           )}
@@ -289,7 +287,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
               placeholder='36.0'
             />
           ) : (
-            <div className='input input-bordered bg-base-200 w-full cursor-default'>
+            <div className='input input-bordered w-full cursor-default bg-[var(--surface-2)]'>
               {notes.doseOut || '—'}
             </div>
           )}
@@ -298,7 +296,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
         {/* Ratio */}
         <div className='form-control'>
           <label className='mb-2 block text-sm font-medium'>Ratio (1:{notes.ratio || '—'})</label>
-          <div className='input input-bordered bg-base-200 w-full cursor-default'>
+          <div className='input input-bordered w-full cursor-default bg-[var(--surface-2)]'>
             {notes.ratio ? `1:${notes.ratio}` : '—'}
           </div>
         </div>
@@ -315,7 +313,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
               placeholder='e.g., 2.5, Medium-Fine'
             />
           ) : (
-            <div className='input input-bordered bg-base-200 w-full cursor-default'>
+            <div className='input input-bordered w-full cursor-default bg-[var(--surface-2)]'>
               {notes.grindSetting || '—'}
             </div>
           )}
@@ -336,7 +334,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
             </select>
           ) : (
             <div
-              className={`input input-bordered bg-base-200 w-full cursor-default capitalize ${getTasteColor(notes.balanceTaste)}`}
+              className={`input input-bordered w-full cursor-default bg-[var(--surface-2)] capitalize ${getTasteColor(notes.balanceTaste)}`}
             >
               {notes.balanceTaste}
             </div>
@@ -360,7 +358,7 @@ export default function ShotNotesCard({ shot, onNotesUpdate, onNotesLoaded }) {
             placeholder='Tasting notes, brewing observations, etc...'
           />
         ) : (
-          <div className='textarea textarea-bordered bg-base-200 min-h-[6rem] w-full cursor-default'>
+          <div className='textarea textarea-bordered min-h-[6rem] w-full cursor-default bg-[var(--surface-2)]'>
             {notes.notes || 'No notes added'}
           </div>
         )}

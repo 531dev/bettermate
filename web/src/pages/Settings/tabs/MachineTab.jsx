@@ -1,10 +1,9 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useState } from 'preact/hooks';
 import { computed } from '@preact/signals';
 import { machine } from '../../../services/ApiService.js';
 import Section from '../../../components/Card.jsx';
 import { Tooltip } from '../../../components/Tooltip.jsx';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCrosshairs } from '@fortawesome/free-solid-svg-icons/faCrosshairs';
 import { InputGroupField, SettingsFormField } from '../../../components/SettingsFormField.jsx';
 
 const ledControl = computed(() => machine.value.capabilities.ledControl);
@@ -50,7 +49,7 @@ function TankDistanceField({ id, label, value, onChange, onUseCurrent }) {
         </div>
         <Tooltip content={`Set to current measurement: ${tofDistance}mm`}>
           <button type='button' className='btn btn-ghost' onClick={onUseCurrent}>
-            <FontAwesomeIcon icon={faCrosshairs} />
+            <Icon name={'sliders-horizontal'} />
           </button>
         </Tooltip>
       </div>

@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon } from '../../../../../components/Icon.jsx';
 import {
   COMPARE_DETAIL_METRIC_PAGE_KEYS,
   SINGLE_METRIC_PAGE_KEYS,
@@ -82,7 +82,7 @@ function StaticTooltipMetricRow({ row, index }) {
           style={{ color: row.color }}
           aria-hidden='true'
         >
-          <FontAwesomeIcon icon={rowIcon} />
+          <Icon name={rowIcon} />
         </div>
       ) : null}
       <div className='shot-chart-static-metrics__body'>
@@ -134,7 +134,7 @@ function StaticCompactMetricRow({ hideShotLabel = false, row, index }) {
           style={{ color: row.color }}
           aria-hidden='true'
         >
-          <FontAwesomeIcon icon={rowIcon} />
+          <Icon name={rowIcon} />
         </span>
       ) : null}
       <span className='shot-chart-tooltip__compact-metric-label'>
@@ -427,7 +427,7 @@ function CompareLargeMetricValue({ row, showIcon = true }) {
           style={{ color: row.color }}
           aria-hidden='true'
         >
-          <FontAwesomeIcon icon={metricIcon} />
+          <Icon name={metricIcon} />
         </span>
       ) : null}
       <div className='analyzer-icon-metric__content'>

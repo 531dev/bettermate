@@ -1,3 +1,4 @@
+import { readCssColorVar } from '../helpers/chartTheme.js';
 import { areTooltipStatesEqual, buildExternalTooltipState } from '../ShotChartExternalTooltip';
 import { UNIT_BY_LABEL } from '../constants';
 import {
@@ -203,7 +204,7 @@ export function getCompareMainChartConfig({
           ticks: {
             display: true,
             autoSkip: false,
-            font: { size: 10 },
+            font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
             color: neutralAxisTickColor,
             callback: formatResponsiveXAxisTick,
             padding: 4,
@@ -214,7 +215,7 @@ export function getCompareMainChartConfig({
           },
           grid: {
             display: true,
-            color: 'rgba(200, 200, 200, 0.08)',
+            color: readCssColorVar('--chart-grid', '#d4d4d4'),
           },
         },
         yMain: {
@@ -224,12 +225,12 @@ export function getCompareMainChartConfig({
           max: mainAxisRange.max,
           ticks: {
             display: true,
-            font: { size: 10 },
+            font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
             color: neutralAxisTickColor,
             callback: formatUniqueAxisTick,
           },
           grid: {
-            color: 'rgba(200, 200, 200, 0.1)',
+            color: readCssColorVar('--chart-grid', '#d4d4d4'),
           },
         },
         yWeight: {
@@ -240,7 +241,7 @@ export function getCompareMainChartConfig({
           max: weightAxisRange.max,
           ticks: {
             display: showWeightAxis,
-            font: { size: 10 },
+            font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
             color: neutralAxisTickColor,
             callback: formatUniqueAxisTick,
           },
@@ -256,7 +257,7 @@ export function getCompareMainChartConfig({
           max: puckResistanceAxisRange.max,
           ticks: {
             display: showPuckResistanceAxis,
-            font: { size: 10 },
+            font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
             color: neutralAxisTickColor,
             callback: formatUniqueAxisTick,
           },
@@ -272,7 +273,7 @@ export function getCompareMainChartConfig({
           max: liquidResistanceAxisRange.max,
           ticks: {
             display: showLiquidResistanceAxis,
-            font: { size: 10 },
+            font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
             color: neutralAxisTickColor,
             callback: formatUniqueAxisTick,
           },
@@ -337,12 +338,12 @@ function getCompareDetailChartConfig({
           min: xRange.min,
           max: xRange.max,
           ticks: {
-            font: { size: 10 },
+            font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
             color: neutralAxisTickColor,
           },
           grid: {
             display: true,
-            color: 'rgba(200, 200, 200, 0.08)',
+            color: readCssColorVar('--chart-grid', '#d4d4d4'),
           },
         },
         y: {
@@ -351,12 +352,12 @@ function getCompareDetailChartConfig({
           min: axisRange.min,
           max: axisRange.max,
           ticks: {
-            font: { size: 10 },
+            font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
             color: neutralAxisTickColor,
             callback: formatUniqueAxisTick,
           },
           grid: {
-            color: 'rgba(200, 200, 200, 0.1)',
+            color: readCssColorVar('--chart-grid', '#d4d4d4'),
           },
         },
       },

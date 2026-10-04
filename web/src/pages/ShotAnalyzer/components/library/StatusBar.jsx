@@ -1,16 +1,10 @@
+import { Icon } from '../../../../components/Icon.jsx';
 /**
  * StatusBar.jsx
  * * Merges seamlessly with the dropdown when expanded.
  */
 
 import { cleanName, analyzerUiColors } from '../../utils/analyzerUtils';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
-import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons/faTriangleExclamation';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons/faCircleNotch';
-import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
-import { faRotateRight } from '@fortawesome/free-solid-svg-icons/faRotateRight';
 import { getAnalyzerIconButtonClasses } from '../analyzerControlStyles';
 
 function getProfileBadgeClasses({ isMismatch, currentProfile, badgeBaseClass, loadedShadowClass }) {
@@ -18,7 +12,7 @@ function getProfileBadgeClasses({ isMismatch, currentProfile, badgeBaseClass, lo
   if (currentProfile) {
     return `${badgeBaseClass} ${loadedShadowClass} bg-primary border-primary text-primary-content`;
   }
-  return `${badgeBaseClass} border-base-content/15 bg-transparent text-base-content/70 shadow-none hover:bg-base-content/5`;
+  return `${badgeBaseClass} border-base-content/15 bg-transparent text-[var(--ink-muted)]  hover:bg-base-content/5`;
 }
 
 function getShotBadgeClasses({ ghosted, badgeBaseClass, currentShot }) {
@@ -28,16 +22,16 @@ function getShotBadgeClasses({ ghosted, badgeBaseClass, currentShot }) {
   if (currentShot) {
     return `${badgeBaseClass} bg-primary border-primary text-primary-content`;
   }
-  return `${badgeBaseClass} border-base-content/15 bg-transparent text-base-content/70 shadow-none hover:bg-base-content/5`;
+  return `${badgeBaseClass} border-base-content/15 bg-transparent text-[var(--ink-muted)]  hover:bg-base-content/5`;
 }
 
 function getGhostedBadgeClasses(baseClasses, isActive) {
   if (isActive) {
     // Secondary compare slots stay visually tied to the active theme while
     // remaining lighter than the primary bar.
-    return `${baseClasses} bg-primary/24 border-transparent text-primary hover:bg-primary/30 shadow-none`;
+    return `${baseClasses} bg-primary/24 border-transparent text-primary hover:bg-primary/30 `;
   }
-  return `${baseClasses} border-base-content/10 bg-transparent text-base-content/65 hover:bg-base-content/5 shadow-none`;
+  return `${baseClasses} border-base-content/10 bg-transparent text-[var(--ink-muted)] hover:bg-base-content/5 `;
 }
 
 function getProfileBadgeTitle(isMismatch) {
@@ -48,7 +42,7 @@ function getProfileBadgeTitle(isMismatch) {
 }
 
 function getCompareSlotBadgeClasses({ currentShot, ghosted }) {
-  if (!currentShot) return 'bg-base-100 text-base-content/55 ring-base-200';
+  if (!currentShot) return 'bg-base-100 text-[var(--ink-muted)] ring-base-200';
   return ghosted
     ? 'bg-primary/70 text-primary-content ring-base-100'
     : 'bg-primary text-primary-content ring-base-100';
@@ -162,7 +156,7 @@ function ProfileTrailingControl({
             aria-label={retryTitle}
             disabled={isSearchingProfile}
           >
-            <FontAwesomeIcon icon={faRotateRight} className='text-xs' />
+            <Icon name={'refresh-cw'} className='text-xs' />
           </button>
         ) : null}
 
@@ -174,7 +168,7 @@ function ProfileTrailingControl({
           }}
           className={activeBadgeIconButtonClasses}
         >
-          <FontAwesomeIcon icon={faTimes} />
+          <Icon name={'x'} />
         </button>
       </div>
     );
@@ -194,7 +188,7 @@ function ProfileTrailingControl({
           aria-label={retryTitle}
           disabled={isSearchingProfile}
         >
-          <FontAwesomeIcon icon={faRotateRight} className='text-xs' />
+          <Icon name={'refresh-cw'} className='text-xs' />
         </button>
       ) : null}
 
@@ -207,7 +201,7 @@ function ProfileTrailingControl({
           }}
           className={activeBadgeIconButtonClasses}
         >
-          <FontAwesomeIcon icon={faTimes} />
+          <Icon name={'x'} />
         </button>
       ) : null}
     </div>
@@ -228,7 +222,7 @@ function BadgeExportControl({ available, activeBadgeIconButtonClasses, onExport,
       title={label}
       aria-label={label}
     >
-      <FontAwesomeIcon icon={faFileExport} />
+      <Icon name={'save'} />
     </button>
   );
 }
@@ -245,7 +239,7 @@ function ShotTrailingControl({ currentShot, activeBadgeIconButtonClasses, onUnlo
           }}
           className={activeBadgeIconButtonClasses}
         >
-          <FontAwesomeIcon icon={faTimes} />
+          <Icon name={'x'} />
         </button>
       ) : null}
     </div>
@@ -287,10 +281,10 @@ function ShotBadge({
             {getShotBadgeLabel(currentShot, currentShotName)}
           </span>
           {isShotPending ? (
-            <FontAwesomeIcon icon={faCircleNotch} spin className='shrink-0 text-xs opacity-60' />
+            <Icon name={'refresh-cw'} spin className='shrink-0 text-xs opacity-60' />
           ) : null}
           {showShotChevron ? (
-            <FontAwesomeIcon icon={faChevronDown} className='shrink-0 text-xs opacity-40' />
+            <Icon name={'chevron-down'} className='shrink-0 text-xs opacity-40' />
           ) : null}
         </span>
       </button>
@@ -339,19 +333,17 @@ function ProfileBadge({
         title={getProfileBadgeTitle(isMismatch)}
       >
         <span className='inline-flex max-w-full min-w-0 flex-1 items-center justify-center gap-1'>
-          {isMismatch ? (
-            <FontAwesomeIcon icon={faTriangleExclamation} className='mr-1 shrink-0' />
-          ) : null}
+          {isMismatch ? <Icon name={'triangle-alert'} className='mr-1 shrink-0' /> : null}
           <span
             className={`min-w-0 truncate ${isSearchingProfile && !currentProfile ? 'italic opacity-75' : ''}`}
           >
             {cleanName(currentProfileName)}
           </span>
           {isSearchingProfile ? (
-            <FontAwesomeIcon icon={faCircleNotch} spin className='shrink-0 text-xs opacity-60' />
+            <Icon name={'refresh-cw'} spin className='shrink-0 text-xs opacity-60' />
           ) : null}
           {showProfileChevron ? (
-            <FontAwesomeIcon icon={faChevronDown} className='shrink-0 text-xs opacity-40' />
+            <Icon name={'chevron-down'} className='shrink-0 text-xs opacity-40' />
           ) : null}
         </span>
       </button>
@@ -417,7 +409,7 @@ export function StatusBar({
     <div className='relative w-full overflow-visible'>
       {compareBadgeNumber ? (
         <span
-          className={`pointer-events-none absolute top-0 left-1 z-10 inline-flex h-4 min-w-4 -translate-x-1/3 -translate-y-1/4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-bold shadow-md ring-2 ${compareBadgeClasses}`}
+          className={`pointer-events-none absolute top-0 left-1 z-10 inline-flex h-4 min-w-4 -translate-x-1/3 -translate-y-1/4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-bold ring-2 ${compareBadgeClasses}`}
         >
           {compareBadgeNumber}
         </span>

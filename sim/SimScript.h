@@ -13,7 +13,15 @@
 //   error <code>                   report a controller error (0 clears, 4 is temperature runaway)
 //   autotune                       start a mocked autotune (finishes after 1.5 s)
 //   update                         enter the OTA updating state
+//   pressure-sensor <0|1>          change the pressure capability (single/dual rings)
+//   scale <0|1>                    stop/resume mock scale telemetry (health expires after 1.5 s)
+//   weight <grams>                 set the mock scale reading
+//   wifi <sta|ap|ap-open|disconnected> inject network UI state for QR checks
 //   expect <screen|mode|active> <n> check screen ID, MODE_* or process active (0/1); fail fast
+//   expect <temperature|duration|target-weight> <n> check the selected profile (rounded)
+//   expect setpoint <degrees>      check the current mode's temperature target
+//   expect <grind-active|grind-duration|grind-weight> <n> check grinding, seconds, or tenths of a gram
+//   expect <text|hidden> <label>    check whether an exact label is visible on the real LVGL screen
 //   shot <path>                    write a BMP of the current frame
 //   quit                           leave the simulator
 #pragma once
@@ -33,7 +41,25 @@ class SimScript {
     bool run(SdlDriver *driver);
 
   private:
-    enum class Kind { Wait, Pointer, Key, Theme, Connection, Protocol, Error, Autotune, Update, Expect, Shot, Quit };
+    enum class Kind {
+        Wait,
+        Pointer,
+        Key,
+        Theme,
+        Connection,
+        Protocol,
+        Error,
+        Autotune,
+        Update,
+        PressureSensor,
+        Scale,
+        Weight,
+        Wifi,
+        Expect,
+        ExpectText,
+        Shot,
+        Quit
+    };
     struct Step {
         Kind kind;
         int a = 0;

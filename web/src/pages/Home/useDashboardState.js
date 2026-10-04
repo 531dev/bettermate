@@ -52,7 +52,7 @@ export function useDashboardState() {
   const fullTankDistance = settings?.fullTankDistance || 0;
   const albaCalibrated = emptyTankDistance > 0 && fullTankDistance > 0;
   const waterLevelPercent =
-    ledControl && albaCalibrated
+    ledControl && albaCalibrated && Number.isFinite(s.tofDistance)
       ? Math.max(
           0,
           Math.min(

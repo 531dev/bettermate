@@ -1,13 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft';
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
-import { faChartArea } from '@fortawesome/free-solid-svg-icons/faChartArea';
-import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons/faCircleNotch';
-import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
-import { faEquals } from '@fortawesome/free-solid-svg-icons/faEquals';
-import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
-import { faLaptopFile } from '@fortawesome/free-solid-svg-icons/faLaptopFile';
+import { Icon } from '../../../../components/Icon.jsx';
 import { analyzerUiColors } from '../../utils/analyzerUtils';
 
 export function ActionBarNavigationButtons({
@@ -26,7 +17,7 @@ export function ActionBarNavigationButtons({
         onClick={() => canGoPrev && onNavigateToIndex(currentIndex - 1, -1)}
         title='Previous shot'
       >
-        <FontAwesomeIcon icon={faChevronLeft} />
+        <Icon name={'chevron-left'} />
       </button>
 
       <button
@@ -36,7 +27,7 @@ export function ActionBarNavigationButtons({
         onClick={() => canGoNext && onNavigateToIndex(currentIndex + 1, 1)}
         title='Next shot'
       >
-        <FontAwesomeIcon icon={faChevronRight} />
+        <Icon name={'chevron-right'} />
       </button>
     </div>
   );
@@ -60,7 +51,7 @@ export function ActionBarCompareButton({
       }}
       title={compareMode ? 'Disable compare mode' : 'Enable compare mode'}
     >
-      <FontAwesomeIcon icon={faEquals} className='text-sm' />
+      <Icon name={'sliders-horizontal'} className='text-sm' />
       <span>Compare</span>
     </button>
   );
@@ -73,10 +64,10 @@ export function ActionBarStatisticsAction({
   statsHref,
   onShowStats,
 }) {
-  const statisticsIcon = compareMode ? faChartArea : faChartSimple;
+  const statisticsIcon = compareMode ? 'chart-column' : 'chart-column';
   const content = (
     <>
-      <FontAwesomeIcon icon={statisticsIcon} className='text-sm' />
+      <Icon name={statisticsIcon} className='text-sm' />
       <span>{compareMode ? 'Multi-Compare' : 'Profile Stats'}</span>
     </>
   );
@@ -135,7 +126,7 @@ function ActionBarImportModeToggle({
           : 'Switch import mode to Save to Browser'
       }
     >
-      <FontAwesomeIcon icon={isBrowserImportMode ? faLaptopFile : faEye} className='text-sm' />
+      <Icon name={isBrowserImportMode ? 'monitor' : 'search'} className='text-sm' />
       <span>{isBrowserImportMode ? 'Save' : 'View'}</span>
     </button>
   );
@@ -160,11 +151,7 @@ export function ActionBarImportActions({
         title='Import shot or profile'
         aria-label={isImporting ? 'Importing shot or profile' : 'Import shot or profile'}
       >
-        <FontAwesomeIcon
-          icon={isImporting ? faCircleNotch : faFileImport}
-          spin={isImporting}
-          className='text-sm'
-        />
+        <Icon name={isImporting ? 'refresh-cw' : 'plus'} spin={isImporting} className='text-sm' />
         <span>Import</span>
       </button>
 

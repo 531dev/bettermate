@@ -114,7 +114,7 @@ export function BluetoothTabSkeleton() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={`bluetooth-skel-${i}`}
-              className='border-base-content/5 bg-base-200/20 flex items-center justify-between rounded-lg border p-3'
+              className='border-base-content/5 flex items-center justify-between rounded-lg border bg-[var(--surface-2)] p-3'
             >
               <div className='flex items-center gap-3'>
                 <div className='skeleton h-8 w-8 shrink-0 rounded-full opacity-50'></div>

@@ -1,9 +1,5 @@
+import { Icon } from './Icon.jsx';
 import { useRef, useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
-import { faChevronUp } from '@fortawesome/free-solid-svg-icons/faChevronUp';
-import { faLock } from '@fortawesome/free-solid-svg-icons/faLock';
-import { faXmark } from '@fortawesome/free-solid-svg-icons/faXmark';
 
 export function SettingsFormField({
   label,
@@ -203,7 +199,7 @@ export function SortableConfigurator({
                     onClick={() => move(id, 'up')}
                     className='btn btn-ghost btn-xs flex h-5 w-5 items-center justify-center rounded p-0'
                   >
-                    <FontAwesomeIcon icon={faChevronUp} className='h-2.5 w-2.5' />
+                    <Icon name={'chevron-up'} className='h-2.5 w-2.5' />
                   </button>
                   <button
                     type='button'
@@ -211,20 +207,20 @@ export function SortableConfigurator({
                     onClick={() => move(id, 'down')}
                     className='btn btn-ghost btn-xs flex h-5 w-5 items-center justify-center rounded p-0'
                   >
-                    <FontAwesomeIcon icon={faChevronDown} className='h-2.5 w-2.5' />
+                    <Icon name={'chevron-down'} className='h-2.5 w-2.5' />
                   </button>
                 </div>
                 {def.required ? (
                   <div className='flex h-6 w-6 items-center justify-center'>
-                    <FontAwesomeIcon icon={faLock} className='text-base-content/20 h-3 w-3' />
+                    <Icon name={'power'} className='text-base-content/20 h-3 w-3' />
                   </div>
                 ) : (
                   <button
                     type='button'
                     onClick={() => remove(id)}
-                    className='btn btn-ghost btn-xs text-error flex h-6 w-6 items-center justify-center rounded p-0'
+                    className='btn btn-ghost btn-xs flex h-6 w-6 items-center justify-center rounded p-0 text-[var(--danger)]'
                   >
-                    <FontAwesomeIcon icon={faXmark} className='h-3.5 w-3.5' />
+                    <Icon name={'x'} className='h-3.5 w-3.5' />
                   </button>
                 )}
               </div>

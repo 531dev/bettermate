@@ -1,15 +1,10 @@
+import { Icon } from '../../../../components/Icon.jsx';
 /**
  * ColumnControls.jsx
  * UI component to toggle specific columns in the analysis table.
  */
 
 import { useState, useEffect } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
-import { faUndo } from '@fortawesome/free-solid-svg-icons/faUndo';
 import {
   ANALYZER_DB_KEYS,
   groups,
@@ -39,7 +34,7 @@ const BUILT_IN_PRESET_IDS = {
 const TABLE_TOOLBAR_TEXT_BUTTON_CLASS =
   'h-8 min-h-0 px-3 text-sm font-normal tracking-normal normal-case !text-base-content/75 hover:!text-primary';
 const TABLE_TOOLBAR_SELECT_CLASS =
-  'h-8 min-h-0 w-[7rem] max-w-[7rem] appearance-none border-0 bg-transparent px-3 pr-7 text-sm font-normal tracking-normal normal-case shadow-none outline-none !text-base-content/75 hover:!text-primary';
+  'h-8 min-h-0 w-[7rem] max-w-[7rem] appearance-none border-0 bg-transparent px-3 pr-7 text-sm font-normal tracking-normal normal-case  outline-none !text-base-content/75 hover:!text-primary';
 const COLUMN_GROUP_HEADER_CLASS =
   'border-base-content/10 text-base-content col-span-2 mb-1.5 border-b pb-1 text-xs leading-tight font-medium tracking-normal normal-case';
 const COLUMN_OPTION_TEXT_CLASS = 'text-base-content/90 leading-tight font-medium tracking-normal';
@@ -146,7 +141,7 @@ export function ColumnControls({
   // Dynamic container styles
   const containerClasses = isIntegrated
     ? 'bg-base-100 rounded-t-lg border-b border-base-content/10'
-    : 'bg-base-200/80 backdrop-blur-md rounded-xl shadow-sm border border-base-content/10 mb-5';
+    : 'bg-[var(--surface-2)]  rounded-xl  border border-base-content/10 mb-5';
 
   return (
     <div
@@ -180,8 +175,8 @@ export function ColumnControls({
                 title={expanded ? 'Collapse column settings' : 'Expand column settings'}
                 aria-label={expanded ? 'Collapse column settings' : 'Expand column settings'}
               >
-                <FontAwesomeIcon
-                  icon={expanded ? faMinus : faPlus}
+                <Icon
+                  name={expanded ? 'minus' : 'plus'}
                   className={ANALYZER_ACTION_ICON_CLASS}
                   style={ANALYZER_ACTION_ICON_STYLE}
                 />
@@ -232,7 +227,7 @@ export function ColumnControls({
                   ))}
                 </select>
                 <span className='text-base-content/75 pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-sm'>
-                  <FontAwesomeIcon icon={faChevronDown} />
+                  <Icon name={'chevron-down'} />
                 </span>
               </div>
 
@@ -248,8 +243,8 @@ export function ColumnControls({
                     title='Delete preset'
                     aria-label='Delete preset'
                   >
-                    <FontAwesomeIcon
-                      icon={faTrashCan}
+                    <Icon
+                      name={'trash-2'}
                       className={ANALYZER_ACTION_ICON_CLASS}
                       style={ANALYZER_ACTION_ICON_STYLE}
                     />
@@ -311,8 +306,8 @@ export function ColumnControls({
                           className='inline-flex items-center justify-center leading-none'
                           style={{ color: groupVisual.color, lineHeight: 0 }}
                         >
-                          <FontAwesomeIcon
-                            icon={groupVisual.icon}
+                          <Icon
+                            name={groupVisual.icon}
                             className={
                               groupVisuals.length > 1
                                 ? 'text-[0.95rem]'
@@ -344,10 +339,10 @@ export function ColumnControls({
                 className={getAnalyzerTextButtonClasses({
                   tone: 'error',
                   className:
-                    '!text-base-content/75 hover:!text-error h-8 min-h-0 gap-1.5 px-3 text-sm font-normal tracking-normal normal-case',
+                    '!text-base-content/75 h-8 min-h-0 gap-1.5 px-3 text-sm font-normal tracking-normal normal-case hover:!text-[var(--danger)]',
                 })}
               >
-                <FontAwesomeIcon icon={faUndo} /> Reset Defaults
+                <Icon name={'refresh-cw'} /> Reset Defaults
               </button>
             </div>
 
@@ -361,7 +356,7 @@ export function ColumnControls({
               title='Collapse column settings'
               aria-label='Collapse column settings'
             >
-              <FontAwesomeIcon icon={faMinus} />
+              <Icon name={'minus'} />
             </button>
 
             {/* Right Actions: Save - Wrapped to stop propagation */}
@@ -379,7 +374,7 @@ export function ColumnControls({
                 type='button'
                 onClick={saveAsPreset}
                 className={getAnalyzerTextButtonClasses({
-                  className: `border-base-content/10 bg-transparent shadow-none ${TABLE_TOOLBAR_TEXT_BUTTON_CLASS}`,
+                  className: `border-base-content/10 bg-transparent ${TABLE_TOOLBAR_TEXT_BUTTON_CLASS}`,
                 })}
               >
                 Save as New Preset

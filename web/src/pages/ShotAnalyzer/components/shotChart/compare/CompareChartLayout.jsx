@@ -1,9 +1,7 @@
+import { Icon } from '../../../../../components/Icon.jsx';
 /* global globalThis */
 
 import { createPortal } from 'preact/compat';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import {
   SHOT_CHART_PRIMARY_LEGEND_LABELS,
   SHOT_CHART_SERIES_LEGEND_LABELS,
@@ -244,14 +242,14 @@ function CompareDetailChartsToggle({
   return (
     <button
       type='button'
-      className='shot-chart-compare-detail-toggle app-card-surface hover:bg-base-200/60 transition-colors'
+      className='shot-chart-compare-detail-toggle app-card-surface transition-colors hover:bg-[var(--surface-2)]'
       onClick={() => setIsMobileDetailExpanded(expanded => !expanded)}
       aria-expanded={isMobileDetailExpanded}
     >
       <span>{isMobileDetailExpanded ? 'Hide detail charts' : 'Show detail charts'}</span>
-      <FontAwesomeIcon
-        icon={isMobileDetailExpanded ? faMinus : faPlus}
-        className='text-base-content/45 text-xs'
+      <Icon
+        name={isMobileDetailExpanded ? 'minus' : 'plus'}
+        className='text-xs text-[var(--ink-muted)]'
         aria-hidden='true'
       />
     </button>

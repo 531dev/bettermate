@@ -41,7 +41,7 @@ function ReplayFocusHint({ isCompareMode, shouldShowReplayFocusHint }) {
   if (!isCompareMode && shouldShowReplayFocusHint) {
     return (
       <div className='mb-2 px-1'>
-        <div className='border-base-content/10 bg-base-100/70 inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium text-[var(--analyzer-warning-orange)] shadow-sm'>
+        <div className='border-base-content/10 bg-base-100/70 inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium text-[var(--analyzer-warning-orange)]'>
           Keep this window focused while the replay is being recorded.
         </div>
       </div>
@@ -106,7 +106,7 @@ export function ShotChartControls({
 }) {
   const isMobile = useIsMobileControls();
   const chartActionButtonClasses = getAnalyzerIconButtonClasses({
-    className: `${ANALYZER_ACTION_ICON_BUTTON_CLASS} border-0 bg-transparent shadow-none`,
+    className: `${ANALYZER_ACTION_ICON_BUTTON_CLASS} border-0 bg-transparent `,
   });
   const shouldShowCompareControls =
     isCompareMode &&

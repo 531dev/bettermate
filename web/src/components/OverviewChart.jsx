@@ -335,13 +335,14 @@ function getChartData(data) {
           min: pressureFlowMin,
           max: pressureFlowMax,
           position: 'right',
+          title: { display: true, text: 'bar / g/s' },
           ticks: {
             stepSize: pressureFlowMax <= 10 ? 1 : 2, // Use smaller steps for smaller ranges
             font: {
               size: window.innerWidth < 640 ? 10 : 12,
             },
             callback: value => {
-              return `${Math.round(value * 10) / 10} bar / g/s`; // Round to 1 decimal place
+              return Math.round(value * 10) / 10; // Units are shown once beside the axis.
             },
           },
         },

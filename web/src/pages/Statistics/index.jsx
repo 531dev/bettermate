@@ -53,7 +53,9 @@ export function StatisticsPage() {
   return (
     <div className='pb-20'>
       <div className='mb-4 flex flex-row items-center gap-2'>
-        <h2 className='flex-grow text-2xl font-bold sm:text-3xl'>Statistics</h2>
+        <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
+          Statistics
+        </h2>
       </div>
 
       <div className='w-full'>

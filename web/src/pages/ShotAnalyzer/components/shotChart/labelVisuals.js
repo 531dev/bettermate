@@ -1,12 +1,3 @@
-import { faBullseye } from '@fortawesome/free-solid-svg-icons/faBullseye';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faDroplet } from '@fortawesome/free-solid-svg-icons/faDroplet';
-import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
-import { faFilter } from '@fortawesome/free-solid-svg-icons/faFilter';
-import { faGauge } from '@fortawesome/free-solid-svg-icons/faGauge';
-import { faGaugeHigh } from '@fortawesome/free-solid-svg-icons/faGaugeHigh';
-import { faScaleBalanced } from '@fortawesome/free-solid-svg-icons/faScaleBalanced';
-import { faTemperatureHalf } from '@fortawesome/free-solid-svg-icons/faTemperatureHalf';
 import {
   BREW_BY_TIME_LABEL,
   BREW_BY_WEIGHT_LABEL,
@@ -23,19 +14,19 @@ const DISPLAY_LABEL_BY_LABEL = {
 };
 
 const ICON_BY_LABEL = {
-  Temp: faTemperatureHalf,
-  'Target T': faBullseye,
-  Pressure: faGauge,
-  'Target P': faBullseye,
-  'Pump Flow': faFaucet,
-  'Target F': faBullseye,
-  'Puck Flow': faFilter,
-  'Puck Resistance': faGaugeHigh,
-  'Liquid Resistance': faGaugeHigh,
-  Weight: faScaleBalanced,
-  'Weight Flow': faScaleBalanced,
-  [WATER_DRAWN_PHASE_LABEL]: faDroplet,
-  [WATER_DRAWN_TOTAL_LABEL]: faDroplet,
+  Temp: 'thermometer',
+  'Target T': 'sliders-horizontal',
+  Pressure: 'gauge',
+  'Target P': 'sliders-horizontal',
+  'Pump Flow': 'droplet',
+  'Target F': 'sliders-horizontal',
+  'Puck Flow': 'sliders-horizontal',
+  'Puck Resistance': 'gauge',
+  'Liquid Resistance': 'gauge',
+  Weight: 'scale',
+  'Weight Flow': 'scale',
+  [WATER_DRAWN_PHASE_LABEL]: 'droplet',
+  [WATER_DRAWN_TOTAL_LABEL]: 'droplet',
 };
 
 export function getShotChartDisplayLabel(label) {
@@ -50,14 +41,14 @@ export function getShotChartBrewModeMeta(results, colors) {
   return results?.isBrewByWeight
     ? {
         label: BREW_BY_WEIGHT_LABEL,
-        iconDef: faScaleBalanced,
+        iconDef: 'scale',
         backgroundColor: readCssColorVar('--analyzer-brew-by-weight-label-bg', colors.weight),
         textColor: readCssColorVar('--analyzer-brew-by-weight-label-text', '#ffffff'),
         borderColor: readCssColorVar('--analyzer-brew-by-weight-label-border', colors.weight),
       }
     : {
         label: BREW_BY_TIME_LABEL,
-        iconDef: faClock,
+        iconDef: 'clock',
         backgroundColor: readCssColorVar('--analyzer-brew-by-time-label-bg', '#475569'),
         textColor: readCssColorVar('--analyzer-brew-by-time-label-text', '#ffffff'),
         borderColor: readCssColorVar('--analyzer-brew-by-time-label-border', '#334155'),

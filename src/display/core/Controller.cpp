@@ -16,13 +16,13 @@
 #include <display/core/static_profiles.h>
 #include <display/core/zones.h>
 #include <display/plugins/AutoWakeupPlugin.h>
+#include <display/plugins/BLEScalePlugin.h>
 #include <display/plugins/BoilerFillPlugin.h>
 #include <display/plugins/LedControlPlugin.h>
 #include <display/plugins/ShotHistoryPlugin.h>
 #include <display/plugins/SmartGrindPlugin.h>
 #include <display/plugins/WebUIPlugin.h>
 #ifndef GAGGIMATE_SIM // network/BLE plugins are device-only
-#include <display/plugins/BLEScalePlugin.h>
 #include <display/plugins/HomekitPlugin.h>
 #include <display/plugins/ImprovPlugin.h>
 #include <display/plugins/MQTTPlugin.h>
@@ -101,9 +101,8 @@ void Controller::setup() {
     pluginManager->registerPlugin(new ImprovPlugin());
 #endif
     pluginManager->registerPlugin(&ShotHistory);
-#ifndef GAGGIMATE_SIM
+    // The simulator supplies a scale facade too, including the prestart tare hook.
     pluginManager->registerPlugin(&BLEScales);
-#endif
     pluginManager->registerPlugin(new LedControlPlugin());
     pluginManager->registerPlugin(new AutoWakeupPlugin());
     pluginManager->setup(this);

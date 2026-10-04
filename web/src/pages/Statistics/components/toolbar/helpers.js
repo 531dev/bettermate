@@ -11,7 +11,7 @@ export function getPrimaryDropdownToneClasses() {
 }
 
 export function getNeutralDropdownToneClasses() {
-  return 'bg-transparent text-base-content/70 hover:text-base-content';
+  return 'bg-transparent text-[var(--ink-muted)] hover:text-base-content';
 }
 
 export function getMenuItemClasses({ tone = 'neutral', isActive = false } = {}) {
@@ -43,7 +43,7 @@ export function getSegmentButtonClasses({
   }
   const resolvedClass = isActive
     ? activeClass
-    : 'bg-base-100/50 text-base-content/75 hover:bg-base-200/70';
+    : 'bg-base-100/50 text-base-content/75 hover:bg-[var(--surface-2)]';
   const disabledClass = disabled ? 'pointer-events-none opacity-40' : '';
   return `${baseClass} ${resolvedClass} ${disabledClass}`;
 }

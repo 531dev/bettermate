@@ -62,8 +62,10 @@ void MockController::update() {
     flow += (fDest - flow) * (1.0f - expf(-dt / 0.4f));
 
     // Water reaches the cup (scale) only with the brew valve open.
-    if (brewValveOpen && flow > 0.05f)
+    if (brewValveOpen && flow > 0.05f) {
         weight += flow * dt; // ~1 ml ≈ 1 g
+        flowVolume += flow * dt;
+    }
 
     if (now - lastSensorMs >= 100) {
         lastSensorMs = now;
@@ -71,7 +73,9 @@ void MockController::update() {
         if (onSensor)
             onSensor(temperature, pressure, flow, flow, puckResistance, pumpPower, constrain(gain * 100.0, 0.0f, 100.0f), 0.0f);
         if (onVolumetric)
-            onVolumetric(weight);
+            onVolumetric(flowVolume);
+        if (onScale)
+            onScale(weight);
     }
     if (now - lastTofMs >= 1000) {
         lastTofMs = now;

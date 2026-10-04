@@ -1,19 +1,10 @@
+import { Icon } from '../../../../components/Icon.jsx';
 /* global globalThis */
 
 /** Provides the table header, toolbar actions, and warning popover UI. */
 
 import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faAngleRight,
-  faAngleDoubleRight,
-  faArrowRight,
-  faAngleLeft,
-  faAngleDoubleLeft,
-  faArrowLeft,
-  faCircleInfo,
-} from '@fortawesome/free-solid-svg-icons';
 import { getAnalyzerColumnVisual } from './analyzerGroupVisuals';
 import {
   ANALYZER_ACTION_GROUP_CLASSES,
@@ -27,20 +18,20 @@ import { getAnalysisHeaderLabel } from './analysisTableModel';
 export function AnalysisTableToolbarActions({ onScrollTable, onScrollToBound }) {
   return (
     <div className={`${ANALYZER_ACTION_GROUP_CLASSES} hidden sm:flex`}>
-      <ScrollBtn icon={faArrowLeft} onClick={() => onScrollToBound('start')} />
-      <ScrollBtn icon={faAngleDoubleLeft} onClick={() => onScrollTable(-300)} />
+      <ScrollBtn icon={'chevron-left'} onClick={() => onScrollToBound('start')} />
+      <ScrollBtn icon={'chevron-left'} onClick={() => onScrollTable(-300)} />
       <ScrollBtn
-        icon={faAngleLeft}
+        icon={'chevron-left'}
         onClick={() => onScrollTable(-100)}
         className='mr-1 rounded-r-none'
       />
       <ScrollBtn
-        icon={faAngleRight}
+        icon={'chevron-right'}
         onClick={() => onScrollTable(100)}
         className='rounded-l-none'
       />
-      <ScrollBtn icon={faAngleDoubleRight} onClick={() => onScrollTable(300)} />
-      <ScrollBtn icon={faArrowRight} onClick={() => onScrollToBound('end')} />
+      <ScrollBtn icon={'chevron-right'} onClick={() => onScrollTable(300)} />
+      <ScrollBtn icon={'chevron-right'} onClick={() => onScrollToBound('end')} />
     </div>
   );
 }
@@ -89,8 +80,8 @@ export function AnalysisTableHeader({
               className={`border-l px-3 py-2 text-right align-middle ${subtleDividerClass} ${tableHeaderTextClass}`}
             >
               <span className='ml-auto flex max-w-[6.75rem] items-center justify-end gap-1.5 text-right leading-tight'>
-                <FontAwesomeIcon
-                  icon={columnVisual.icon}
+                <Icon
+                  name={columnVisual.icon}
                   className='shrink-0 text-xs'
                   style={{ color: columnVisual.color }}
                 />
@@ -184,13 +175,13 @@ export function StatusBadge({ label, colorClass = '', style = {}, details }) {
     isOpen && details ? (
       <div
         ref={popoverRef}
-        className='bg-base-100/95 border-base-content/10 text-base-content z-[10000] overflow-y-auto rounded-lg border p-2.5 text-xs leading-relaxed font-normal tracking-normal normal-case shadow-xl backdrop-blur-md'
+        className='bg-base-100/95 border-base-content/10 text-base-content z-[10000] overflow-y-auto rounded-lg border p-2.5 text-xs leading-relaxed font-normal tracking-normal normal-case'
         style={popoverStyle || { position: 'absolute', visibility: 'hidden' }}
       >
         <p className='text-base-content/90 mb-1 text-[12px] leading-tight font-medium tracking-normal'>
           {label}
         </p>
-        <p className='text-base-content/55 leading-relaxed font-normal'>{details}</p>
+        <p className='leading-relaxed font-normal text-[var(--ink-muted)]'>{details}</p>
       </div>
     ) : null;
 
@@ -205,7 +196,7 @@ export function StatusBadge({ label, colorClass = '', style = {}, details }) {
         onClick={() => setIsOpen(current => !current)}
       >
         <span>{label}</span>
-        <FontAwesomeIcon icon={faCircleInfo} className='text-[10px] opacity-80' />
+        <Icon name={'info'} className='text-[10px] opacity-80' />
       </button>
       {globalThis.document?.body ? createPortal(popoverContent, globalThis.document.body) : null}
     </>
@@ -220,10 +211,6 @@ const ScrollBtn = ({ icon, onClick, className = '', title }) => (
       className: `${ANALYZER_ACTION_ICON_BUTTON_CLASS} ${className}`,
     })}
   >
-    <FontAwesomeIcon
-      icon={icon}
-      className={ANALYZER_ACTION_ICON_CLASS}
-      style={ANALYZER_ACTION_ICON_STYLE}
-    />
+    <Icon name={icon} className={ANALYZER_ACTION_ICON_CLASS} style={ANALYZER_ACTION_ICON_STYLE} />
   </button>
 );

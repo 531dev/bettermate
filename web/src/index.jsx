@@ -1,3 +1,4 @@
+import { Icon } from './components/Icon.jsx';
 import './style.css';
 import { initializeTheme } from './utils/themeManager.js';
 
@@ -14,11 +15,9 @@ import lazy from 'preact-iso/lazy';
 import ApiService, { ApiServiceContext } from './services/ApiService.js';
 import { Navigation } from './components/Navigation.jsx';
 import { Spinner } from './components/Spinner.jsx';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars } from '@fortawesome/free-solid-svg-icons/faBars';
 
 // Each page lazy-loads as its own Vite chunk so the initial bundle stays small.
-// Chart.js, FontAwesome icon sets, and the analyzer/statistics views are too
+// Chart.js and the analyzer/statistics views are too
 // large to ship up-front on the ESP32's slow WiFi pipe.
 const Home = lazy(() => import('./pages/Home/index.jsx').then(m => m.Home));
 const NotFound = lazy(() => import('./pages/_404.jsx').then(m => m.NotFound));
@@ -88,7 +87,7 @@ export function App() {
   return (
     <LocationProvider>
       <ApiServiceContext.Provider value={apiService}>
-        <div className='bg-base-300 flex h-screen overflow-hidden'>
+        <div className='flex h-screen overflow-hidden bg-[var(--surface-0)]'>
           <Navigation
             collapsed={navCollapsed}
             onToggleCollapsed={() => setNavCollapsed(collapsed => !collapsed)}
@@ -127,10 +126,11 @@ export function App() {
           {navCollapsed && (
             <div className='fab end-auto left-4 md:hidden landscape:hidden'>
               <button
+                aria-label='Open navigation'
                 className='btn btn-lg btn-circle btn-primary'
                 onClick={() => setNavCollapsed(false)}
               >
-                <FontAwesomeIcon icon={faBars} />
+                <Icon name={'menu'} />
               </button>
             </div>
           )}

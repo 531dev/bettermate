@@ -1,7 +1,7 @@
 export default function IdleSection({ currentCoeffs }) {
   return (
     <div className='space-y-3'>
-      <p className='text-base-content/70 text-sm'>
+      <p className='text-sm text-[var(--ink-muted)]'>
         Place a scale with a cup under the steam wand. Close the steam valve just enough so the
         machine can reach the target pressure during each <em>Build</em> phase.
       </p>
@@ -11,7 +11,7 @@ export default function IdleSection({ currentCoeffs }) {
           during the <em>Measure</em> phases (10 s each).
         </span>
       </div>
-      <div className='bg-base-200 rounded-md p-3 text-sm'>
+      <div className='rounded-md bg-[var(--surface-2)] p-3 text-sm'>
         <strong>Current coefficients:</strong>{' '}
         <span className='font-mono'>{currentCoeffs || '—'}</span>
       </div>

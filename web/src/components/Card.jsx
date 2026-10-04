@@ -29,7 +29,7 @@ export default function Card({
 
   return (
     <div
-      className={`card bg-base-100 min-h-0 min-w-0 shadow-xl ${gridClasses} ${fullHeight ? 'h-full' : ''} ${className}`}
+      className={`card bg-base-100 min-h-0 min-w-0 rounded-2xl ${gridClasses} ${fullHeight ? 'h-full' : ''} ${className}`}
       role={role}
     >
       {title && (
@@ -37,7 +37,9 @@ export default function Card({
           <h2 className='card-title text-lg sm:text-xl'>{title}</h2>
         </div>
       )}
-      <div className={`card-body flex min-h-0 flex-col gap-2 p-4 ${fullHeight ? 'flex-1' : ''}`}>
+      <div
+        className={`card-body flex min-h-0 flex-col gap-3 p-5 max-sm:p-4 ${fullHeight ? 'flex-1' : ''}`}
+      >
         {children}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon } from './Icon.jsx';
 import { useCallback, useState } from 'preact/hooks';
 import { Tooltip } from './Tooltip.jsx';
 
@@ -19,10 +19,10 @@ export function ConfirmButton({ onAction, icon, tooltip, confirmTooltip, btnSize
         onClick={() => {
           confirmOrAction();
         }}
-        className={`btn btn-ghost btn-${btnSize} text-error cursor-pointer transition-colors ${confirm ? 'bg-error text-error-content font-semibold' : 'hover:text-error hover:bg-error/10'}`}
+        className={`btn btn-ghost btn-${btnSize} cursor-pointer text-[var(--danger)] transition-colors ${confirm ? 'bg-error text-error-content font-semibold' : 'hover:bg-error/10 hover:text-[var(--danger)]'}`}
         aria-label={confirm ? confirmTooltip : tooltip}
       >
-        <FontAwesomeIcon icon={icon} />
+        <Icon name={icon} />
         {confirm && <span className='ml-2 hidden sm:inline'>Confirm</span>}
       </button>
     </Tooltip>

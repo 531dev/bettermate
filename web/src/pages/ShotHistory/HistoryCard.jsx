@@ -1,17 +1,8 @@
+import { Icon } from '../../components/Icon.jsx';
 import Card from '../../components/Card.jsx';
 import { useCallback, useState, useContext } from 'preact/hooks';
 import { HistoryChart } from './HistoryChart.jsx';
 import { downloadJson } from '../../utils/download.js';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
-import { faWeightScale } from '@fortawesome/free-solid-svg-icons/faWeightScale';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
-import { faStar } from '@fortawesome/free-solid-svg-icons/faStar';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faMagnifyingGlassChart } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlassChart';
 import ShotNotesCard from './ShotNotesCard.jsx';
 import { useConfirmAction } from '../../hooks/useConfirmAction.js';
 
@@ -138,7 +129,7 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
       <div className='flex flex-col gap-2'>
         <div className='flex flex-row items-start gap-2'>
           <button
-            className='border-base-content/20 text-base-content/60 hover:text-base-content hover:bg-base-content/10 hover:border-base-content/40 cursor-pointer rounded-md border p-2 transition-all duration-200'
+            className='border-base-content/20 hover:text-base-content hover:bg-base-content/10 hover:border-base-content/40 cursor-pointer rounded-md border p-2 text-[var(--ink-muted)] transition-all duration-200'
             onClick={() => {
               const next = !expanded;
               setExpanded(next);
@@ -146,7 +137,7 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
             }}
             aria-label={expanded ? 'Collapse shot details' : 'Expand shot details'}
           >
-            <FontAwesomeIcon icon={expanded ? faMinus : faPlus} className='h-3 w-3' />
+            <Icon name={expanded ? 'minus' : 'plus'} className='h-3 w-3' />
           </button>
 
           <div className='min-w-0 flex-grow'>
@@ -156,7 +147,7 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
                 <h3 className='text-base-content truncate text-base font-semibold'>
                   {profileTitle}
                 </h3>
-                <p className='text-base-content/70 text-sm'>
+                <p className='text-sm text-[var(--ink-muted)]'>
                   #{shot.id} • {formattedDate}
                 </p>
                 {expanded &&
@@ -164,7 +155,7 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
                   shot.samples &&
                   shot.samples.length > 0 &&
                   shot.samples[0].systemInfo && (
-                    <p className='text-base-content/60 text-xs italic'>
+                    <p className='text-xs text-[var(--ink-muted)] italic'>
                       Brewed by{' '}
                       {shot.samples[0].systemInfo.shotStartedVolumetric ? 'Weight' : 'Time'}
                     </p>
@@ -183,10 +174,10 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
                     <button
                       disabled={!shot.loaded}
                       onClick={onExport}
-                      className='text-base-content/50 hover:text-info hover:bg-info/10 cursor-pointer rounded-md p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-40'
+                      className='hover:bg-info/10 cursor-pointer rounded-md p-2 text-[var(--ink-muted)] transition-colors hover:text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-40'
                       aria-label='Export shot data'
                     >
-                      <FontAwesomeIcon icon={faFileExport} className='h-4 w-4' />
+                      <Icon name={'save'} className='h-4 w-4' />
                     </button>
                   </Tooltip>
 
@@ -194,10 +185,10 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
                   <Tooltip content='Open in Analyzer'>
                     <a
                       href={`/analyzer/internal/${shot.id}`}
-                      className='text-base-content/50 hover:text-primary hover:bg-primary/10 flex items-center justify-center rounded-md p-2 transition-colors'
+                      className='hover:text-primary hover:bg-primary/10 flex items-center justify-center rounded-md p-2 text-[var(--ink-muted)] transition-colors'
                       aria-label='Open in Analyzer'
                     >
-                      <FontAwesomeIcon icon={faMagnifyingGlassChart} className='h-4 w-4' />
+                      <Icon name={'search'} className='h-4 w-4' />
                     </a>
                   </Tooltip>
 
@@ -213,12 +204,12 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
                       disabled={!canUpload}
                       className={`group inline-block cursor-pointer items-center justify-between gap-2 rounded-md border border-transparent px-2.5 py-2 text-sm font-semibold ${
                         canUpload
-                          ? 'text-success hover:bg-success/10 active:border-success/20'
+                          ? 'hover:bg-success/10 active:border-success/20 text-[var(--success)]'
                           : 'cursor-not-allowed text-gray-400'
                       }`}
                       aria-label='Upload to visualizer.coffee'
                     >
-                      <FontAwesomeIcon icon={faUpload} />
+                      <Icon name={'plus'} />
                     </button>
                   </Tooltip>
                   <Tooltip content={confirmDelete ? 'Click to confirm delete' : 'Delete'}>
@@ -226,10 +217,10 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
                       onClick={() => {
                         confirmOrDelete(() => onDelete(shot.id));
                       }}
-                      className={`cursor-pointer rounded-md p-2 transition-colors ${confirmDelete ? 'bg-error text-error-content font-semibold' : 'text-base-content/50 hover:text-error hover:bg-error/10'}`}
+                      className={`cursor-pointer rounded-md p-2 transition-colors ${confirmDelete ? 'bg-error text-error-content font-semibold' : 'hover:bg-error/10 text-[var(--ink-muted)] hover:text-[var(--danger)]'}`}
                       aria-label={confirmDelete ? 'Confirm deletion of shot' : 'Delete shot'}
                     >
-                      <FontAwesomeIcon icon={faTrashCan} className='h-4 w-4' />
+                      <Icon name={'trash-2'} className='h-4 w-4' />
                       {confirmDelete && <span className='ml-2 hidden sm:inline'>Confirm</span>}
                     </button>
                   </Tooltip>
@@ -240,25 +231,25 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
             {/* Stats Row */}
             <div className='text-base-content/80 mb-1 flex flex-row items-center gap-4 text-sm'>
               <div className='flex items-center gap-1'>
-                <FontAwesomeIcon icon={faClock} className='h-4 w-4' />
-                <span>{(shot.duration / 1000).toFixed(1)}s</span>
+                <Icon name={'clock'} className='h-4 w-4' />
+                <span className='font-mono tabular-nums'>{(shot.duration / 1000).toFixed(1)}s</span>
               </div>
 
               {shot.volume && shot.volume > 0 && (
                 <div className='flex items-center gap-1'>
-                  <FontAwesomeIcon icon={faWeightScale} className='h-4 w-4' />
-                  <span>{round2(shot.volume)}g</span>
+                  <Icon name={'scale'} className='h-4 w-4' />
+                  <span className='font-mono tabular-nums'>{round2(shot.volume)}g</span>
                 </div>
               )}
 
               {shot.rating && shot.rating > 0 ? (
                 <div className='flex items-center gap-1'>
-                  <FontAwesomeIcon icon={faStar} className='h-4 w-4 text-yellow-500' />
-                  <span className='font-medium'>{shot.rating}/5</span>
+                  <Icon name={'check'} className='h-4 w-4 text-yellow-500' />
+                  <span className='font-mono font-medium tabular-nums'>{shot.rating}/5</span>
                 </div>
               ) : (
-                <div className='text-base-content/50 flex items-center gap-1'>
-                  <FontAwesomeIcon icon={faStar} className='h-4 w-4' />
+                <div className='flex items-center gap-1 text-[var(--ink-muted)]'>
+                  <Icon name={'check'} className='h-4 w-4' />
                   <span>Not rated</span>
                 </div>
               )}
@@ -268,7 +259,7 @@ export default function HistoryCard({ shot, onDelete, onLoad, onNotesChanged }) 
               <div className='border-base-content/20 mt-4 border-t pt-4'>
                 {!shot.loaded && (
                   <div className='flex items-center justify-center py-8'>
-                    <span className='text-base-content/70 text-sm'>Loading shot data...</span>
+                    <span className='text-sm text-[var(--ink-muted)]'>Loading shot data...</span>
                   </div>
                 )}
                 {shot.loaded && <HistoryChart shot={shot} />}

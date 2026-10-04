@@ -2,8 +2,10 @@
 
 #include "SdlDriver.h"
 #include <Arduino.h>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <display/main.h>
 #include <sstream>
 
@@ -11,6 +13,18 @@
 static constexpr int TAP_MS = 120;
 static constexpr int SETTLE_MS = 80;
 static constexpr int SWIPE_STEP_MS = 16;
+
+static bool visibleText(lv_obj_t *obj, const char *text) {
+    if (!lv_obj_is_visible(obj))
+        return false;
+    if (lv_obj_check_type(obj, &lv_label_class) && strcmp(lv_label_get_text(obj), text) == 0)
+        return true;
+    for (uint32_t i = 0; i < lv_obj_get_child_cnt(obj); ++i) {
+        if (visibleText(lv_obj_get_child(obj, i), text))
+            return true;
+    }
+    return false;
+}
 
 bool SimScript::parse(const char *text) {
     std::stringstream commands(text);
@@ -73,8 +87,32 @@ bool SimScript::parse(const char *text) {
         } else if (verb == "expect") {
             std::string field;
             int expected = 0;
-            ok = static_cast<bool>(words >> field >> expected) && (field == "screen" || field == "mode" || field == "active");
-            steps.push_back({Kind::Expect, expected, 0, false, field});
+            words >> field;
+            if (field == "text" || field == "hidden") {
+                std::string label;
+                std::getline(words >> std::ws, label);
+                ok = !label.empty();
+                steps.push_back({Kind::ExpectText, 0, 0, field == "text", label});
+            } else {
+                ok = static_cast<bool>(words >> expected) &&
+                     (field == "screen" || field == "mode" || field == "active" || field == "temperature" ||
+                      field == "duration" || field == "target-weight" || field == "setpoint" || field == "grind-active" ||
+                      field == "grind-duration" || field == "grind-weight");
+                steps.push_back({Kind::Expect, expected, 0, false, field});
+            }
+        } else if (verb == "pressure-sensor" || verb == "scale") {
+            int value = 0;
+            ok = static_cast<bool>(words >> value) && (value == 0 || value == 1);
+            steps.push_back({verb == "scale" ? Kind::Scale : Kind::PressureSensor, value, 0, false, {}});
+        } else if (verb == "wifi") {
+            std::string mode;
+            ok = static_cast<bool>(words >> mode) &&
+                 (mode == "sta" || mode == "ap" || mode == "ap-open" || mode == "disconnected");
+            steps.push_back({Kind::Wifi, 0, 0, false, mode});
+        } else if (verb == "weight") {
+            float value = 0;
+            ok = static_cast<bool>(words >> value) && std::isfinite(value);
+            steps.push_back({Kind::Weight, static_cast<int>(value * 1000), 0, false, {}});
         } else if (verb == "autotune" || verb == "update") {
             steps.push_back({verb == "autotune" ? Kind::Autotune : Kind::Update, 0, 0, false, {}});
         } else if (verb == "shot") {
@@ -125,10 +163,42 @@ bool SimScript::run(SdlDriver *driver) {
         case Kind::Update:
             controller.onOTAUpdate();
             break;
+        case Kind::PressureSensor:
+            controller.getClientController()->simulatePressureSensor(step.a);
+            controller.getUI()->markDirty();
+            break;
+        case Kind::Scale:
+            controller.getClientController()->simulateScale(step.a);
+            break;
+        case Kind::Weight:
+            controller.getClientController()->simulateWeight(step.a / 1000.0f);
+            break;
+        case Kind::Wifi:
+            if (step.path == "ap-open")
+                controller.getSettings().setWifiApPassword("");
+            if (step.path == "sta")
+                WiFi.begin(controller.getSettings().getWifiSsid(), controller.getSettings().getWifiPassword());
+            else
+                WiFi.disconnect();
+#ifdef BETTERMATE_UI
+            controller.getUI()->simulateNetwork(step.path == "ap" || step.path == "ap-open");
+#else
+            controller.getUI()->markDirty();
+#endif
+            break;
         case Kind::Expect: {
-            const int actual = step.path == "screen" ? eez_flow_get_current_screen()
-                               : step.path == "mode" ? controller.getMode()
-                                                     : controller.isActive();
+            const Profile &profile = controller.getProfileManager()->getSelectedProfile();
+            const int actual = step.path == "screen"           ? eez_flow_get_current_screen()
+                               : step.path == "mode"           ? controller.getMode()
+                               : step.path == "temperature"    ? static_cast<int>(lroundf(profile.temperature))
+                               : step.path == "duration"       ? static_cast<int>(lroundf(profile.getTotalDuration()))
+                               : step.path == "target-weight"  ? static_cast<int>(lroundf(profile.getTotalVolume()))
+                               : step.path == "setpoint"       ? static_cast<int>(lroundf(controller.getTargetTemp()))
+                               : step.path == "grind-active"   ? controller.isGrindActive()
+                               : step.path == "grind-duration" ? controller.getSettings().getTargetGrindDuration() / 1000
+                               : step.path == "grind-weight"
+                                   ? static_cast<int>(lround(controller.getSettings().getTargetGrindVolume() * 10))
+                                   : controller.isActive();
             if (actual != step.a) {
                 fprintf(stderr, "[sim-script] expected %s %d, got %d\n", step.path.c_str(), step.a, actual);
                 std::exit(3);
@@ -136,6 +206,14 @@ bool SimScript::run(SdlDriver *driver) {
             fprintf(stderr, "[sim-script] verified %s %d\n", step.path.c_str(), actual);
             break;
         }
+        case Kind::ExpectText:
+            if (visibleText(lv_scr_act(), step.path.c_str()) != step.flag) {
+                fprintf(stderr, "[sim-script] expected label '%s' to be %s\n", step.path.c_str(),
+                        step.flag ? "visible" : "hidden");
+                std::exit(3);
+            }
+            fprintf(stderr, "[sim-script] verified %s label '%s'\n", step.flag ? "visible" : "hidden", step.path.c_str());
+            break;
         case Kind::Shot:
             driver->screenshot(step.path.c_str());
             break;

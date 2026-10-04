@@ -1,5 +1,5 @@
 const THEME_STORAGE_KEY = 'gaggimate-daisyui-theme';
-const AVAILABLE_THEMES = ['system', 'light', 'dark', 'coffee', 'nord'];
+const AVAILABLE_THEMES = ['system', 'light', 'dark'];
 
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -10,6 +10,8 @@ export function getSystemTheme() {
 export function getStoredTheme() {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'coffee') return 'dark';
+    if (stored === 'nord') return 'light';
     return stored && AVAILABLE_THEMES.includes(stored) ? stored : 'system';
   } catch (error) {
     console.warn('Failed to get stored theme:', error);

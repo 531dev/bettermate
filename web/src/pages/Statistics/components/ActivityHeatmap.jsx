@@ -293,7 +293,7 @@ export function ActivityHeatmap({ trends }) {
 
       {tooltip && (
         <div
-          className='bg-base-300 text-base-content pointer-events-none fixed z-50 rounded-md px-2.5 py-1.5 text-xs shadow-lg'
+          className='bg-base-300 text-base-content pointer-events-none fixed z-50 rounded-md px-2.5 py-1.5 text-xs'
           style={{
             ...(tooltip.onLeft
               ? { right: window.innerWidth - tooltip.x + 12 }

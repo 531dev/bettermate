@@ -1,8 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowRightArrowLeft';
-import { faGaugeHigh } from '@fortawesome/free-solid-svg-icons/faGaugeHigh';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
+import { Icon } from '../../../../../components/Icon.jsx';
 import {
   CompareSelect,
   CompareTargetSelect,
@@ -137,11 +133,7 @@ export function CompareMobileLegend({
         onClick={onToggleExpanded}
         aria-expanded={isExpanded}
       >
-        <FontAwesomeIcon
-          icon={isExpanded ? faMinus : faPlus}
-          className='text-xs'
-          aria-hidden='true'
-        />
+        <Icon name={isExpanded ? 'minus' : 'plus'} className='text-xs' aria-hidden='true' />
         <span>{isExpanded ? 'Hide legend' : 'Show legend'}</span>
       </button>
       {isExpanded ? (
@@ -180,7 +172,7 @@ export function CompareMobileShotSwitcher({ compareShotLegendItems, onCompareSwa
             title='Swap shot 1 and shot 2'
             aria-label='Swap shot 1 and shot 2'
           >
-            <FontAwesomeIcon icon={faArrowRightArrowLeft} aria-hidden='true' />
+            <Icon name={'refresh-cw'} aria-hidden='true' />
           </button>
         ) : null}
       </div>
@@ -298,9 +290,9 @@ export function CompareChartTitle({
     return (
       <div className='shot-chart-statistics-chart-title text-base-content/80 mb-2 inline-flex items-center gap-1.5 px-0.5 py-1 text-[10px] font-semibold'>
         {titleIcons.map(item => (
-          <FontAwesomeIcon
+          <Icon
             key={item.key || item.label}
-            icon={item.icon}
+            name={item.icon}
             className='text-[10px]'
             style={item.color ? { color: item.color } : undefined}
             aria-hidden='true'
@@ -312,7 +304,7 @@ export function CompareChartTitle({
   }
 
   return (
-    <div className='text-base-content/70 mb-2 text-[11px] font-semibold tracking-wide uppercase'>
+    <div className='mb-2 text-[11px] font-semibold tracking-wide text-[var(--ink-muted)] uppercase'>
       {title}
     </div>
   );
@@ -340,7 +332,7 @@ function getStatisticsMetricDefinitions(metricLabel = null) {
         label: 'Avg. Peak Pressure',
         unit: 'bar',
         color: 'var(--analyzer-pressure-text)',
-        icon: faGaugeHigh,
+        icon: 'gauge',
         getValue: total => total?.p?.max,
       },
     ],
@@ -424,7 +416,7 @@ function getStatisticsMetricDefinitions(metricLabel = null) {
       label: 'Peak Pressure',
       unit: 'bar',
       color: 'var(--analyzer-pressure-text)',
-      icon: faGaugeHigh,
+      icon: 'gauge',
       getValue: total => total?.p?.max,
     },
     {

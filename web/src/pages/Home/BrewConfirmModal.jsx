@@ -16,7 +16,7 @@ export function BrewConfirmModal({ warnings, onBack, onIgnore }) {
         <h3 id='brew-confirm-title' className='text-lg font-bold'>
           Start brew anyway?
         </h3>
-        <p className='text-base-content/70 py-2 text-sm'>
+        <p className='py-2 text-sm text-[var(--ink-muted)]'>
           The following warnings are currently active:
         </p>
         <ul className='space-y-2'>
@@ -24,7 +24,7 @@ export function BrewConfirmModal({ warnings, onBack, onIgnore }) {
             <li key={w.key} className='flex items-center gap-3'>
               <WarningIcon
                 icon={w.icon}
-                className={`text-xl ${w.level === WARNING_LEVEL.ERROR ? 'text-error' : 'text-warning'}`}
+                className={`text-xl ${w.level === WARNING_LEVEL.ERROR ? 'text-[var(--danger)]' : 'text-[var(--warning)]'}`}
               />
               <span className='flex-1 text-sm'>{w.label}</span>
             </li>

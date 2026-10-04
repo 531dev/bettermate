@@ -1,8 +1,5 @@
+import { Icon } from './Icon.jsx';
 import { useState, useEffect } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
-import { faEyeSlash } from '@fortawesome/free-solid-svg-icons/faEyeSlash';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner';
 
 export default function VisualizerUploadModal({
   isOpen,
@@ -76,7 +73,7 @@ export default function VisualizerUploadModal({
 
   return (
     <div className='bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4'>
-      <div className='max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white shadow-xl dark:bg-gray-800'>
+      <div className='max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white dark:bg-gray-800'>
         <div className='p-6'>
           <div className='mb-4 flex items-center justify-between'>
             <h3 className='text-lg font-semibold'>Upload to Visualizer.coffee</h3>
@@ -151,7 +148,7 @@ export default function VisualizerUploadModal({
                   disabled={isUploading}
                   className='absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50'
                 >
-                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                  <Icon name={showPassword ? 'search' : 'search'} />
                 </button>
               </div>
             </div>
@@ -184,7 +181,7 @@ export default function VisualizerUploadModal({
                 disabled={isUploading || !username.trim() || !password.trim()}
                 className='flex items-center space-x-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50'
               >
-                {isUploading && <FontAwesomeIcon icon={faSpinner} spin />}
+                {isUploading && <Icon name={'refresh-cw'} spin />}
                 <span>{isUploading ? 'Uploading...' : 'Upload Shot'}</span>
               </button>
             </div>

@@ -35,7 +35,7 @@ export function buildAnalysisWarningBadges(results) {
     badges.push({
       key: 'slow-sampling',
       label: `${WARNING_BADGE_SLOW_SAMPLING_LABEL}${intervalSuffix}`,
-      colorClass: 'text-white shadow-sm',
+      colorClass: 'text-white ',
       details: WARNING_HELP_COPY.slowSampling,
       style: {
         backgroundColor: utilityColors.warningOrange,
@@ -48,7 +48,7 @@ export function buildAnalysisWarningBadges(results) {
     badges.push({
       key: 'scale-lost',
       label: WARNING_BADGE_SCALE_LOST_LABEL,
-      colorClass: 'text-white shadow-sm',
+      colorClass: 'text-white ',
       details: WARNING_HELP_COPY.scaleLost,
       style: {
         backgroundColor: utilityColors.warningOrange,
@@ -62,7 +62,7 @@ export function buildAnalysisWarningBadges(results) {
     badges.push({
       key: 'high-scale-delay',
       label: `${WARNING_BADGE_HIGH_SCALE_LABEL}${delaySuffix}`,
-      colorClass: 'text-white shadow-sm',
+      colorClass: 'text-white ',
       details: WARNING_HELP_COPY.highScaleDelay,
       style: {
         backgroundColor: utilityColors.warningOrange,

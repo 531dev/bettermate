@@ -1,7 +1,6 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useContext, useEffect, useRef, useState } from 'preact/hooks';
 import { useSignalEffect } from '@preact/signals';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlassChart } from '@fortawesome/free-solid-svg-icons/faMagnifyingGlassChart';
 import { parseBinaryIndex, indexToShotList } from '../../ShotHistory/parseBinaryIndex.js';
 import { ApiServiceContext } from '../../../services/ApiService.js';
 import { cleanName } from '../../ShotAnalyzer/utils/analyzerUtils.js';
@@ -81,29 +80,29 @@ function ShotMiniCard({ shot, slots }) {
   const dateLabel = formatShotDateTime(shot.timestamp, !clock24hSignal.value);
 
   return (
-    <div className='bg-base-200 flex min-w-0 flex-row items-center gap-3 rounded-xl p-3 sm:flex-col sm:items-stretch lg:p-2.5 xl:p-3'>
+    <div className='flex min-w-0 flex-row items-center gap-3 rounded-xl bg-[var(--surface-2)] p-3 sm:flex-col sm:items-stretch lg:p-2.5 xl:p-3'>
       {/* Identity — left on mobile, top on sm+ */}
       <div className='flex min-w-0 flex-1 items-start gap-2'>
         <div className='min-w-0 flex-1'>
           <div className='text-base-content truncate text-sm font-semibold'>
             shot-{shot.id}
-            <span className='text-base-content/45 ml-1.5 text-xs font-normal'>
+            <span className='ml-1.5 text-xs font-normal text-[var(--ink-muted)]'>
               · {getRelativeDayLabel(shot.timestamp)}
             </span>
           </div>
-          <div className='text-base-content/60 truncate text-xs'>{profileLabel}</div>
+          <div className='truncate text-xs text-[var(--ink-muted)]'>{profileLabel}</div>
           {/* Date shown below profile on mobile only */}
           <div className='mt-0.5 sm:hidden'>
-            <span className='text-base-content/45 text-xs italic'>{dateLabel}</span>
+            <span className='text-xs text-[var(--ink-muted)] italic'>{dateLabel}</span>
           </div>
         </div>
         <a
           href={analyzerUrl}
-          className='text-base-content/30 hover:text-primary shrink-0 text-xs transition-colors'
+          className='hover:text-primary shrink-0 text-xs text-[var(--ink-muted)] transition-colors'
           aria-label='Open in Analyzer'
           title='Open in Analyzer'
         >
-          <FontAwesomeIcon icon={faMagnifyingGlassChart} />
+          <Icon name={'search'} />
         </a>
       </div>
 
@@ -115,14 +114,16 @@ function ShotMiniCard({ shot, slots }) {
           return (
             <div key={slotId} className='min-w-0 flex-1 text-center'>
               <div className='flex items-baseline justify-center gap-1.5 lg:gap-1 xl:gap-1.5'>
-                <span className='text-base-content text-sm font-bold'>{value ?? '—'}</span>
+                <span className='text-base-content font-mono text-sm font-medium tabular-nums'>
+                  {value ?? '—'}
+                </span>
                 {value != null && def && (
-                  <span className='text-base-content/55 text-xs lg:text-[0.68rem] xl:text-xs'>
+                  <span className='text-xs text-[var(--ink-muted)] lg:text-[0.68rem] xl:text-xs'>
                     {def.unit}
                   </span>
                 )}
               </div>
-              <div className='text-base-content/50 text-[0.6rem] font-semibold tracking-wider uppercase'>
+              <div className='text-[0.6rem] font-semibold tracking-wider text-[var(--ink-muted)] uppercase'>
                 {def?.label ?? slotId}
               </div>
             </div>
@@ -132,7 +133,7 @@ function ShotMiniCard({ shot, slots }) {
 
       {/* Date shown below metrics on sm+ only */}
       <div className='mt-1 hidden sm:block'>
-        <span className='text-base-content/45 text-xs italic'>{dateLabel}</span>
+        <span className='text-xs text-[var(--ink-muted)] italic'>{dateLabel}</span>
       </div>
     </div>
   );
@@ -145,7 +146,7 @@ ShotMiniCard.propTypes = {
 
 function ShotMiniCardSkeleton({ slots }) {
   return (
-    <div className='bg-base-200 flex min-w-0 flex-col gap-2 rounded-xl p-3'>
+    <div className='flex min-w-0 flex-col gap-2 rounded-xl bg-[var(--surface-2)] p-3'>
       <SkeletonBlock className='h-2.5 w-3/4' />
       <SkeletonBlock className='h-2 w-1/2' />
       <div className='mt-1 flex gap-2'>
@@ -235,7 +236,7 @@ export function RecentShotsCard() {
 
   return (
     <div className='card bg-base-100 flex flex-col gap-2 rounded-xl p-3'>
-      <div className='text-base-content/50 text-[0.6rem] tracking-wider uppercase'>
+      <div className='text-[0.6rem] tracking-wider text-[var(--ink-muted)] uppercase'>
         Recent Shots
       </div>
       <div className='grid grid-cols-1 gap-3 sm:[grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]'>

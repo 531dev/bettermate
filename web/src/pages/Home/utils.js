@@ -1,18 +1,9 @@
-import { faPowerOff } from '@fortawesome/free-solid-svg-icons/faPowerOff';
-import { faMugHot } from '@fortawesome/free-solid-svg-icons/faMugHot';
-import { faWind } from '@fortawesome/free-solid-svg-icons/faWind';
-import { faDroplet } from '@fortawesome/free-solid-svg-icons/faDroplet';
-import { faMortarPestle } from '@fortawesome/free-solid-svg-icons/faMortarPestle';
-import { faPause } from '@fortawesome/free-solid-svg-icons/faPause';
-import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
-import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay';
-
 export const MODES = [
-  { id: 0, icon: faPowerOff, label: 'Standby' },
-  { id: 1, icon: faMugHot, label: 'Brew' },
-  { id: 2, icon: faWind, label: 'Steam', iconRotation: 90 },
-  { id: 3, icon: faDroplet, label: 'Water' },
-  { id: 4, icon: faMortarPestle, label: 'Grind' },
+  { id: 0, icon: 'power', label: 'Standby' },
+  { id: 1, icon: 'coffee', label: 'Brew' },
+  { id: 2, icon: 'wind', label: 'Steam' },
+  { id: 3, icon: 'droplet', label: 'Water' },
+  { id: 4, icon: 'bean', label: 'Grind' },
 ];
 
 export const fmtElapsed = (ms = 0) => {
@@ -33,9 +24,9 @@ export const getPhaseLabel = (p, grind) => {
 };
 
 export const getPrimaryIcon = (active, finished) => {
-  if (active) return faPause;
-  if (finished) return faCheck;
-  return faPlay;
+  if (active) return 'pause';
+  if (finished) return 'check';
+  return 'play';
 };
 
 export const getPrimaryLabel = (active, finished) => {

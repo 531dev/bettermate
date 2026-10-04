@@ -1,10 +1,3 @@
-import { faBullseye } from '@fortawesome/free-solid-svg-icons/faBullseye';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faDroplet } from '@fortawesome/free-solid-svg-icons/faDroplet';
-import { faFaucet } from '@fortawesome/free-solid-svg-icons/faFaucet';
-import { faGaugeHigh } from '@fortawesome/free-solid-svg-icons/faGaugeHigh';
-import { faTemperatureHalf } from '@fortawesome/free-solid-svg-icons/faTemperatureHalf';
-import { faWeightScale } from '@fortawesome/free-solid-svg-icons/faWeightScale';
 import { formatMetricValue } from '../../utils/analyzerUtils';
 
 const metricRows = [
@@ -13,7 +6,7 @@ const metricRows = [
     label: 'Duration',
     unit: 's',
     color: 'var(--statistics-summary-duration)',
-    icon: faClock,
+    icon: 'clock',
     getValue: total => total?.duration,
   },
   {
@@ -21,7 +14,7 @@ const metricRows = [
     label: 'Weight',
     unit: 'g',
     color: 'var(--analyzer-weight-text)',
-    icon: faWeightScale,
+    icon: 'scale',
     getValue: total => total?.weight,
   },
   {
@@ -29,7 +22,7 @@ const metricRows = [
     label: 'Target Temperature',
     unit: '\u2103',
     color: 'var(--analyzer-target-temp-text)',
-    icon: faBullseye,
+    icon: 'sliders-horizontal',
     getValue: total => total?.tt?.avg,
   },
   {
@@ -37,7 +30,7 @@ const metricRows = [
     label: 'Avg. Temperature',
     unit: '\u2103',
     color: 'var(--analyzer-temp-text)',
-    icon: faTemperatureHalf,
+    icon: 'thermometer',
     getValue: total => total?.t?.avg,
   },
   {
@@ -45,7 +38,7 @@ const metricRows = [
     label: 'Peak Pressure',
     unit: 'bar',
     color: 'var(--analyzer-pressure-text)',
-    icon: faGaugeHigh,
+    icon: 'gauge',
     getValue: total => total?.p?.max,
   },
   {
@@ -53,7 +46,7 @@ const metricRows = [
     label: 'Avg. Pump Flow',
     unit: 'ml/s',
     color: 'var(--analyzer-flow-text)',
-    icon: faFaucet,
+    icon: 'droplet',
     getValue: total => total?.f?.avg,
   },
   {
@@ -61,7 +54,7 @@ const metricRows = [
     label: 'Pumped Water',
     unit: 'ml',
     color: 'var(--statistics-summary-water)',
-    icon: faDroplet,
+    icon: 'droplet',
     getValue: total => total?.water,
   },
 ];
@@ -70,12 +63,12 @@ function SummaryMetric({ label, unit, value }) {
   return (
     <div className='min-w-0 flex-1 text-center'>
       <div className='flex items-baseline justify-center gap-1.5 lg:gap-1 xl:gap-1.5'>
-        <span className='truncate text-base leading-none font-normal tabular-nums lg:text-sm xl:text-base'>
+        <span className='truncate font-mono text-base leading-none font-normal tabular-nums lg:text-sm xl:text-base'>
           {formatMetricValue(value)}
         </span>
-        <span className='text-base-content/55 text-xs lg:text-[0.68rem] xl:text-xs'>{unit}</span>
+        <span className='text-xs text-[var(--ink-muted)] lg:text-[0.68rem] xl:text-xs'>{unit}</span>
       </div>
-      <div className='text-base-content/55 mt-0.5 truncate text-center text-xs leading-tight font-medium'>
+      <div className='mt-0.5 truncate text-center text-xs leading-tight font-medium text-[var(--ink-muted)]'>
         {label}
       </div>
     </div>
@@ -114,14 +107,14 @@ export function MetricValueGrid({ total, excludeKeys = [], flat }) {
           <div className='analyzer-icon-metric analyzer-icon-metric--without-icon'>
             <div className='analyzer-icon-metric__content'>
               <div className='flex max-w-full items-baseline justify-center gap-1.5 lg:gap-1 xl:gap-1.5'>
-                <span className='analyzer-icon-metric__value truncate text-base leading-none font-normal tabular-nums lg:text-sm xl:text-base'>
+                <span className='analyzer-icon-metric__value truncate font-mono text-base leading-none font-normal tabular-nums lg:text-sm xl:text-base'>
                   {formatMetricValue(row.value, row.digits)}
                 </span>
-                <span className='text-base-content/55 text-xs lg:text-[0.68rem] xl:text-xs'>
+                <span className='text-xs text-[var(--ink-muted)] lg:text-[0.68rem] xl:text-xs'>
                   {row.unit}
                 </span>
               </div>
-              <div className='text-base-content/55 mt-0.5 max-w-full truncate text-center text-xs leading-tight font-medium'>
+              <div className='mt-0.5 max-w-full truncate text-center text-xs leading-tight font-medium text-[var(--ink-muted)]'>
                 {row.label}
               </div>
             </div>

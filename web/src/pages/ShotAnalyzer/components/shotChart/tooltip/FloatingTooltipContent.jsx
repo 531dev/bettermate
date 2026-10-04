@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon } from '../../../../../components/Icon.jsx';
 import { getShotChartDisplayLabel, getShotChartLabelIcon } from '../labelVisuals';
 import { TooltipShotBadge } from './TooltipPrimitives';
 
@@ -120,8 +120,8 @@ function FloatingTooltipRow({ row, index }) {
         .join(' ')}
     >
       {rowIcon ? (
-        <FontAwesomeIcon
-          icon={rowIcon}
+        <Icon
+          name={rowIcon}
           className='shot-chart-tooltip__icon'
           style={{ color: row.color }}
           aria-hidden='true'

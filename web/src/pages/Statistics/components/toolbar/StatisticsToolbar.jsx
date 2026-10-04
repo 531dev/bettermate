@@ -157,14 +157,14 @@ export function StatisticsToolbar({
     className: `${STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS} w-[7rem] list-none justify-between rounded-lg px-2 text-sm font-semibold [&::-webkit-details-marker]:hidden ${getPrimaryDropdownToneClasses()} ${isBusy ? 'pointer-events-none opacity-40' : ''}`,
   });
   const resetButtonClasses = getAnalyzerSurfaceTriggerClasses({
-    className: `inline-flex ${STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS} w-12 flex-col items-center justify-center gap-0.5 rounded-lg bg-base-content/4 px-0 text-base-content/70 hover:bg-base-content/7 hover:text-base-content disabled:cursor-not-allowed disabled:opacity-40`,
+    className: `inline-flex ${STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS} w-12 flex-col items-center justify-center gap-0.5 rounded-lg bg-base-content/4 px-0 text-[var(--ink-muted)] hover:bg-base-content/7 hover:text-base-content disabled:cursor-not-allowed disabled:opacity-40`,
   });
   const runButtonClasses = getAnalyzerSurfaceTriggerClasses({
     className: `inline-flex ${STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS} w-[6rem] items-center justify-center rounded-lg px-0 ${STATISTICS_RUN_BUTTON_TONE_CLASS} disabled:cursor-not-allowed disabled:opacity-40`,
   });
   const compactNeutralButtonClasses = getAnalyzerTextButtonClasses({
     className:
-      'h-9 min-h-0 rounded-lg bg-transparent px-2 text-xs font-semibold text-base-content/65 hover:text-base-content disabled:cursor-not-allowed disabled:opacity-40',
+      'h-9 min-h-0 rounded-lg bg-transparent px-2 text-xs font-semibold text-[var(--ink-muted)] hover:text-base-content disabled:cursor-not-allowed disabled:opacity-40',
   });
   const activeCompactNeutralButtonClasses = getAnalyzerTextButtonClasses({
     className:
@@ -172,7 +172,7 @@ export function StatisticsToolbar({
   });
   const dateTriggerClasses = getAnalyzerSurfaceTriggerClasses({
     className: `flex h-9 min-h-0 w-[11.25rem] list-none items-center gap-1.5 rounded-lg bg-transparent px-2 text-left text-xs sm:w-[12.5rem] md:w-[15rem] [&::-webkit-details-marker]:hidden ${
-      hasDateFilter ? 'text-base-content' : 'text-base-content/70 hover:text-base-content'
+      hasDateFilter ? 'text-base-content' : 'text-[var(--ink-muted)] hover:text-base-content'
     } ${busyDropdownClass}`,
   });
 

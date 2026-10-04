@@ -79,7 +79,7 @@ export function CalibrationTab({ formData, onChange, setField }) {
                 <div className='text-sm'>Your new PID values have been saved successfully.</div>
               </div>
             </div>
-            <div className='mockup-code bg-base-200 mx-auto max-w-md'>
+            <div className='mockup-code mx-auto max-w-md bg-[var(--surface-2)]'>
               <pre data-prefix='$'>
                 <code>{autotuneResult}</code>
               </pre>

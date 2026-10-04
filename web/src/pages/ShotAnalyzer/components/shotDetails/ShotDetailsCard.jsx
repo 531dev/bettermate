@@ -1,10 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGears } from '@fortawesome/free-solid-svg-icons/faGears';
-import { faTag } from '@fortawesome/free-solid-svg-icons/faTag';
-import { faPenToSquare } from '@fortawesome/free-solid-svg-icons/faPenToSquare';
-import { faYinYang } from '@fortawesome/free-solid-svg-icons/faYinYang';
-import { faWeightScale } from '@fortawesome/free-solid-svg-icons/faWeightScale';
-import { faDivide } from '@fortawesome/free-solid-svg-icons/faDivide';
+import { Icon } from '../../../../components/Icon.jsx';
 import { CardTitle } from '../../../../components/CardTitle';
 import { getNotesTasteStyle } from '../../utils/analyzerUtils';
 import { useShotNotesState } from '../useShotNotesState';
@@ -18,7 +12,7 @@ const tasteOptions = [
 ];
 
 const fieldLabelClass =
-  'text-base-content/55 mb-0.5 flex items-center gap-1.5 text-xs leading-tight font-medium';
+  'text-[var(--ink-muted)] mb-0.5 flex items-center gap-1.5 text-xs leading-tight font-medium';
 const inputClass =
   'border-base-content/10 bg-base-100/80 text-base-content input input-xs min-h-8 w-full rounded-md text-xs lg:min-h-7 xl:min-h-8';
 const textareaClass =
@@ -60,7 +54,7 @@ function DetailField({ icon, label, children, className = '', action = null }) {
     <div className={className}>
       <div className={`${fieldLabelClass} justify-between`}>
         <span className='flex min-w-0 items-center gap-1.5'>
-          {icon ? <FontAwesomeIcon icon={icon} className='text-[0.7rem]' /> : null}
+          {icon ? <Icon name={icon} className='text-[0.7rem]' /> : null}
           {label}
         </span>
         {action}
@@ -102,7 +96,7 @@ export function ShotDetailsCard({ entry, isCompare }) {
       <div className='app-card-surface flex flex-1 flex-col gap-3 rounded-xl p-3 lg:p-2.5 xl:p-3'>
         <CardTitle>Shot Notes</CardTitle>
         <div className='grid grid-cols-2 gap-3'>
-          <DetailField icon={faWeightScale} label='Dose In'>
+          <DetailField icon={'scale'} label='Dose In'>
             <input
               type='number'
               step='0.1'
@@ -117,7 +111,7 @@ export function ShotDetailsCard({ entry, isCompare }) {
               placeholder='18.0'
             />
           </DetailField>
-          <DetailField icon={faWeightScale} label='Dose Out'>
+          <DetailField icon={'scale'} label='Dose Out'>
             <input
               type='number'
               step='0.1'
@@ -134,16 +128,16 @@ export function ShotDetailsCard({ entry, isCompare }) {
               placeholder='36.0'
             />
           </DetailField>
-          <DetailField icon={faDivide} label='Ratio' className='col-span-2'>
+          <DetailField icon={'sliders-horizontal'} label='Ratio' className='col-span-2'>
             <input
               type='text'
               readOnly
               aria-label='Ratio'
-              className={`${inputClass} bg-base-200/50 text-base-content/70 cursor-default`}
+              className={`${inputClass} cursor-default bg-[var(--surface-2)] text-[var(--ink-muted)]`}
               value={notes.ratio ? `1:${notes.ratio}` : '—'}
             />
           </DetailField>
-          <DetailField icon={faGears} label='Grind' className='col-span-2'>
+          <DetailField icon={'settings'} label='Grind' className='col-span-2'>
             <input
               type='text'
               className={inputClass}
@@ -153,7 +147,7 @@ export function ShotDetailsCard({ entry, isCompare }) {
               placeholder='2.5'
             />
           </DetailField>
-          <DetailField icon={faTag} label='Beans' className='col-span-2'>
+          <DetailField icon={'info'} label='Beans' className='col-span-2'>
             <input
               type='text'
               className={inputClass}
@@ -163,8 +157,8 @@ export function ShotDetailsCard({ entry, isCompare }) {
               placeholder='Single Origin, Blend...'
             />
           </DetailField>
-          <DetailField icon={faYinYang} label='Balance / Taste' className='col-span-2'>
-            <div className='bg-base-200/70 flex w-full min-w-0 rounded-full p-0.5'>
+          <DetailField icon={'moon'} label='Balance / Taste' className='col-span-2'>
+            <div className='flex w-full min-w-0 rounded-full bg-[var(--surface-2)] p-0.5'>
               {tasteOptions.map(option => (
                 <button
                   key={option.value}
@@ -172,7 +166,7 @@ export function ShotDetailsCard({ entry, isCompare }) {
                   className={`flex min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full px-2 py-1 text-xs transition-all duration-200 ${
                     notes.balanceTaste === option.value
                       ? 'text-base-content bg-[var(--shot-details-taste-selected-bg)] font-medium'
-                      : 'text-base-content/60 hover:text-base-content'
+                      : 'hover:text-base-content text-[var(--ink-muted)]'
                   }`}
                   style={getSelectedTasteButtonStyle(option.value)}
                   onClick={() => updateAndSave('balanceTaste', option.value)}
@@ -184,11 +178,13 @@ export function ShotDetailsCard({ entry, isCompare }) {
           </DetailField>
         </div>
         <DetailField
-          icon={faPenToSquare}
+          icon={'square-pen'}
           label='Notes'
           className='flex min-h-0 flex-1 flex-col'
           action={
-            <span className='text-base-content/45 text-xs'>{(notes.notes || '').length}/200</span>
+            <span className='text-xs text-[var(--ink-muted)]'>
+              {(notes.notes || '').length}/200
+            </span>
           }
         >
           <textarea

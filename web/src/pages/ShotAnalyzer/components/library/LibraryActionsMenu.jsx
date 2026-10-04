@@ -1,7 +1,6 @@
+import { Icon } from '../../../../components/Icon.jsx';
 import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons/faEllipsisVertical';
 import {
   getAnalyzerIconButtonClasses,
   getAnalyzerTextButtonClasses,
@@ -95,7 +94,7 @@ export function LibraryActionsMenu({ actions, ariaLabel, buttonClassName, placem
       role='menu'
       tabIndex={-1}
       data-library-actions-menu='true'
-      className='app-card-surface fixed z-[10000] rounded-xl p-1.5 shadow-xl'
+      className='app-card-surface fixed z-[10000] rounded-xl p-1.5'
       style={{
         top: `${menuPosition.top}px`,
         left: `${menuPosition.left}px`,
@@ -106,7 +105,7 @@ export function LibraryActionsMenu({ actions, ariaLabel, buttonClassName, placem
         {actions.map(action => {
           const content = (
             <>
-              <FontAwesomeIcon icon={action.icon} className='w-4' />
+              <Icon name={action.icon} className='w-4' />
               <span>{action.label}</span>
             </>
           );
@@ -159,7 +158,7 @@ export function LibraryActionsMenu({ actions, ariaLabel, buttonClassName, placem
         aria-label={ariaLabel}
         title='More actions'
       >
-        <FontAwesomeIcon icon={faEllipsisVertical} size='sm' />
+        <Icon name={'menu'} />
       </summary>
 
       {isOpen ? createPortal(menu, document.body) : null}

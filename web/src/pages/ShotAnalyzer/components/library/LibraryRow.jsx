@@ -1,14 +1,8 @@
+import { Icon } from '../../../../components/Icon.jsx';
 /**
  * LibraryRow.jsx
  */
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartArea } from '@fortawesome/free-solid-svg-icons/faChartArea';
-import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons/faCircleNotch';
-import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
-import { faThumbtack } from '@fortawesome/free-solid-svg-icons/faThumbtack';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
 import { cleanName, formatTimestamp, getProfileDisplayLabel } from '../../utils/analyzerUtils';
 import { buildStatisticsProfileHref } from '../../../Statistics/utils/statisticsRoute';
 import { SourceMarker } from '../SourceMarker';
@@ -65,7 +59,7 @@ function CompareSelectionControl({
   return (
     <span className='flex h-6 w-6 shrink-0 items-center justify-center'>
       {isComparePending ? (
-        <FontAwesomeIcon icon={faCircleNotch} spin className='text-primary text-xs' />
+        <Icon name={'refresh-cw'} spin className='text-primary text-xs' />
       ) : (
         <input
           type='checkbox'
@@ -87,7 +81,7 @@ function LibraryCompareBadge({ compareBadgeNumber }) {
 
   return (
     <span
-      className={`ring-base-100 pointer-events-none absolute -top-1.5 -left-1 z-[1] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-bold shadow-md ring-2 ${getCompareBadgeClasses(compareBadgeNumber)}`}
+      className={`ring-base-100 pointer-events-none absolute -top-1.5 -left-1 z-[1] inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-bold ring-2 ${getCompareBadgeClasses(compareBadgeNumber)}`}
     >
       {compareBadgeNumber}
     </span>
@@ -115,7 +109,7 @@ function LibraryPinButton({ item, isPinned, pinDisabledReason, onPinToggle, disp
         } ${!isPinned && pinDisabledReason ? 'cursor-not-allowed opacity-35' : ''}`,
       })}
     >
-      <FontAwesomeIcon icon={faThumbtack} />
+      <Icon name={'check'} />
     </button>
   );
 }
@@ -143,12 +137,12 @@ function LibraryActionsCell({
       : []),
     {
       label: 'Export',
-      icon: faFileExport,
+      icon: 'save',
       onSelect: () => onExport(item),
     },
     {
       label: 'Delete',
-      icon: faTrashCan,
+      icon: 'trash-2',
       tone: 'error',
       onSelect: () => onDelete(item),
     },
@@ -201,7 +195,7 @@ export function LibraryRow({
       });
 
   const isCompareHighlight = isCompareSelected || isCompareRelated;
-  const statisticsIcon = compareMode ? faChartArea : faChartSimple;
+  const statisticsIcon = compareMode ? 'chart-column' : 'chart-column';
 
   const rowClasses = getLibraryRowClasses({
     isActive,
@@ -263,7 +257,7 @@ export function LibraryRow({
             </div>
           ) : null}
           {isShot ? (
-            <div className='library-row-grid__profile text-base-content/60 min-w-0 text-sm font-normal'>
+            <div className='library-row-grid__profile min-w-0 text-sm font-normal text-[var(--ink-muted)]'>
               {item.profileName || item.profile || '-'}
             </div>
           ) : null}

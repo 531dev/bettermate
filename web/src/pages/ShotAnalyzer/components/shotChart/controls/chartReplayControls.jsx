@@ -1,11 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons/faArrowUpRightFromSquare';
-import { faCircleInfo } from '@fortawesome/free-solid-svg-icons/faCircleInfo';
-import { faDownLeftAndUpRightToCenter } from '@fortawesome/free-solid-svg-icons/faDownLeftAndUpRightToCenter';
-import { faPause } from '@fortawesome/free-solid-svg-icons/faPause';
-import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay';
-import { faStop } from '@fortawesome/free-solid-svg-icons/faStop';
-import { faUpRightAndDownLeftFromCenter } from '@fortawesome/free-solid-svg-icons/faUpRightAndDownLeftFromCenter';
+import { Icon } from '../../../../../components/Icon.jsx';
 import {
   ANALYZER_ACTION_GROUP_CLASSES,
   ANALYZER_ACTION_ICON_BUTTON_CLASS,
@@ -68,15 +61,11 @@ function ShotMediaExportMenu({
         aria-expanded={exportMenuState.open}
         title='Share'
       >
-        <FontAwesomeIcon
-          icon={faArrowUpRightFromSquare}
-          className={buttonIconClassName}
-          style={buttonIconStyle}
-        />
+        <Icon name={'monitor'} className={buttonIconClassName} style={buttonIconStyle} />
       </button>
       {exportMenuState.open ? (
         <div
-          className={`bg-base-100/95 border-base-content/10 w-[min(92vw,15rem)] rounded-xl border p-3 text-[12px] shadow-xl backdrop-blur-md ${menuClassName}`}
+          className={`bg-base-100/95 border-base-content/10 w-[min(92vw,15rem)] rounded-xl border p-3 text-[12px] ${menuClassName}`}
         >
           <div className='mb-2 text-xs font-medium opacity-60'>Export Chart</div>
           <div className='space-y-1'>
@@ -175,11 +164,11 @@ function ShotMediaExportMenu({
                   aria-expanded={exportMenuState.showFormatInfo}
                   title='Explain WebM export'
                 >
-                  <FontAwesomeIcon icon={faCircleInfo} className='text-xs opacity-70' />
+                  <Icon name={'info'} className='text-xs opacity-70' />
                 </button>
               </div>
               {exportMenuState.showFormatInfo ? (
-                <p className='text-base-content/70 mt-2 pr-1 text-xs leading-relaxed'>
+                <p className='mt-2 pr-1 text-xs leading-relaxed text-[var(--ink-muted)]'>
                   {shouldLockWebmToggle
                     ? 'This browser records replay video as WebM natively.'
                     : 'WebM is the recommended replay video format in browsers with native WebM recording support.'}
@@ -229,8 +218,8 @@ function ReplayActionButton({
       aria-label={replayActionLabel}
       title={replayActionLabel}
     >
-      <FontAwesomeIcon
-        icon={isReplaying ? faPause : faPlay}
+      <Icon
+        name={isReplaying ? 'pause' : 'play'}
         className={ANALYZER_ACTION_ICON_CLASS}
         style={ANALYZER_ACTION_ICON_STYLE}
       />
@@ -255,8 +244,8 @@ function StopReplayButton({
       aria-label={stopLabel}
       title={stopLabel}
     >
-      <FontAwesomeIcon
-        icon={faStop}
+      <Icon
+        name={'stop'}
         className={ANALYZER_ACTION_ICON_CLASS}
         style={ANALYZER_ACTION_ICON_STYLE}
       />
@@ -364,7 +353,7 @@ export function ShotChartMobileReplayActions({
   shouldShowWebmToggle,
 }) {
   const chartActionButtonClasses = getAnalyzerIconButtonClasses({
-    className: `${ANALYZER_ACTION_ICON_BUTTON_CLASS} border-0 bg-transparent shadow-none`,
+    className: `${ANALYZER_ACTION_ICON_BUTTON_CLASS} border-0 bg-transparent `,
   });
 
   return (
@@ -432,8 +421,8 @@ function FullDisplayButton({
       aria-label={isFullDisplay ? 'Close full display' : 'Open full display'}
       title={isFullDisplay ? 'Close full display' : 'Open full display'}
     >
-      <FontAwesomeIcon
-        icon={isFullDisplay ? faDownLeftAndUpRightToCenter : faUpRightAndDownLeftFromCenter}
+      <Icon
+        name={isFullDisplay ? 'panel-left-close' : 'panel-left-close'}
         className={ANALYZER_ACTION_ICON_CLASS}
         style={ANALYZER_ACTION_ICON_STYLE}
       />
@@ -526,13 +515,13 @@ export function ReplayExportStatus({
       <div className='min-w-[10rem] text-right'>
         <div
           className={`text-xs font-medium ${
-            replayExportStatus.error ? 'text-error' : 'text-base-content/65'
+            replayExportStatus.error ? 'text-[var(--danger)]' : 'text-[var(--ink-muted)]'
           }`}
         >
           {replayExportStatusLabel}
         </div>
         {replayExportStatusHint ? (
-          <div className='text-base-content/45 mt-0.5 text-[9px] leading-relaxed'>
+          <div className='mt-0.5 text-[9px] leading-relaxed text-[var(--ink-muted)]'>
             {replayExportStatusHint}
           </div>
         ) : null}

@@ -1,5 +1,5 @@
+import { Icon } from '../../../components/Icon.jsx';
 import PropTypes from 'prop-types';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getPrimaryIcon, getPrimaryLabel } from '../utils.js';
 import { WarningIcon } from '../../../components/WarningIcon.jsx';
 import { activeWarnings, WARNING_LEVEL } from '../../../utils/warnings.js';
@@ -85,7 +85,7 @@ export function ActionCard({
               key={w.key}
               icon={w.icon}
               title={w.label}
-              className={`text-xl ${w.level === WARNING_LEVEL.ERROR ? 'text-error' : 'text-warning'}`}
+              className={`text-xl ${w.level === WARNING_LEVEL.ERROR ? 'text-[var(--danger)]' : 'text-[var(--warning)]'}`}
             />
           ))}
         </div>
@@ -98,16 +98,16 @@ export function ActionCard({
           aria-label={primaryLabel}
           title={primaryLabel}
         >
-          <FontAwesomeIcon icon={getPrimaryIcon(isActive, isFinished)} className='text-2xl' />
+          <Icon name={getPrimaryIcon(isActive, isFinished)} className='text-2xl' />
         </button>
       )}
       {showStandby && (
-        <span className='text-base-content/70 col-span-full py-2 text-center text-sm'>
+        <span className='col-span-full py-2 text-center text-sm text-[var(--ink-muted)]'>
           {systemMessage || 'Machine is ready, wake up to use'}
         </span>
       )}
       {showSteam && (
-        <span className='text-base-content/70 py-2 text-sm'>
+        <span className='py-2 text-sm text-[var(--ink-muted)]'>
           {!preheated ? 'Preheating...' : 'Ready to steam, open wand'}
         </span>
       )}
@@ -115,7 +115,7 @@ export function ActionCard({
         <div className='flex justify-end'>
           {showFlush && (
             <FlushButton
-              className='btn btn-ghost btn-sm text-base-content/60 hover:text-base-content rounded-full text-sm'
+              className='btn btn-ghost btn-sm hover:text-base-content rounded-full text-sm text-[var(--ink-muted)]'
               isFlushing={isFlushing}
               startFlush={startFlush}
               stopFlush={stopFlush}

@@ -10,7 +10,6 @@
   [role='button']:not(.app-card-surface):not([aria-disabled='true']):not(:focus-visible),
 .shot-analyzer-page a[href]:not(:focus-visible),
 .shot-analyzer-page select:not(:focus-visible) {
-  box-shadow: none;
   border-color: transparent;
 }
 
@@ -20,7 +19,6 @@
 .shot-analyzer-page select:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--color-primary) 72%, white 28%);
   outline-offset: 2px;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
 }
 
 .shot-analyzer-page .shot-analyzer-action-scroll {
@@ -34,11 +32,9 @@
 }
 
 .shot-analyzer-page .library-panel-dropdown-surface {
-  box-shadow: none;
 }
 
 .shot-analyzer-page .library-panel-statusbar-surface--open {
-  box-shadow: none;
 }
 
 @media (min-width: 1024px) {

@@ -1,7 +1,5 @@
+import { Icon } from '../../components/Icon.jsx';
 import Card from '../../components/Card.jsx';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDiagramNext } from '@fortawesome/free-solid-svg-icons/faDiagramNext';
-import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
 
 export function ProfileTypeSelection({ onSelect }) {
   return (
@@ -20,9 +18,9 @@ export function ProfileTypeSelection({ onSelect }) {
           tabIndex={0}
           aria-label='Select simple profile type'
         >
-          <FontAwesomeIcon icon={faDiagramNext} className='text-5xl' />
+          <Icon name={'list'} className='text-5xl' />
           <span className='text-lg font-medium'>Simple profile</span>
-          <span className='text-base-content/70 text-center text-sm'>
+          <span className='text-center text-sm text-[var(--ink-muted)]'>
             Supports creating of profiles with different brew phases and targets.
           </span>
         </div>
@@ -42,9 +40,9 @@ export function ProfileTypeSelection({ onSelect }) {
           tabIndex={1}
           aria-label='Select Pro profile type'
         >
-          <FontAwesomeIcon icon={faChartSimple} className='text-5xl' />
+          <Icon name={'chart-column'} className='text-5xl' />
           <span className='text-lg'>Pro profile</span>
-          <span className='text-base-content/60 text-center text-sm'>
+          <span className='text-center text-sm text-[var(--ink-muted)]'>
             Supports advanced pressure and flow controlled phases with ramps, different targets and
             further visualization.
           </span>

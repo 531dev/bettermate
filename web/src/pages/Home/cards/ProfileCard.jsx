@@ -1,9 +1,7 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useContext, useEffect, useState } from 'preact/hooks';
 import { ApiServiceContext, machine } from '../../../services/ApiService.js';
 import PropTypes from 'prop-types';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRectangleList } from '@fortawesome/free-solid-svg-icons/faRectangleList';
-import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
 import { ProcessProfileChart } from '../../../components/ProcessProfileChart.jsx';
 import { profileChartHeightSignal } from '../../../utils/dashboardManager.js';
 import { SkeletonBlock } from '../../../components/SkeletonBlock.jsx';
@@ -26,16 +24,18 @@ function ProgressCard({ processInfo, isBrewing, isGrinding, selectedProfile }) {
           <span className='bg-primary/20 text-primary rounded px-1.5 py-0.5 text-[0.6rem] font-semibold tracking-wider uppercase'>
             {phase}
           </span>
-          <span className='text-base-content text-2xl font-bold tabular-nums'>
+          <span className='text-base-content font-mono text-2xl font-bold tabular-nums'>
             {fmtElapsed(p?.e)}
           </span>
         </div>
         {target && (
           <div className='text-right'>
-            <div className='text-base-content/50 text-[0.6rem] tracking-wider uppercase'>
+            <div className='text-[0.6rem] tracking-wider text-[var(--ink-muted)] uppercase'>
               Target
             </div>
-            <div className='text-base-content text-lg font-bold tabular-nums'>{target}</div>
+            <div className='text-base-content font-mono text-lg font-bold tabular-nums'>
+              {target}
+            </div>
           </div>
         )}
       </div>
@@ -70,19 +70,21 @@ function FinishedProcessCard({ processInfo, isBrewing, selectedProfile, stats, w
 
   return (
     <div className='card bg-success/10 border-success/30 flex flex-col gap-1 rounded-xl border p-3'>
-      <div className='text-success flex items-center gap-1.5 text-[0.65rem] font-semibold tracking-wider uppercase'>
-        <FontAwesomeIcon icon={faCheck} />
+      <div className='flex items-center gap-1.5 text-[0.65rem] font-semibold tracking-wider text-[var(--success)] uppercase'>
+        <Icon name={'check'} />
         Finished · {selectedProfile || 'Default'}
       </div>
-      <span className='text-base-content text-center text-2xl font-bold tabular-nums'>
+      <span className='text-base-content text-center font-mono text-2xl font-bold tabular-nums'>
         {fmtElapsed(p?.e)}
       </span>
       {items.length > 0 && (
         <div className='mt-1 flex gap-3'>
           {items.map(item => (
             <div key={item.key} className='flex-1 text-center'>
-              <div className='text-base-content text-sm font-bold tabular-nums'>{item.value}</div>
-              <div className='text-base-content/50 text-[0.6rem] font-semibold tracking-wider uppercase'>
+              <div className='text-base-content font-mono text-sm font-bold tabular-nums'>
+                {item.value}
+              </div>
+              <div className='text-[0.6rem] font-semibold tracking-wider text-[var(--ink-muted)] uppercase'>
                 {item.label}
               </div>
             </div>
@@ -211,16 +213,13 @@ export function ProfileCard({
 
   const inner = (
     <>
-      <div className='text-base-content/50 text-[0.6rem] tracking-wider uppercase'>Profile</div>
+      <div className='text-[0.6rem] tracking-wider text-[var(--ink-muted)] uppercase'>Profile</div>
       <div className='flex items-center justify-between gap-2'>
         <span className='text-base-content truncate text-sm font-semibold'>
           {selectedProfile || 'Default'}
         </span>
         <a href='/profiles'>
-          <FontAwesomeIcon
-            icon={faRectangleList}
-            className='text-base-content/40 shrink-0 text-sm'
-          />
+          <Icon name={'list'} className='shrink-0 text-sm text-[var(--ink-muted)]' />
         </a>
       </div>
       {!compact &&

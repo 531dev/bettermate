@@ -1,5 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
+import { Icon } from '../../components/Icon.jsx';
 
 export const TargetTypes = [
   {
@@ -74,11 +73,11 @@ export function ExtendedPhaseTarget({ onChange, target, index, onRemove }) {
             </div>
             <button
               type='button'
-              className={`join-item btn btn-outline text-error`}
+              className={`join-item btn btn-outline text-[var(--danger)]`}
               aria-label='Remove target'
               onClick={() => onRemove()}
             >
-              <FontAwesomeIcon icon={faTrashCan} />
+              <Icon name={'trash-2'} />
             </button>
           </div>
         </div>

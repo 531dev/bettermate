@@ -1,10 +1,7 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useContext, useState } from 'preact/hooks';
 import { computed, useSignalEffect } from '@preact/signals';
 import { ApiServiceContext, machine } from '../../../services/ApiService.js';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTemperatureFull } from '@fortawesome/free-solid-svg-icons/faTemperatureFull';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faScaleBalanced } from '@fortawesome/free-solid-svg-icons/faScaleBalanced';
 import PropTypes from 'prop-types';
 import { SkeletonBlock } from '../../../components/SkeletonBlock.jsx';
 
@@ -22,28 +19,31 @@ function ProfileMiniCard({ profile, isSelected, onSelect }) {
   return (
     <button
       type='button'
+      aria-pressed={isSelected}
       onClick={() => onSelect(profile.id)}
-      className={`flex w-full cursor-pointer flex-col gap-1.5 rounded-lg p-2 text-left transition-colors ${
-        isSelected ? 'bg-primary/15 ring-primary/40 ring-1' : 'bg-base-200 hover:bg-base-300'
+      className={`flex w-full cursor-pointer flex-col gap-2 rounded-xl border-2 p-3 text-left transition-colors ${
+        isSelected
+          ? 'border-primary bg-info'
+          : 'border-transparent bg-[var(--surface-2)] hover:border-[var(--line-strong)]'
       }`}
     >
       <div className='w-full truncate text-sm font-semibold'>{profile.label}</div>
-      <div className='text-base-content/50 w-full truncate text-xs'>
+      <div className='w-full truncate text-xs text-[var(--ink-muted)]'>
         {profile.description || ' '}
       </div>
       <div className='mt-auto flex flex-wrap gap-1 pt-0.5'>
-        <span className='badge badge-ghost badge-xs gap-1'>
-          <FontAwesomeIcon icon={faTemperatureFull} />
+        <span className='badge badge-sm gap-1 border-0 bg-[var(--heat-soft)] text-[var(--heat-text)]'>
+          <Icon name={'thermometer'} />
           {profile.temperature}°C
         </span>
         {weight !== null && (
-          <span className='badge badge-ghost badge-xs gap-1'>
-            <FontAwesomeIcon icon={faScaleBalanced} />
+          <span className='badge badge-sm gap-1 border-0 bg-[var(--weight-soft)] text-[var(--weight)]'>
+            <Icon name={'scale'} />
             {weight}g
           </span>
         )}
-        <span className='badge badge-ghost badge-xs gap-1'>
-          <FontAwesomeIcon icon={faClock} />
+        <span className='badge badge-sm gap-1 border-0 bg-[var(--surface-0)] text-[var(--ink-muted)]'>
+          <Icon name={'clock'} />
           {totalSeconds}s
         </span>
       </div>
@@ -116,10 +116,10 @@ export function FavoriteProfilesCard({ selectedProfileId, inCard = false, compac
   if (favorites.length === 0) {
     return (
       <div className={wrapperClass}>
-        <div className='text-base-content/50 text-[0.6rem] tracking-wider uppercase'>
+        <div className='text-[0.6rem] tracking-wider text-[var(--ink-muted)] uppercase'>
           Quick Select
         </div>
-        <div className='text-base-content/50 flex flex-col items-center gap-1 py-3 text-center text-sm'>
+        <div className='flex flex-col items-center gap-1 py-3 text-center text-sm text-[var(--ink-muted)]'>
           <span className='text-lg'>★</span>
           <span>No favorites — mark profiles as ★ in the profile list</span>
         </div>
@@ -133,11 +133,12 @@ export function FavoriteProfilesCard({ selectedProfileId, inCard = false, compac
         <button
           key={profile.id}
           type='button'
+          aria-pressed={profile.id === selectedProfileId}
           onClick={() => handleSelect(profile.id)}
           className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             profile.id === selectedProfileId
               ? 'bg-primary text-primary-content'
-              : 'bg-base-200 text-base-content hover:bg-base-300'
+              : 'text-base-content hover:bg-base-300 bg-[var(--surface-2)]'
           }`}
         >
           {profile.label}
@@ -145,7 +146,10 @@ export function FavoriteProfilesCard({ selectedProfileId, inCard = false, compac
       ))}
     </div>
   ) : (
-    <div className='grid grid-cols-3 gap-2'>
+    <div
+      className='grid gap-2'
+      style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))' }}
+    >
       {favorites.map(profile => (
         <ProfileMiniCard
           key={profile.id}
@@ -159,7 +163,7 @@ export function FavoriteProfilesCard({ selectedProfileId, inCard = false, compac
 
   return (
     <div className={wrapperClass}>
-      <div className='text-base-content/50 text-[0.6rem] tracking-wider uppercase'>
+      <div className='text-[0.6rem] tracking-wider text-[var(--ink-muted)] uppercase'>
         Quick Select
       </div>
       {content}

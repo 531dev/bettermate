@@ -1,6 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
-import { faEyeSlash } from '@fortawesome/free-solid-svg-icons/faEyeSlash';
+import { Icon } from '../../../components/Icon.jsx';
 import { timezones } from '../../../config/zones.js';
 import { DASHBOARD_LAYOUTS } from '../../../utils/dashboardManager.js';
 import Section from '../../../components/Card.jsx';
@@ -45,7 +43,7 @@ function WarningLevelSelect({ id, label, icon, value, onChange }) {
     <SettingsFormField
       label={
         <span className='flex items-center gap-2'>
-          <WarningIcon icon={icon} className='text-base-content/70 text-lg' />
+          <WarningIcon icon={icon} className='text-lg text-[var(--ink-muted)]' />
           {label}
         </span>
       }
@@ -89,7 +87,7 @@ function PasswordField({ id, label, placeholder, value, onChange, shown, setShow
         aria-label='Show Password'
         onClick={() => setShown(!shown)}
       >
-        <FontAwesomeIcon icon={shown ? faEyeSlash : faEye} />
+        <Icon name={shown ? 'search' : 'search'} />
       </button>
     </label>
   );
@@ -390,8 +388,6 @@ export function GeneralTab({
               <option value='system'>System</option>
               <option value='light'>Light</option>
               <option value='dark'>Dark</option>
-              <option value='coffee'>Coffee</option>
-              <option value='nord'>Nord</option>
             </select>
           </SettingsFormField>
           <SettingsFormField label='Dashboard Layout' htmlFor='dashboardLayout' noMargin>
@@ -438,7 +434,7 @@ export function GeneralTab({
           <SettingsFormField
             label='Access Point Password'
             htmlFor='apPassword'
-            helpText='Used for the GaggiMate hotspot when no Wi-Fi is configured (min. 8 characters).'
+            helpText='Used for the BetterMate hotspot when no Wi-Fi is configured (min. 8 characters).'
             noMargin
           >
             <PasswordField
@@ -492,7 +488,7 @@ export function GeneralTab({
 
       {/* Warnings */}
       <Section title='Warnings' className='h-full'>
-        <p className='text-base-content/70 mb-4 text-sm'>
+        <p className='mb-4 text-sm text-[var(--ink-muted)]'>
           Warnings are shown on the display. An error additionally asks for confirmation before a
           brew starts.
         </p>

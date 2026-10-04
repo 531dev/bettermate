@@ -1,7 +1,6 @@
+import { Icon } from '../../../../components/Icon.jsx';
 import { AnalyzerActionBar } from '../AnalyzerActionBar';
 import { StatusBar } from './StatusBar';
-import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 function hasFileDrag(event) {
@@ -132,7 +131,7 @@ function AnalyzerPanelSlot({ statusBarProps, actionBarProps, showActionBar = tru
   return (
     <section
       className={`relative transition-all ${
-        isDropzoneActive ? 'bg-primary/8 ring-primary/30 rounded-lg shadow-lg ring-2' : ''
+        isDropzoneActive ? 'bg-primary/8 ring-primary/30 rounded-lg ring-2' : ''
       }`}
       aria-label='Shot and profile import dropzone'
       onDragEnter={handleDragEnter}
@@ -141,9 +140,9 @@ function AnalyzerPanelSlot({ statusBarProps, actionBarProps, showActionBar = tru
       onDrop={handleDrop}
     >
       {isDropzoneActive ? (
-        <div className='border-primary/55 bg-base-100/90 text-primary pointer-events-none absolute inset-0 z-[30] flex items-center justify-center rounded-lg border-2 border-dashed shadow-inner'>
-          <div className='border-primary/25 bg-base-100/90 flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium shadow-sm'>
-            <FontAwesomeIcon icon={faFileImport} className='text-sm' />
+        <div className='border-primary/55 bg-base-100/90 text-primary pointer-events-none absolute inset-0 z-[30] flex items-center justify-center rounded-lg border-2 border-dashed'>
+          <div className='border-primary/25 bg-base-100/90 flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium'>
+            <Icon name={'plus'} className='text-sm' />
             <span>Drop shot or profile JSON here</span>
           </div>
         </div>

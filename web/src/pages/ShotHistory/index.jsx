@@ -1,3 +1,4 @@
+import { Icon } from '../../components/Icon.jsx';
 import {
   Chart,
   LineController,
@@ -26,10 +27,6 @@ import { Spinner } from '../../components/Spinner.jsx';
 import HistoryCard from './HistoryCard.jsx';
 import { parseBinaryShot } from './parseBinaryShot.js';
 import { parseBinaryIndex, indexToShotList } from './parseBinaryIndex.js';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch';
-import { faSort } from '@fortawesome/free-solid-svg-icons/faSort';
-import { faFilter } from '@fortawesome/free-solid-svg-icons/faFilter';
 
 const connected = computed(() => machine.value.connected);
 
@@ -199,8 +196,10 @@ export function ShotHistory() {
     <>
       <div className='mb-6'>
         <div className='mb-4 flex flex-row items-center gap-2'>
-          <h2 className='flex-grow text-2xl font-bold sm:text-3xl'>Shot History</h2>
-          <span className='text-base-content/70 text-sm'>
+          <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
+            Shot History
+          </h2>
+          <span className='text-sm text-[var(--ink-muted)]'>
             {totalFilteredItems} of {history.length} shots{' '}
             {totalPages > 1 && `(Page ${currentPage} of ${totalPages})`}
           </span>
@@ -210,9 +209,9 @@ export function ShotHistory() {
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
           {/* Search */}
           <div className='relative max-w-md flex-grow'>
-            <FontAwesomeIcon
-              icon={faSearch}
-              className='text-base-content/50 absolute top-1/2 left-3 -translate-y-1/2 transform text-sm'
+            <Icon
+              name={'search'}
+              className='absolute top-1/2 left-3 -translate-y-1/2 transform text-sm text-[var(--ink-muted)]'
             />
             <input
               type='text'
@@ -228,7 +227,7 @@ export function ShotHistory() {
 
           {/* Sort */}
           <div className='flex items-center gap-2'>
-            <FontAwesomeIcon icon={faSort} className='text-base-content/50' />
+            <Icon name={'list'} className='text-[var(--ink-muted)]' />
             <select
               value={`${sortBy}-${sortOrder}`}
               onChange={e => {
@@ -256,7 +255,7 @@ export function ShotHistory() {
 
           {/* Filter */}
           <div className='flex items-center gap-2'>
-            <FontAwesomeIcon icon={faFilter} className='text-base-content/50' />
+            <Icon name={'sliders-horizontal'} className='text-[var(--ink-muted)]' />
             <select
               value={filterBy}
               onChange={e => {

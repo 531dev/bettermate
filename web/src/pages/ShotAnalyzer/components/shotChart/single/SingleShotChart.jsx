@@ -1,3 +1,4 @@
+import { Icon } from '../../../../../components/Icon.jsx';
 /* global globalThis */
 
 /** Coordinates the single-chart lifecycle, responsive layout, hover, replay, and export. */
@@ -6,9 +7,6 @@ import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import Chart from 'chart.js/auto';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import {
   SHOT_CHART_PRIMARY_LEGEND_LABELS,
   SHOT_CHART_SERIES_LEGEND_LABELS,
@@ -872,8 +870,8 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
           onClick={() => setIsMobileSeriesLegendExpanded(expanded => !expanded)}
           aria-expanded={isMobileSeriesLegendExpanded}
         >
-          <FontAwesomeIcon
-            icon={isMobileSeriesLegendExpanded ? faMinus : faPlus}
+          <Icon
+            name={isMobileSeriesLegendExpanded ? 'minus' : 'plus'}
             className='text-xs'
             aria-hidden='true'
           />

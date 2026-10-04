@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon } from '../../../../../components/Icon.jsx';
 import {
   LEGEND_BLOCK_LABELS,
   LEGEND_DASHED_LABELS,
@@ -26,8 +26,8 @@ function renderLegendMarker({ label, labelIcon, swatchColor, swatchLineWidth }) 
 
   if (labelIcon) {
     return (
-      <FontAwesomeIcon
-        icon={labelIcon}
+      <Icon
+        name={labelIcon}
         className={LEGEND_ICON_CLASS}
         style={{ color: swatchColor }}
         aria-hidden='true'

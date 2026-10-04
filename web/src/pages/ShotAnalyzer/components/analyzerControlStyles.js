@@ -17,18 +17,18 @@ export const ANALYZER_ACTION_ICON_BUTTON_CLASS = 'h-8 w-8 p-0';
 export const ANALYZER_ACTION_GROUP_CLASSES = 'flex items-center gap-1';
 
 const iconToneClasses = {
-  neutral: 'text-base-content/55 hover:text-primary',
-  subtle: 'text-base-content/35 hover:text-primary',
+  neutral: 'text-[var(--ink-muted)] hover:text-primary',
+  subtle: 'text-[var(--ink-muted)] hover:text-primary',
   primary: 'text-primary hover:text-primary',
-  success: 'text-base-content/35 hover:text-success',
-  error: 'text-base-content/35 hover:text-error',
+  success: 'text-[var(--ink-muted)] hover:text-[var(--success)]',
+  error: 'text-[var(--ink-muted)] hover:text-[var(--danger)]',
 };
 
 const textToneClasses = {
-  neutral: 'text-base-content/70 hover:text-primary',
+  neutral: 'text-[var(--ink-muted)] hover:text-primary',
   primary: 'text-primary hover:text-primary',
-  success: 'text-base-content/55 hover:text-success',
-  error: 'text-base-content/55 hover:text-error',
+  success: 'text-[var(--ink-muted)] hover:text-[var(--success)]',
+  error: 'text-[var(--ink-muted)] hover:text-[var(--danger)]',
 };
 
 export const joinAnalyzerClasses = (...classes) => joinClasses(...classes);

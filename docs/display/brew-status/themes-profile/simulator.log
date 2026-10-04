@@ -1,0 +1,44 @@
+[I] Saving profile rH2dn1ripA
+[I] Selecting profile 
+[I] Auto-wakeup plugin initialized
+[I] STA connected: ssid= bssid=00:00:00:00:00:00 ch=0 authmode=0
+[I] STA got IP: 0.0.0.0 gw=0.0.0.0
+[I] Connected to GaggiMate-Sim with IP address 192.168.1.123
+[sim-web] WebUI server on http://localhost:20111/
+[I] Started webserver
+[I] System info: GaggiMate Sim sim-3.0 (proto=3 local=3 dm=1 ps=1 led=1 tof=1)
+[I] Saving changed settings
+[sim-script] verified screen 2
+[sim-script] verified visible label 'BREW'
+[I] Saving changed settings
+[sim-script] verified visible label 'Machine warnings'
+[sim-script] verified visible label 'Flush recommended'
+[sim-script] verified hidden label 'Machine warnings'
+[sim-script] verified visible label 'ADJUST PROFILE'
+[sim-script] verified temperature 93
+[sim-script] verified duration 28
+[sim-script] verified visible label 'ADJUST PROFILE'
+[sim-script] verified temperature 94
+[sim-script] verified temperature 93
+[sim-script] verified duration 29
+[sim-script] verified duration 28
+[sim-script] verified visible label 'BREW'
+[I] Saving profile rH2dn1ripA
+[I] Selecting profile rH2dn1ripA
+[sim-script] verified visible label 'BREW'
+[sim-script] verified temperature 94
+[I] Saving profile lIKzndcW0H
+[I] Selecting profile lIKzndcW0H
+[I] Saving changed settings
+[sim-script] verified visible label 'Copy of Default'
+[sim-script] verified temperature 93
+[sim-script] verified screen 7
+[sim-script] verified screen 4
+[sim-script] verified active 0
+[sim-script] verified screen 2
+[sim-script] verified visible label 'BREW'
+[sim-script] verified screen 4
+[sim-script] verified screen 1
+[sim-script] verified screen 2
+[sim-script] verified visible label 'BREW'
+

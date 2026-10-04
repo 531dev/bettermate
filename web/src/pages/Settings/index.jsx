@@ -1,7 +1,4 @@
-import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
-import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
-import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons/faEllipsisVertical';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon } from '../../components/Icon.jsx';
 import { useCallback, useEffect, useRef, useState, useContext } from 'preact/hooks';
 import { useRoute } from 'preact-iso';
 import {
@@ -50,12 +47,6 @@ const loadBluetoothTab = () => import('./tabs/BluetoothTab.jsx');
 const loadSystemTab = () => import('./tabs/SystemTab.jsx');
 
 // Icons
-import { faSliders } from '@fortawesome/free-solid-svg-icons/faSliders';
-import { faTemperatureHalf } from '@fortawesome/free-solid-svg-icons/faTemperatureHalf';
-import { faCrosshairs } from '@fortawesome/free-solid-svg-icons/faCrosshairs';
-import { faPuzzlePiece } from '@fortawesome/free-solid-svg-icons/faPuzzlePiece';
-import { faBluetoothB } from '@fortawesome/free-brands-svg-icons/faBluetoothB';
-import { faRotate } from '@fortawesome/free-solid-svg-icons/faRotate';
 
 const CHECKBOX_KEYS = [
   'homekit',
@@ -443,12 +434,17 @@ export function Settings() {
   }, [fetchedSettings]);
 
   const settingsTabs = [
-    { id: 'general', label: 'General', icon: faSliders },
-    { id: 'machine', label: 'Machine', icon: faTemperatureHalf, preload: loadMachineTab },
-    { id: 'calibration', label: 'Calibration', icon: faCrosshairs, preload: loadCalibrationTab },
-    { id: 'plugins', label: 'Plugins', icon: faPuzzlePiece, preload: loadPluginsTab },
-    { id: 'bluetooth', label: 'Bluetooth', icon: faBluetoothB, preload: loadBluetoothTab },
-    { id: 'system', label: 'System & Updates', icon: faRotate, preload: loadSystemTab },
+    { id: 'general', label: 'General', icon: 'sliders-horizontal' },
+    { id: 'machine', label: 'Machine', icon: 'thermometer', preload: loadMachineTab },
+    {
+      id: 'calibration',
+      label: 'Calibration',
+      icon: 'sliders-horizontal',
+      preload: loadCalibrationTab,
+    },
+    { id: 'plugins', label: 'Plugins', icon: 'settings', preload: loadPluginsTab },
+    { id: 'bluetooth', label: 'Bluetooth', icon: 'bluetooth', preload: loadBluetoothTab },
+    { id: 'system', label: 'System & Updates', icon: 'refresh-cw', preload: loadSystemTab },
   ];
 
   return (
@@ -468,9 +464,9 @@ export function Settings() {
               aria-label='More options'
               aria-expanded={dropdownOpen}
             >
-              <FontAwesomeIcon icon={faEllipsisVertical} size='lg' />
+              <Icon name={'menu'} />
             </button>
-            <ul className='menu action-dropdown-menu bg-base-100 rounded-box border-base-content/10 right-0 z-50 mt-1 w-52 border p-2 shadow-lg'>
+            <ul className='menu action-dropdown-menu bg-base-100 rounded-box border-base-content/10 right-0 z-50 mt-1 w-52 border p-2'>
               <li>
                 <button
                   type='button'
@@ -481,7 +477,7 @@ export function Settings() {
                   className='justify-start gap-2 font-medium'
                   aria-label='Export settings'
                 >
-                  <FontAwesomeIcon icon={faFileExport} />
+                  <Icon name={'save'} />
                   <span>Export Settings</span>
                 </button>
               </li>
@@ -495,7 +491,7 @@ export function Settings() {
                   className='justify-start gap-2 font-medium'
                   aria-label='Import settings'
                 >
-                  <FontAwesomeIcon icon={faFileImport} />
+                  <Icon name={'plus'} />
                   <span>Import Settings</span>
                 </button>
               </li>

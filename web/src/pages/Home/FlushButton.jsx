@@ -1,7 +1,6 @@
+import { Icon } from '../../components/Icon.jsx';
 import PropTypes from 'prop-types';
 import { useEffect } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTint } from '@fortawesome/free-solid-svg-icons/faTint';
 
 // Press-and-hold aware: a hold-to-flush (flush duration 0) runs until the pointer or key is released.
 export function FlushButton({ className, isFlushing, startFlush, stopFlush }) {
@@ -35,7 +34,7 @@ export function FlushButton({ className, isFlushing, startFlush, stopFlush }) {
       aria-pressed={isFlushing}
       aria-label='Flush water'
     >
-      <FontAwesomeIcon icon={faTint} /> Flush
+      <Icon name={'droplet'} /> Flush
     </button>
   );
 }

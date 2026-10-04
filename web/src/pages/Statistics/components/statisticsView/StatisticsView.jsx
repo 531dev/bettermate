@@ -1,6 +1,5 @@
+import { Icon } from '../../../../components/Icon.jsx';
 import { useState, useEffect, useRef, useContext, useCallback } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay } from '@fortawesome/free-solid-svg-icons/faPlay';
 // Main StatisticsView orchestrator: wires hooks, toolbar, summary cards, and the detail section panel
 import { ApiServiceContext } from '../../../../services/ApiService';
 import { libraryService } from '../../../ShotAnalyzer/services/LibraryService';
@@ -406,13 +405,13 @@ export function StatisticsView({ initialContext }) {
 
       {error && (
         <div className='bg-error/10 border-error/20 rounded-lg border p-4 text-center'>
-          <p className='text-error text-sm'>{error}</p>
+          <p className='text-sm text-[var(--danger)]'>{error}</p>
         </div>
       )}
 
       {!error && metadataError && (
         <div className='bg-warning/10 border-warning/20 rounded-lg border p-4 text-center'>
-          <p className='text-warning text-sm'>{metadataError}</p>
+          <p className='text-sm text-[var(--warning)]'>{metadataError}</p>
         </div>
       )}
 
@@ -440,12 +439,12 @@ export function StatisticsView({ initialContext }) {
                 <span
                   className={`inline-flex h-5 w-5 items-center justify-center rounded-md ${STATISTICS_RUN_BUTTON_TONE_CLASS}`}
                 >
-                  <FontAwesomeIcon icon={faPlay} className='text-[10px]' />
+                  <Icon name={'play'} className='text-[10px]' />
                 </span>{' '}
                 to build a statistic.
               </p>
               <div className='border-base-content/10 mt-5 border-t pt-4 text-center'>
-                <div className='text-base-content/60 flex flex-wrap items-center justify-center gap-3 text-xs'>
+                <div className='flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--ink-muted)]'>
                   <span>
                     <span className='bg-base-content/8 border-base-content/10 mr-1.5 inline-flex min-w-10 items-center justify-center rounded-md border px-1.5 py-0.5 font-bold'>
                       Enter

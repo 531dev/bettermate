@@ -1,31 +1,23 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useState, useEffect, useCallback } from 'preact/hooks';
 import { useQuery } from 'preact-fetching';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faScaleBalanced } from '@fortawesome/free-solid-svg-icons/faScaleBalanced';
 import { machine } from '../../../services/ApiService.js';
 import { Spinner } from '../../../components/Spinner.jsx';
 import Section from '../../../components/Card.jsx';
-import { faSignal } from '@fortawesome/free-solid-svg-icons/faSignal';
-import { faNetworkWired } from '@fortawesome/free-solid-svg-icons/faNetworkWired';
-import { faBatteryFull } from '@fortawesome/free-solid-svg-icons/faBatteryFull';
-import { faBatteryThreeQuarters } from '@fortawesome/free-solid-svg-icons/faBatteryThreeQuarters';
-import { faBatteryHalf } from '@fortawesome/free-solid-svg-icons/faBatteryHalf';
-import { faBatteryQuarter } from '@fortawesome/free-solid-svg-icons/faBatteryQuarter';
-import { faBatteryEmpty } from '@fortawesome/free-solid-svg-icons/faBatteryEmpty';
 import { BluetoothTabSkeleton } from '../../../components/skeletons/SettingsSkeletons.jsx';
 
 function batteryIcon(pct) {
-  if (pct >= 87) return faBatteryFull;
-  if (pct >= 62) return faBatteryThreeQuarters;
-  if (pct >= 37) return faBatteryHalf;
-  if (pct >= 12) return faBatteryQuarter;
-  return faBatteryEmpty;
+  if (pct >= 87) return 'gauge';
+  if (pct >= 62) return 'gauge';
+  if (pct >= 37) return 'gauge';
+  if (pct >= 12) return 'gauge';
+  return 'gauge';
 }
 
 function batteryColorClass(pct) {
-  if (pct <= 9) return 'text-error';
-  if (pct <= 29) return 'text-warning';
-  return 'text-base-content/60';
+  if (pct <= 9) return 'text-[var(--danger)]';
+  if (pct <= 29) return 'text-[var(--warning)]';
+  return 'text-[var(--ink-muted)]';
 }
 
 export function BluetoothTab() {
@@ -106,7 +98,7 @@ export function BluetoothTab() {
         <div className='flex flex-col gap-4'>
           <div className='border-base-content/5 flex flex-row items-center justify-between gap-4 border-b pb-4'>
             <span className='text-base-content/75 text-sm'>
-              Scan for nearby Bluetooth scales to connect them to GaggiMate.
+              Scan for nearby Bluetooth scales to connect them to BetterMate.
             </span>
             <button
               type='button'
@@ -121,12 +113,12 @@ export function BluetoothTab() {
 
           <div className='w-full'>
             {mode === 0 && (
-              <div className='border-base-content/8 bg-base-200/40 rounded-xl border py-12 text-center'>
+              <div className='border-base-content/8 rounded-xl border bg-[var(--surface-2)] py-12 text-center'>
                 <div className='flex flex-col items-center space-y-4'>
                   <div>
                     <h3 className='text-base-content text-lg font-medium'>System in Standby</h3>
-                    <p className='text-base-content/70 text-sm'>
-                      Please wake up GaggiMate from Standby to use Bluetooth scales.
+                    <p className='text-sm text-[var(--ink-muted)]'>
+                      Please wake up BetterMate from Standby to use Bluetooth scales.
                     </p>
                   </div>
                 </div>
@@ -178,17 +170,17 @@ function ScaleList(props) {
           {scaleData.map(scale => (
             <div
               key={scale.uuid}
-              className='border-base-content/10 bg-base-100 flex flex-col space-y-4 rounded-xl border p-4 shadow-sm md:flex-row md:items-center md:justify-between md:space-y-0'
+              className='border-base-content/10 bg-base-100 flex flex-col space-y-4 rounded-xl border p-4 md:flex-row md:items-center md:justify-between md:space-y-0'
             >
               <div className='flex items-center space-x-4'>
                 <div
                   className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
                     scale.connected
-                      ? 'bg-success/20 text-success'
-                      : 'bg-base-200 text-base-content/50'
+                      ? 'bg-success/20 text-[var(--success)]'
+                      : 'bg-[var(--surface-2)] text-[var(--ink-muted)]'
                   }`}
                 >
-                  <FontAwesomeIcon icon={faScaleBalanced} size='lg' />
+                  <Icon name={'scale'} />
                 </div>
                 <div>
                   <h4 className='text-base-content font-bold'>
@@ -199,13 +191,13 @@ function ScaleList(props) {
                       }`}
                     ></span>
                   </h4>
-                  <p className='text-base-content/70 flex items-center space-x-2 text-sm'>
+                  <p className='flex items-center space-x-2 text-sm text-[var(--ink-muted)]'>
                     <span className='font-mono text-xs'>{scale.uuid}</span>
                     {scale.connected && scale.hasBattery && typeof scale.battery === 'number' && (
                       <span
                         className={`flex items-center gap-1 ${batteryColorClass(scale.battery)}`}
                       >
-                        <FontAwesomeIcon icon={batteryIcon(scale.battery)} /> {scale.battery}%
+                        <Icon name={batteryIcon(scale.battery)} /> {scale.battery}%
                       </span>
                     )}
                   </p>
@@ -228,14 +220,14 @@ function ScaleList(props) {
           ))}
         </div>
       ) : (
-        <div className='border-base-content/8 bg-base-200/40 rounded-xl border py-12 text-center'>
+        <div className='border-base-content/8 rounded-xl border bg-[var(--surface-2)] py-12 text-center'>
           <div className='flex flex-col items-center space-y-4'>
-            <div className='text-base-content/30 text-6xl'>
-              <FontAwesomeIcon icon={faScaleBalanced} />
+            <div className='text-6xl text-[var(--ink-muted)]'>
+              <Icon name={'scale'} />
             </div>
             <div>
               <h3 className='text-base-content text-lg font-medium'>No scales found</h3>
-              <p className='text-base-content/70 text-sm'>
+              <p className='text-sm text-[var(--ink-muted)]'>
                 Click "Scan" to discover Bluetooth scales nearby
               </p>
             </div>

@@ -1,6 +1,6 @@
 import {
   CHART_LABEL_FONT_FAMILY,
-  drawFontAwesomeIcon,
+  drawPixelIcon,
   drawRoundedRect,
   getChartLabelScale,
 } from './canvasDrawing';
@@ -14,19 +14,18 @@ const AXIS_UNIT_RIGHT_PADDING = 22;
 
 const AXIS_UNIT_X_GAP = 16;
 
-const INSIDE_AXIS_LABEL_BACKGROUND = 'color-mix(in srgb, var(--color-base-100) 86%, transparent)';
+const INSIDE_AXIS_LABEL_BACKGROUND = 'var(--surface-2)';
 
 const PHASE_LABEL_TOP_INSET = 4;
 
 const PHASE_NUMBER_TOP_OFFSET = 12;
 
-const PHASE_LABEL_FONT =
-  '11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+const PHASE_LABEL_FONT = '11px "JetBrains Mono", ui-monospace, monospace';
 
 const BREW_LABEL_ICONS = ['⏱', '⚖'];
 
 export function getNeutralAxisTickColor() {
-  return readCssColorVar('--color-base-content', NEUTRAL_AXIS_TICK_FALLBACK);
+  return readCssColorVar('--ink-muted', NEUTRAL_AXIS_TICK_FALLBACK);
 }
 
 export function getAxisUnitReservedPadding(pluginOptions = {}) {
@@ -110,7 +109,7 @@ function drawIconAxisUnitLabel(
     });
   }
 
-  drawFontAwesomeIcon(ctx, {
+  drawPixelIcon(ctx, {
     iconDef,
     x: startX + iconSize / 2,
     y: baseline === 'middle' ? y : y + iconSize / 2 - 1,

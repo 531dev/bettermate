@@ -1,7 +1,5 @@
+import { Icon } from '../../../../../components/Icon.jsx';
 import { Fragment } from 'preact';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRightArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowRightArrowLeft';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown';
 import { COMPARE_TARGET_DISPLAY_MODES } from '../../../utils/analyzerUtils';
 import {
   ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS,
@@ -15,10 +13,10 @@ function CompareShotLegend({ compareShotLegendItems, onCompareSwap }) {
     <div className='flex min-w-0 flex-wrap items-center gap-2.5'>
       {compareShotLegendItems.map((item, index) => (
         <Fragment key={item.label}>
-          <div className='text-base-content/70 inline-flex min-w-0 items-center gap-1 text-xs font-normal'>
+          <div className='inline-flex min-w-0 items-center gap-1 text-xs font-normal text-[var(--ink-muted)]'>
             <span
               className={[
-                'analyzer-compare-shot-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs leading-none font-semibold tabular-nums',
+                'analyzer-compare-shot-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs leading-none font-semibold tabular-nums',
                 item.shotNumber === 2 ? 'analyzer-compare-shot-badge--striped' : '',
               ]
                 .filter(Boolean)
@@ -40,7 +38,7 @@ function CompareShotLegend({ compareShotLegendItems, onCompareSwap }) {
               title='Swap shot 1 and shot 2'
               aria-label='Swap shot 1 and shot 2'
             >
-              <FontAwesomeIcon icon={faArrowRightArrowLeft} className='text-sm' />
+              <Icon name={'refresh-cw'} className='text-sm' />
             </button>
           ) : null}
         </Fragment>
@@ -63,7 +61,7 @@ function CompareAnnotationToggle({
           className: `h-6 min-h-0 px-2 text-xs font-medium ${
             compareAnnotationsEnabled
               ? 'bg-base-content/8 text-base-content/80'
-              : 'text-base-content/55'
+              : 'text-[var(--ink-muted)]'
           }`,
         })}
         aria-pressed={compareAnnotationsEnabled}
@@ -85,7 +83,7 @@ export function CompareSelect({ onChange, options, title, value, widthClass }) {
           value={value}
           onChange={event => onChange(event.currentTarget.value)}
           className={getAnalyzerSurfaceTriggerClasses({
-            className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} ${widthClass} appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium shadow-none outline-none`,
+            className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} ${widthClass} appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium outline-none`,
           })}
           title={title}
         >
@@ -95,8 +93,8 @@ export function CompareSelect({ onChange, options, title, value, widthClass }) {
             </option>
           ))}
         </select>
-        <span className='text-base-content/60 pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs'>
-          <FontAwesomeIcon icon={faChevronDown} />
+        <span className='pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs text-[var(--ink-muted)]'>
+          <Icon name={'chevron-down'} />
         </span>
       </div>
     );

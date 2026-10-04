@@ -1,0 +1,64 @@
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 335 packages in 2s
+
+124 packages are looking for funding
+  run `npm fund` for details
+
+> build
+> vite build
+
+vite v7.1.5 building for production...
+transforming...
+/*! 🌼 daisyUI 5.5.20 */
+✓ 308 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html             1.82 kB │ gzip:  0.83 kB
+dist/assets/BiMLITr7.png    6.74 kB
+dist/assets/Dp4XtLTi.css    1.20 kB │ gzip:  0.39 kB
+dist/assets/BH_mqUyw.css    7.11 kB │ gzip:  1.44 kB
+dist/assets/DJ3cPwer.css   37.47 kB │ gzip:  4.99 kB
+dist/assets/Az2GoOD7.css  165.67 kB │ gzip: 27.66 kB
+dist/assets/DO-8Jfmx.js     0.22 kB │ gzip:  0.17 kB
+dist/assets/DOjJI_iw.js     0.25 kB │ gzip:  0.20 kB
+dist/assets/Bq3NC36f.js     0.39 kB │ gzip:  0.27 kB
+dist/assets/D0qwG0_w.js     0.44 kB │ gzip:  0.27 kB
+dist/assets/C3U9FiUz.js     0.51 kB │ gzip:  0.36 kB
+dist/assets/BRs8oDLY.js     0.74 kB │ gzip:  0.44 kB
+dist/assets/810pQkBF.js     0.81 kB │ gzip:  0.46 kB
+dist/assets/CQBmCjXV.js     0.92 kB │ gzip:  0.41 kB
+dist/assets/D7OsDssc.js     1.68 kB │ gzip:  0.84 kB
+dist/assets/BRczRDu-.js     2.85 kB │ gzip:  1.22 kB
+dist/assets/A77vFtGQ.js     3.61 kB │ gzip:  1.70 kB
+dist/assets/BpBy3pwD.js     4.66 kB │ gzip:  2.00 kB
+dist/assets/DyMCYVsQ.js     4.72 kB │ gzip:  1.69 kB
+dist/assets/DVSdQ86o.js     4.88 kB │ gzip:  1.94 kB
+dist/assets/DLVF7d6D.js     5.14 kB │ gzip:  1.85 kB
+dist/assets/JSFQ64AN.js     6.04 kB │ gzip:  2.56 kB
+dist/assets/CqixUet2.js     7.11 kB │ gzip:  2.60 kB
+dist/assets/B2rx3jyx.js     7.19 kB │ gzip:  2.23 kB
+dist/assets/CIdcGZBO.js     8.27 kB │ gzip:  2.42 kB
+dist/assets/CHjqyzrV.js     8.99 kB │ gzip:  2.81 kB
+dist/assets/BjctfMPT.js    11.48 kB │ gzip:  2.53 kB
+dist/assets/CMiRyThg.js    13.22 kB │ gzip:  4.44 kB
+dist/assets/D9g4zr8L.js    15.16 kB │ gzip:  6.02 kB
+dist/assets/D1_8fZjB.js    16.17 kB │ gzip:  5.92 kB
+dist/assets/DkDr3Yex.js    17.10 kB │ gzip:  6.87 kB
+dist/assets/CXVB5z2i.js    23.19 kB │ gzip:  6.81 kB
+dist/assets/h8fRFTn5.js    28.46 kB │ gzip:  9.03 kB
+dist/assets/Dw43-sIE.js    30.15 kB │ gzip:  5.68 kB
+dist/assets/CELky2z6.js    36.15 kB │ gzip: 10.96 kB
+dist/assets/DYpk7SSE.js    71.99 kB │ gzip: 22.98 kB
+dist/assets/a1icQWm4.js    74.00 kB │ gzip: 24.01 kB
+dist/assets/BXuV4CrV.js   109.21 kB │ gzip: 31.90 kB
+dist/assets/Dv90qcP_.js   203.85 kB │ gzip: 56.78 kB
+dist/assets/_AL1m4_O.js   242.41 kB │ gzip: 81.89 kB
+dist/assets/G7aTWAav.js   256.31 kB │ gzip: 86.38 kB
+✓ built in 1.05s
+embed_webui: packed 53 assets (541922 bytes) into /Users/mohamadsherif/Developer/betterMate/bettermate/src/display/webassets

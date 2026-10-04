@@ -1,10 +1,3 @@
-import tintSlash from '../assets/warnings/tint-slash.svg?raw';
-import raindropsFilled from '../assets/warnings/raindrops-filled.svg?raw';
-import lightSwitchOff from '../assets/warnings/light-switch-off.svg?raw';
-import linkSlashAlt from '../assets/warnings/link-slash-alt.svg?raw';
-import batteryExclamation from '../assets/warnings/battery-exclamation-2.svg?raw';
-import highTemperatureAlert from '../assets/warnings/high-temperature-alert.svg?raw';
-
 export const WARNING_LEVEL = { IGNORE: 0, WARN: 1, ERROR: 2 };
 
 export const WARNING_LEVELS = [
@@ -15,31 +8,31 @@ export const WARNING_LEVELS = [
 
 // Keys match WarningManager on the firmware; icons are the same SVGs the display uses.
 export const WARNINGS = [
-  { key: 'water', label: 'Water tank low', settingKey: 'warnWaterLevel', icon: tintSlash },
+  { key: 'water', label: 'Water tank low', settingKey: 'warnWaterLevel', icon: 'droplet' },
   {
     key: 'temperature',
     label: 'Temperature not stable',
     settingKey: 'warnTemperature',
-    icon: highTemperatureAlert,
+    icon: 'thermometer',
   },
   {
     key: 'switch',
     label: 'Steam switch left on',
     settingKey: 'warnSteamSwitch',
-    icon: lightSwitchOff,
+    icon: 'wind',
   },
-  { key: 'flush', label: 'Flush recommended', settingKey: 'warnFlush', icon: raindropsFilled },
+  { key: 'flush', label: 'Flush recommended', settingKey: 'warnFlush', icon: 'droplet' },
   {
     key: 'scaleConnected',
     label: 'Scale not connected',
     settingKey: 'warnScaleConnected',
-    icon: linkSlashAlt,
+    icon: 'bluetooth',
   },
   {
     key: 'scaleBattery',
     label: 'Scale battery low',
     settingKey: 'warnScaleBattery',
-    icon: batteryExclamation,
+    icon: 'triangle-alert',
   },
 ];
 

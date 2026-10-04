@@ -1,10 +1,9 @@
+import { Icon } from '../../../components/Icon.jsx';
 /**
  * EmptyState.jsx
  * * Empty state component for Shot Analyzer.
  * Explains the dual-source system to users.
  */
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
 import { analyzerUiColors } from '../utils/analyzerUtils.js';
 import { Spinner } from '../../../components/Spinner.jsx';
 import { SourceMarker } from './SourceMarker.jsx';
@@ -56,9 +55,9 @@ export function EmptyState({ loading }) {
 
             <div className='flex-1'>
               {/* REMOVED HOVER EFFECT */}
-              <h3 className='text-base-content mb-1 text-sm font-bold'>GaggiMate (GM)</h3>
+              <h3 className='text-base-content mb-1 text-sm font-bold'>BetterMate (GM)</h3>
               <p className='text-base-content text-xs leading-relaxed'>
-                Your saved shots and profiles directly from the GaggiMate internal storage.
+                Your saved shots and profiles directly from the BetterMate internal storage.
               </p>
             </div>
           </div>
@@ -68,8 +67,8 @@ export function EmptyState({ loading }) {
 
           {/* VIEW Section */}
           <div className='flex items-start gap-4'>
-            <div className='text-base-content/45 flex h-8 w-10 flex-shrink-0 items-center justify-center'>
-              <FontAwesomeIcon icon={faEye} className='text-lg' />
+            <div className='flex h-8 w-10 flex-shrink-0 items-center justify-center text-[var(--ink-muted)]'>
+              <Icon name={'search'} className='text-lg' />
             </div>
 
             <div className='flex-1'>

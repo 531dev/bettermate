@@ -1,3 +1,4 @@
+import { Icon } from '../../components/Icon.jsx';
 import Sortable, { MultiDrag } from 'sortablejs';
 try {
   Sortable?.mount(new MultiDrag());
@@ -27,23 +28,8 @@ import { Spinner } from '../../components/Spinner.jsx';
 import Card from '../../components/Card.jsx';
 import { parseProfile } from './utils.js';
 import { downloadJson } from '../../utils/download.js';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-solid-svg-icons/faStar';
-import { faPen } from '@fortawesome/free-solid-svg-icons/faPen';
-import { faFileExport } from '@fortawesome/free-solid-svg-icons/faFileExport';
-import { faCopy } from '@fortawesome/free-solid-svg-icons/faCopy';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons/faTrashCan';
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
-import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
-import { faEllipsisVertical } from '@fortawesome/free-solid-svg-icons/faEllipsisVertical';
-import { faChartSimple } from '@fortawesome/free-solid-svg-icons/faChartSimple';
 import { ConfirmButton } from '../../components/ConfirmButton.jsx';
 import { Tooltip } from '../../components/Tooltip.jsx';
-import { faTemperatureFull } from '@fortawesome/free-solid-svg-icons/faTemperatureFull';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faScaleBalanced } from '@fortawesome/free-solid-svg-icons/faScaleBalanced';
-import { faSearch } from '@fortawesome/free-solid-svg-icons/faSearch';
-import { faAnglesDown, faAnglesUp, faGripVertical } from '@fortawesome/free-solid-svg-icons';
 import { buildStatisticsProfileHref } from '../Statistics/utils/statisticsRoute.js';
 
 Chart.register(
@@ -95,7 +81,7 @@ function ProfileCard({
     setTimeout(() => setTooltipsDisabled(false), 500);
   }, [onMoveBottom, data.id]);
 
-  const bookmarkClass = data.favorite ? 'text-warning' : 'text-base-content/60';
+  const bookmarkClass = data.favorite ? 'text-[var(--warning)]' : 'text-[var(--ink-muted)]';
   const typeText = data.type === 'pro' ? 'Pro' : 'Simple';
   const typeClass = data.type === 'pro' ? 'badge badge-primary' : 'badge badge-neutral';
   const favoriteToggleDisabled = data.favorite ? unfavoriteDisabled : favoriteDisabled;
@@ -199,7 +185,11 @@ function ProfileCard({
   }, [menuOpen, positionPopover]);
 
   return (
-    <Card sm={12} role='listitem' className='profile-card-container mb-2'>
+    <Card
+      sm={12}
+      role='listitem'
+      className={`profile-card-container mb-2 border-2 ${data.selected ? 'border-primary' : 'border-transparent'}`}
+    >
       <div
         className='flex flex-row items-center'
         role='group'
@@ -242,8 +232,8 @@ function ProfileCard({
                   aria-controls={detailsSectionId}
                   title={detailsCollapsed ? 'Show details' : 'Hide details'}
                 >
-                  <FontAwesomeIcon
-                    icon={faChevronRight}
+                  <Icon
+                    name={'chevron-right'}
                     className={`transition-transform ${chevronRotation}`}
                   />
                 </button>
@@ -265,14 +255,14 @@ function ProfileCard({
                     aria-expanded={menuOpen}
                     aria-controls={`profile-${data.id}-menu`}
                   >
-                    <FontAwesomeIcon icon={faEllipsisVertical} />
+                    <Icon name={'menu'} />
                   </button>
                   {menuOpen && (
                     <div
                       id={`profile-${data.id}-menu`}
                       ref={popoverRef}
                       role='menu'
-                      className='bg-base-100 rounded-box z-50 w-56 p-2 shadow'
+                      className='bg-base-100 rounded-box z-50 w-56 p-2'
                       onKeyDown={e => {
                         if (e.key === 'Escape') closeMenu();
                       }}
@@ -294,7 +284,7 @@ function ProfileCard({
                             }
                             aria-pressed={data.favorite}
                           >
-                            <FontAwesomeIcon icon={faStar} className={bookmarkClass} />
+                            <Icon name={'check'} className={bookmarkClass} />
                             <span>{data.favorite ? 'Unfavorite' : 'Favorite'}</span>
                           </button>
                         </li>
@@ -305,7 +295,7 @@ function ProfileCard({
                             onClick={closeMenu}
                             aria-label={`Edit ${data.label} profile`}
                           >
-                            <FontAwesomeIcon icon={faPen} />
+                            <Icon name={'pencil'} />
                             <span>Edit</span>
                           </a>
                         </li>
@@ -314,10 +304,10 @@ function ProfileCard({
                             role='menuitem'
                             href={statsHref}
                             onClick={closeMenu}
-                            className='text-success justify-start'
+                            className='justify-start text-[var(--success)]'
                             aria-label={`View statistics for ${data.label} profile`}
                           >
-                            <FontAwesomeIcon icon={faChartSimple} />
+                            <Icon name={'chart-column'} />
                             <span>Statistics</span>
                           </a>
                         </li>
@@ -331,7 +321,7 @@ function ProfileCard({
                             className='text-primary justify-start'
                             aria-label={`Export ${data.label} profile`}
                           >
-                            <FontAwesomeIcon icon={faFileExport} />
+                            <Icon name={'save'} />
                             <span>Export</span>
                           </button>
                         </li>
@@ -342,10 +332,10 @@ function ProfileCard({
                               onDuplicate(data.id);
                               closeMenu();
                             }}
-                            className='text-success justify-start'
+                            className='justify-start text-[var(--success)]'
                             aria-label={`Duplicate ${data.label} profile`}
                           >
-                            <FontAwesomeIcon icon={faCopy} />
+                            <Icon name={'list'} />
                             <span>Duplicate</span>
                           </button>
                         </li>
@@ -358,7 +348,7 @@ function ProfileCard({
                                 closeMenu();
                               });
                             }}
-                            className={`justify-start ${confirmDelete ? 'bg-error text-error-content rounded font-semibold' : 'text-error'}`}
+                            className={`justify-start ${confirmDelete ? 'bg-error text-error-content rounded font-semibold' : 'text-[var(--danger)]'}`}
                             aria-label={
                               confirmDelete
                                 ? `Confirm deletion of ${data.label} profile`
@@ -366,7 +356,7 @@ function ProfileCard({
                             }
                             title={confirmDelete ? 'Click to confirm delete' : 'Delete profile'}
                           >
-                            <FontAwesomeIcon icon={faTrashCan} />
+                            <Icon name={'trash-2'} />
                             <span>{confirmDelete ? 'Confirm' : 'Delete'}</span>
                           </button>
                         </li>
@@ -393,7 +383,7 @@ function ProfileCard({
                       }
                       aria-pressed={data.favorite}
                     >
-                      <FontAwesomeIcon icon={faStar} className={bookmarkClass} />
+                      <Icon name={'check'} className={bookmarkClass} />
                     </button>
                   </Tooltip>
                   <Tooltip content='Edit profile'>
@@ -402,16 +392,16 @@ function ProfileCard({
                       className='btn btn-sm btn-ghost'
                       aria-label={`Edit ${data.label} profile`}
                     >
-                      <FontAwesomeIcon icon={faPen} />
+                      <Icon name={'pencil'} />
                     </a>
                   </Tooltip>
                   <Tooltip content='View statistics for this profile'>
                     <a
                       href={statsHref}
-                      className='btn btn-sm btn-ghost text-success'
+                      className='btn btn-sm btn-ghost text-[var(--success)]'
                       aria-label={`View statistics for ${data.label} profile`}
                     >
-                      <FontAwesomeIcon icon={faChartSimple} />
+                      <Icon name={'chart-column'} />
                     </a>
                   </Tooltip>
                   <Tooltip content='Export profile'>
@@ -420,16 +410,16 @@ function ProfileCard({
                       className='btn btn-sm btn-ghost text-primary'
                       aria-label={`Export ${data.label} profile`}
                     >
-                      <FontAwesomeIcon icon={faFileExport} />
+                      <Icon name={'save'} />
                     </button>
                   </Tooltip>
                   <Tooltip content='Duplicate profile'>
                     <button
                       onClick={() => onDuplicate(data.id)}
-                      className='btn btn-sm btn-ghost text-success'
+                      className='btn btn-sm btn-ghost text-[var(--success)]'
                       aria-label={`Duplicate ${data.label} profile`}
                     >
-                      <FontAwesomeIcon icon={faCopy} />
+                      <Icon name={'list'} />
                     </button>
                   </Tooltip>
                   <Tooltip content={confirmDelete ? 'Click to confirm' : 'Delete profile'}>
@@ -437,14 +427,14 @@ function ProfileCard({
                       onClick={() => {
                         confirmOrDelete(() => onDelete(data.id));
                       }}
-                      className={`btn btn-sm btn-ghost ${confirmDelete ? 'bg-error text-error-content' : 'text-error'}`}
+                      className={`btn btn-sm btn-ghost ${confirmDelete ? 'bg-error text-error-content' : 'text-[var(--danger)]'}`}
                       aria-label={
                         confirmDelete
                           ? `Confirm deletion of ${data.label} profile`
                           : `Delete ${data.label} profile`
                       }
                     >
-                      <FontAwesomeIcon icon={faTrashCan} />
+                      <Icon name={'trash-2'} />
                       {confirmDelete && <span className='ml-2 font-semibold'>Confirm</span>}
                     </button>
                   </Tooltip>
@@ -455,25 +445,27 @@ function ProfileCard({
           <div className={`${isDragging ? 'hidden' : ''}`}>
             {!detailsCollapsed && (
               <div id={detailsSectionId} className='mx-2 mt-2 flex flex-col items-start gap-2'>
-                <span className='text-base-content/60 text-xs md:text-sm'>{data.description}</span>
-                <div className='flex flex-row gap-2'>
-                  <span className='text-base-content/60 badge badge-xs md:badge-sm badge-outline'>
-                    <FontAwesomeIcon icon={faTemperatureFull} />
+                <span className='text-xs text-[var(--ink-muted)] md:text-sm'>
+                  {data.description}
+                </span>
+                <div className='flex flex-row flex-wrap gap-2'>
+                  <span className='badge badge-xs md:badge-sm gap-1 border-0 bg-[var(--heat-soft)] text-[var(--heat-text)]'>
+                    <Icon name={'thermometer'} />
                     {data.temperature}°C
                   </span>
-                  <span className='text-base-content/60 badge badge-xs md:badge-sm badge-outline'>
-                    <FontAwesomeIcon icon={faClock} />
+                  <span className='badge badge-xs md:badge-sm badge-outline text-[var(--ink-muted)]'>
+                    <Icon name={'clock'} />
                     {totalDurationSeconds}s
                   </span>
                   {phases.length > 0 &&
                     phases[phases.length - 1]?.targets?.some(t => t.type === 'volumetric') && (
-                      <span className='text-base-content/60 badge badge-xs md:badge-sm badge-outline'>
-                        <FontAwesomeIcon icon={faScaleBalanced} />
+                      <span className='badge badge-xs md:badge-sm gap-1 border-0 bg-[var(--weight-soft)] text-[var(--weight)]'>
+                        <Icon name={'scale'} />
                         {`${phases[phases.length - 1].targets.find(t => t.type === 'volumetric').value}g`}
                       </span>
                     )}
                   {phases.length > 0 && (
-                    <span className='text-base-content/60 badge badge-xs md:badge-sm badge-outline'>
+                    <span className='badge badge-xs md:badge-sm badge-outline text-[var(--ink-muted)]'>
                       {phases.length} phase{phases.length === 1 ? '' : 's'}
                     </span>
                   )}
@@ -493,7 +485,7 @@ function ProfileCard({
                     aria-label={`Move ${data.label} to top`}
                     aria-disabled={isFirst}
                   >
-                    <FontAwesomeIcon icon={faAnglesUp} />
+                    <Icon name={'chevron-up'} />
                   </button>
                 </Tooltip>
                 <Tooltip
@@ -503,7 +495,7 @@ function ProfileCard({
                   <div
                     className={`drag-handle btn btn-sm btn-ghost ${disabledDrag ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
                   >
-                    <FontAwesomeIcon icon={faGripVertical} />
+                    <Icon name={'list'} />
                   </div>
                 </Tooltip>
                 <Tooltip content='Move to bottom' disabled={isDragging || tooltipsDisabled}>
@@ -514,7 +506,7 @@ function ProfileCard({
                     aria-label={`Move ${data.label} to bottom`}
                     aria-disabled={isLast}
                   >
-                    <FontAwesomeIcon icon={faAnglesDown} />
+                    <Icon name={'chevron-down'} />
                   </button>
                 </Tooltip>
               </div>
@@ -535,7 +527,7 @@ function ProfileCard({
 
 function SimpleContent({ phases }) {
   if (phases.length === 0) {
-    return <div className='text-base-content/60 text-sm'>No phases</div>;
+    return <div className='text-sm text-[var(--ink-muted)]'>No phases</div>;
   }
 
   return (
@@ -556,9 +548,7 @@ function SimpleContent({ phases }) {
 }
 
 function SimpleDivider() {
-  return (
-    <FontAwesomeIcon icon={faChevronRight} className='text-base-content/60' aria-hidden='true' />
-  );
+  return <Icon name={'chevron-right'} className='text-[var(--ink-muted)]' aria-hidden='true' />;
 }
 
 function SimpleStep(props) {
@@ -566,9 +556,9 @@ function SimpleStep(props) {
     <div className='bg-base-100 border-base-300 flex flex-col gap-1 rounded-lg border p-3'>
       <div className='flex flex-row gap-2'>
         <span className='text-base-content text-sm font-bold'>{PhaseLabels[props.phase]}</span>
-        <span className='text-base-content/70 text-sm'>{props.type}</span>
+        <span className='text-sm text-[var(--ink-muted)]'>{props.type}</span>
       </div>
-      <div className='text-base-content/60 text-sm italic'>
+      <div className='text-sm text-[var(--ink-muted)] italic'>
         {props.targets.length === 0 && <span>Duration: {props.duration}s</span>}
         {props.targets.map((t, i) => (
           <span key={i}>
@@ -936,7 +926,7 @@ export function ProfileList() {
   return (
     <>
       <div className='mb-4 flex flex-row items-center gap-2'>
-        <h1 className='flex-grow text-2xl font-bold sm:text-3xl'>Profiles</h1>
+        <h1 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>Profiles</h1>
       </div>
 
       <div className='mb-4 flex flex-col items-center gap-2 sm:flex-row'>
@@ -944,7 +934,7 @@ export function ProfileList() {
         <div className='flex flex-col items-start gap-3 sm:flex-row sm:items-center'>
           {/* Search */}
           <label className='input w-full'>
-            <FontAwesomeIcon icon={faSearch} />
+            <Icon name={'search'} />
             <input
               type='text'
               placeholder='Search...'
@@ -964,7 +954,7 @@ export function ProfileList() {
               className='btn btn-ghost btn-sm'
               aria-label='Export all profiles'
             >
-              <FontAwesomeIcon icon={faFileExport} />
+              <Icon name={'save'} />
             </button>
           </Tooltip>
           <Tooltip content='Import profiles'>
@@ -973,7 +963,7 @@ export function ProfileList() {
               className='btn btn-ghost btn-sm cursor-pointer'
               aria-label='Import profiles'
             >
-              <FontAwesomeIcon icon={faFileImport} />
+              <Icon name={'plus'} />
             </label>
           </Tooltip>
           <input
@@ -986,7 +976,7 @@ export function ProfileList() {
           />
           <ConfirmButton
             onAction={onClear}
-            icon={faTrashCan}
+            icon={'trash-2'}
             tooltip='Delete all profiles'
             confirmTooltip='Confirm deletion'
           />

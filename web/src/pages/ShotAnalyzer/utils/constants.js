@@ -51,7 +51,6 @@ export const utilityColors = {
 export const analyzerUiColors = {
   warningOrange: 'var(--analyzer-warning-orange)',
   warningOrangeStrong: 'var(--analyzer-warning-orange-strong)',
-  warningOrangeShadow: 'var(--analyzer-warning-orange-shadow)',
   sourceBadgeGmBg: 'var(--analyzer-source-gm-badge-bg)',
   sourceBadgeGmBorder: 'var(--analyzer-source-gm-badge-border)',
   sourceBadgeGmText: 'var(--analyzer-source-gm-badge-text)',

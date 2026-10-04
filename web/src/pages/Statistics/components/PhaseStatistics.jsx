@@ -1,7 +1,5 @@
+import { Icon } from '../../../components/Icon.jsx';
 import { useState } from 'preact/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
-import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { fmt } from '../utils/format';
 import {
   STATISTICS_CARD_HEADING_CLASS,
@@ -65,7 +63,7 @@ function PhaseSection({ phase, hideExitReasons = false }) {
   const td = phase.targetDeltas || {};
 
   return (
-    <div className='app-card-surface rounded-xl transition-shadow'>
+    <div className='app-card-surface rounded-xl transition-colors'>
       <button
         type='button'
         className='flex w-full cursor-pointer items-center justify-between px-3 py-3 text-left'
@@ -77,7 +75,7 @@ function PhaseSection({ phase, hideExitReasons = false }) {
           <span className='ml-2 text-xs opacity-50'>({phase.shotCount} entries)</span>
         </span>
         <span className='text-xs opacity-45' aria-hidden='true'>
-          <FontAwesomeIcon icon={open ? faMinus : faPlus} className='h-3 w-3' />
+          <Icon name={open ? 'minus' : 'plus'} className='h-3 w-3' />
         </span>
       </button>
 
