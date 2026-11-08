@@ -13,6 +13,8 @@
 #include <display/drivers/common/LV_Helper.h>
 #endif
 #include <display/main.h>
+#include <display/ui/utils/FrameProbe.h>
+#include <display/ui/utils/FrameTiming.h>
 #include <display/ui/utils/effects.h>
 #include <utility>
 
@@ -23,6 +25,7 @@
 static EffectManager effect_mgr;
 
 static constexpr uint32_t STARTUP_FADE_MS = 1000; // standby fade-in duration on power-up
+static constexpr uint32_t UI_LOOP_PERIOD_MS = 25; // one UI loop iteration, its wait included
 
 static constexpr int32_t GAUGE_TICK_LONG = 25;      // meter tick length on most screens
 static constexpr int32_t GAUGE_TICK_SHORT = 10;     // shortened tick length on profile / new-menu screens
@@ -286,7 +289,9 @@ void DefaultUI::loop() {
     }
 
     ui_tick();
+    const uint32_t lvglStarted = ::millis();
     lv_task_handler();
+    frame_probe::loopDone(now, lvglStarted, ::millis());
 }
 
 void DefaultUI::loopProfiles() {
@@ -369,6 +374,7 @@ void DefaultUI::onVolumetricDelete() {
 }
 
 void DefaultUI::setupPanel(bool animateStartup) {
+    frame_probe::attach();
     ui_init();
     setupState();
     applyTheme();
@@ -787,8 +793,10 @@ void DefaultUI::applyTheme() {
 void DefaultUI::loopTask(void *arg) {
     auto *ui = static_cast<DefaultUI *>(arg);
     while (true) {
+        // Wait out the rest of the period: a fixed wait after a slow (animating) iteration added it on top.
+        const TickType_t started = xTaskGetTickCount();
         ui->loop();
-        vTaskDelay(25 / portTICK_PERIOD_MS);
+        vTaskDelay(frame_timing::loopDelay(started, xTaskGetTickCount(), UI_LOOP_PERIOD_MS / portTICK_PERIOD_MS));
     }
 }
 
