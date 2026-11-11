@@ -1,32 +1,31 @@
 #ifndef BETTERMATE_BREW_SCREEN_H
 #define BETTERMATE_BREW_SCREEN_H
 
-#include "WorkingScreen.h"
+#include <display/ui/bettermate/LuxuryUI.h>
+#include <display/ui/bettermate/Screen.h>
 
 namespace bm {
-class BrewScreen : public WorkingScreen {
+class BrewScreen : public Screen {
   public:
-    using WorkingScreen::WorkingScreen;
-    void onShow(const UiState &state) override {
-        viewingWarnings = false;
-        update(state);
-    }
+    using Screen::Screen;
+    void onShow(const UiState &state) override;
     void update(const UiState &state) override;
+    lv_obj_t *body() override { return idle; }
 
   protected:
     void build(lv_obj_t *root) override;
 
   private:
-    lv_obj_t *idle = nullptr, *adjust = nullptr, *overlay = nullptr;
-    lv_obj_t *hero = nullptr, *targetHint = nullptr;
-    lv_obj_t *scale = nullptr, *scaleIcon = nullptr, *weight = nullptr;
-    lv_obj_t *start = nullptr;
-    lv_obj_t *temperature = nullptr, *target = nullptr, *targetCaption = nullptr, *deleteWeight = nullptr;
-    lv_obj_t *deleteCaption = nullptr;
-    lv_obj_t *save = nullptr, *saveAsNew = nullptr;
+    lv_obj_t *idle = nullptr, *overlay = nullptr, *menu = nullptr;
+    lv_obj_t *status = nullptr, *statusDot = nullptr, *profile = nullptr, *profileName = nullptr, *chevron = nullptr;
+    lv_obj_t *hero = nullptr, *unit = nullptr, *unsaved = nullptr;
+    lv_obj_t *scale = nullptr, *scaleWeight = nullptr, *start = nullptr;
     lv_obj_t *warningTitle = nullptr, *warningBack = nullptr, *warningConfirm = nullptr;
     lv_obj_t *warningRows[WARNING_TYPE_COUNT]{};
-    bool viewingWarnings = false;
+    luxury::Readout temperature;
+    luxury::Rim temperatureRim, pressureRim;
+    luxury::Indicators indicators;
+    bool wasStable = true;
 };
 } // namespace bm
 #endif

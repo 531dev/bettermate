@@ -1,6 +1,6 @@
 import { iconPaths } from '../../../../../design/iconPaths.js';
 
-export const CHART_LABEL_FONT_FAMILY = '"JetBrains Mono", ui-monospace, monospace';
+export const CHART_LABEL_FONT_FAMILY = '"Jost", system-ui, sans-serif';
 
 export function getChartLabelScale(chart) {
   const width = Number(chart?.width) || 0;

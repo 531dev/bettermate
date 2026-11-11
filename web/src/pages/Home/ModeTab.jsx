@@ -1,13 +1,4 @@
-import { Icon } from '../../components/Icon.jsx';
-
-export const ModeTab = ({
-  mode,
-  active,
-  onClick,
-  rotation = 0,
-  compact = false,
-  disabled = false,
-}) => (
+export const ModeTab = ({ mode, active, onClick, disabled = false }) => (
   <>
     <button
       type='button'
@@ -20,22 +11,11 @@ export const ModeTab = ({
         disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
       } ${
         active
-          ? mode.id === 2
-            ? 'bg-secondary text-secondary-content'
-            : 'bg-primary text-primary-content'
+          ? 'bg-primary text-primary-content'
           : 'hover:text-base-content text-[var(--ink-muted)]'
       }`}
     >
-      {compact ? (
-        <Icon name={mode.icon} className='h-3.5 w-3.5' rotation={rotation} />
-      ) : (
-        <>
-          <span className='hidden @sm:contents'>{mode.label}</span>
-          <span className='@sm:hidden'>
-            <Icon name={mode.icon} className='h-3.5 w-3.5' rotation={rotation} />
-          </span>
-        </>
-      )}
+      <span>{mode.label}</span>
     </button>
   </>
 );

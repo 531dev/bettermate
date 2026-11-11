@@ -6,8 +6,8 @@ https://docs.platformio.org/en/latest/core/installation/troubleshooting.html
 Processing display (board: LilyGo-T-RGB; platform: espressif32@6.12.0; framework: arduino)
 --------------------------------------------------------------------------------
 Verbose mode can be enabled via `-v, --verbose` option
-Build version: v0.1.0-bettermate-dirty
-Build date: 2026-10-03T13:06:43Z
+Build version: v0.1.0-bettermate-2-g860beb36-dirty
+Build date: 2026-11-08T19:40:49Z
 CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/LilyGo-T-RGB.html
 PLATFORM: Espressif 32 (6.12.0) > LilyGo T-RGB (16M Flash 8M OPI PSRAM )
 HARDWARE: ESP32S3 240MHz, 320KB RAM, 16MB Flash
@@ -57,20 +57,7 @@ Compiling .pio/build/display/src/display/plugins/mDNSPlugin.cpp.o
 Compiling .pio/build/display/src/display/ui/bettermate/BetterMateUI.cpp.o
 Compiling .pio/build/display/src/display/ui/default/DefaultUI.cpp.o
 Compiling .pio/build/display/src/display/ui/default/eez/actions.cpp.o
-In file included from src/display/ui/default/eez/structs.h:4,
-                 from src/display/ui/default/DefaultUI.h:11,
-                 from src/display/ui/bettermate/BetterMateUI.h:11,
-                 from src/display/ui/UI.h:7,
-                 from src/display/core/Controller.h:18,
-                 from src/display/main.h:4,
-                 from src/display/main.cpp:1:
-src/display/ui/default/eez/eez-flow.h: In member function 'eez::Value& eez::Value::operator=(const eez::Value&)':
-src/display/ui/default/eez/eez-flow.h:961:45: warning: unknown option after '#pragma GCC diagnostic' kind [-Wpragmas]
-             DIAG_IGNORE("-Wdangling-pointer")
-                                             ^
-src/display/ui/default/eez/eez-flow.h:969:45: warning: unknown option after '#pragma GCC diagnostic' kind [-Wpragmas]
-             DIAG_IGNORE("-Wdangling-pointer")
-                                             ^
+Compiling .pio/build/display/src/display/webassets/web_ui_blob.S.o
 In file included from src/display/ui/default/eez/ui.h:6,
                  from src/display/ui/default/eez/actions.cpp:3:
 src/display/ui/default/eez/eez-flow.h: In member function 'eez::Value& eez::Value::operator=(const eez::Value&)':
@@ -85,9 +72,23 @@ In file included from src/display/ui/default/eez/structs.h:4,
                  from src/display/ui/bettermate/BetterMateUI.h:11,
                  from src/display/ui/UI.h:7,
                  from src/display/core/Controller.h:18,
+                 from src/display/main.h:4,
+                 from src/display/main.cpp:1:
+src/display/ui/default/eez/eez-flow.h: In member function 'eez::Value& eez::Value::operator=(const eez::Value&)':
+src/display/ui/default/eez/eez-flow.h:961:45: warning: unknown option after '#pragma GCC diagnostic' kind [-Wpragmas]
+             DIAG_IGNORE("-Wdangling-pointer")
+                                             ^
+In file included from src/display/ui/default/eez/structs.h:4,
+                 from src/display/ui/default/DefaultUI.h:11,
+                 from src/display/ui/bettermate/BetterMateUI.h:11,
+                 from src/display/ui/UI.h:7,
+                 from src/display/core/Controller.h:18,
                  from src/display/plugins/ImprovPlugin.cpp:4:
 src/display/ui/default/eez/eez-flow.h: In member function 'eez::Value& eez::Value::operator=(const eez::Value&)':
 src/display/ui/default/eez/eez-flow.h:961:45: warning: unknown option after '#pragma GCC diagnostic' kind [-Wpragmas]
+             DIAG_IGNORE("-Wdangling-pointer")
+                                             ^
+src/display/ui/default/eez/eez-flow.h:969:45: warning: unknown option after '#pragma GCC diagnostic' kind [-Wpragmas]
              DIAG_IGNORE("-Wdangling-pointer")
                                              ^
 src/display/ui/default/eez/eez-flow.h:969:45: warning: unknown option after '#pragma GCC diagnostic' kind [-Wpragmas]
@@ -144,20 +145,20 @@ Linking .pio/build/display/firmware.elf
 Retrieving maximum program size .pio/build/display/firmware.elf
 Checking size .pio/build/display/firmware.elf
 Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
-RAM:   [===       ]  28.7% (used 94208 bytes from 327680 bytes)
-Flash: [======    ]  55.8% (used 3658733 bytes from 6553600 bytes)
+RAM:   [===       ]  28.8% (used 94312 bytes from 327680 bytes)
+Flash: [======    ]  58.6% (used 3838157 bytes from 6553600 bytes)
 Building .pio/build/display/firmware.bin
 esptool.py v4.9.0
 Creating esp32s3 image...
 Merged 2 ELF sections
 Successfully created esp32s3 image.
-========================= [SUCCESS] Took 15.82 seconds =========================
+========================= [SUCCESS] Took 16.40 seconds =========================
 
 Processing display-sim (platform: native; framework: )
 --------------------------------------------------------------------------------
 Verbose mode can be enabled via `-v, --verbose` option
-Build version: v0.1.0-bettermate-dirty
-Build date: 2026-10-03T13:06:58Z
+Build version: v0.1.0-bettermate-2-g860beb36-dirty
+Build date: 2026-11-08T19:41:05Z
 sim_webui_dep: web_ui.bin changed, re-embedding the WebUI blob
 LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
 LDF Modes: Finder ~ off, Compatibility ~ soft
@@ -235,80 +236,6 @@ src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRA
 <scratch space>:2:27: note: expanded from here
     2 |  clang diagnostic ignored "-Wdangling-pointer"
       |                           ^
-In file included from sim/SimScript.cpp:9:
-In file included from src/display/main.h:4:
-In file included from src/display/core/Controller.h:18:
-In file included from src/display/ui/UI.h:7:
-In file included from src/display/ui/bettermate/BetterMateUI.h:11:
-In file included from src/display/ui/default/DefaultUI.h:11:
-In file included from src/display/ui/default/eez/structs.h:4:
-src/display/ui/default/eez/eez-flow.h:961:13: warning: unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]
-  961 |             DIAG_IGNORE("-Wdangling-pointer")
-      |             ^
-src/display/ui/default/eez/eez-flow.h:79:24: note: expanded from macro 'DIAG_IGNORE'
-   79 | #define DIAG_IGNORE(w) DIAG_PRAGMA(clang diagnostic ignored w)
-      |                        ^
-src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRAGMA'
-   76 | #define DIAG_PRAGMA(x) _Pragma(#x)
-      |                        ^
-<scratch space>:277:27: note: expanded from here
-  277 |  clang diagnostic ignored "-Wdangling-pointer"
-      |                           ^
-In file included from sim/SimScript.cpp:9:
-In file included from src/display/main.h:4:
-In file included from src/display/core/Controller.h:18:
-In file included from src/display/ui/UI.h:7:
-In file included from src/display/ui/bettermate/BetterMateUI.h:11:
-In file included from src/display/ui/default/DefaultUI.h:11:
-In file included from src/display/ui/default/eez/structs.h:4:
-src/display/ui/default/eez/eez-flow.h:969:13: warning: unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]
-  969 |             DIAG_IGNORE("-Wdangling-pointer")
-      |             ^
-src/display/ui/default/eez/eez-flow.h:79:24: note: expanded from macro 'DIAG_IGNORE'
-   79 | #define DIAG_IGNORE(w) DIAG_PRAGMA(clang diagnostic ignored w)
-      |                        ^
-src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRAGMA'
-   76 | #define DIAG_PRAGMA(x) _Pragma(#x)
-      |                        ^
-<scratch space>:286:27: note: expanded from here
-  286 |  clang diagnostic ignored "-Wdangling-pointer"
-      |                           ^
-In file included from src/display/plugins/WebUIPlugin.cpp:6:
-In file included from src/display/core/Controller.h:18:
-In file included from src/display/ui/UI.h:7:
-In file included from src/display/ui/bettermate/BetterMateUI.h:11:
-In file included from src/display/ui/default/DefaultUI.h:11:
-In file included from src/display/ui/default/eez/structs.h:4:
-src/display/ui/default/eez/eez-flow.h:961:13: warning: unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]
-  961 |             DIAG_IGNORE("-Wdangling-pointer")
-      |             ^
-src/display/ui/default/eez/eez-flow.h:79:24: note: expanded from macro 'DIAG_IGNORE'
-   79 | #define DIAG_IGNORE(w) DIAG_PRAGMA(clang diagnostic ignored w)
-      |                        ^
-src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRAGMA'
-   76 | #define DIAG_PRAGMA(x) _Pragma(#x)
-      |                        ^
-<scratch space>:262:27: note: expanded from here
-  262 |  clang diagnostic ignored "-Wdangling-pointer"
-      |                           ^
-In file included from src/display/plugins/WebUIPlugin.cpp:6:
-In file included from src/display/core/Controller.h:18:
-In file included from src/display/ui/UI.h:7:
-In file included from src/display/ui/bettermate/BetterMateUI.h:11:
-In file included from src/display/ui/default/DefaultUI.h:11:
-In file included from src/display/ui/default/eez/structs.h:4:
-src/display/ui/default/eez/eez-flow.h:969:13: warning: unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]
-  969 |             DIAG_IGNORE("-Wdangling-pointer")
-      |             ^
-src/display/ui/default/eez/eez-flow.h:79:24: note: expanded from macro 'DIAG_IGNORE'
-   79 | #define DIAG_IGNORE(w) DIAG_PRAGMA(clang diagnostic ignored w)
-      |                        ^
-src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRAGMA'
-   76 | #define DIAG_PRAGMA(x) _Pragma(#x)
-      |                        ^
-<scratch space>:271:27: note: expanded from here
-  271 |  clang diagnostic ignored "-Wdangling-pointer"
-      |                           ^
 In file included from src/display/ui/default/DefaultUI.cpp:1:
 In file included from src/display/ui/default/DefaultUI.h:11:
 In file included from src/display/ui/default/eez/structs.h:4:
@@ -338,6 +265,80 @@ src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRA
       |                        ^
 <scratch space>:289:27: note: expanded from here
   289 |  clang diagnostic ignored "-Wdangling-pointer"
+      |                           ^
+In file included from src/display/plugins/WebUIPlugin.cpp:6:
+In file included from src/display/core/Controller.h:18:
+In file included from src/display/ui/UI.h:7:
+In file included from src/display/ui/bettermate/BetterMateUI.h:11:
+In file included from src/display/ui/default/DefaultUI.h:11:
+In file included from src/display/ui/default/eez/structs.h:4:
+src/display/ui/default/eez/eez-flow.h:961:13: warning: unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]
+  961 |             DIAG_IGNORE("-Wdangling-pointer")
+      |             ^
+src/display/ui/default/eez/eez-flow.h:79:24: note: expanded from macro 'DIAG_IGNORE'
+   79 | #define DIAG_IGNORE(w) DIAG_PRAGMA(clang diagnostic ignored w)
+      |                        ^
+In file included from sim/SimScript.cpp:9:
+In file included from src/display/main.h:4:
+In file included from src/display/core/Controller.h:18:
+In file included from src/display/ui/UI.h:7:
+In file included from src/display/ui/bettermate/BetterMateUI.hsrc/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRAGMA'
+   76 | #define DIAG_PRAGMA(x) _Pragma(#x)
+      |                        ^
+<scratch space>:262:11:
+In file included from :src/display/ui/default/DefaultUI.h27::11 :
+note: In file included from expanded from heresrc/display/ui/default/eez/structs.h:4:
+src/display/ui/default/eez/eez-flow.h:
+961:13:   262warning:  | unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]
+ clang diagnostic igno  r961e | d   " - W d a n g l i n gD-IpAoGi_nItGeNrO"R
+E      (| "                          ^-
+Wdangling-pointer")
+      |             ^
+src/display/ui/default/eez/eez-flow.h:79:24: note: expanded from macro 'DIAG_IGNORE'
+   79 | #define DIAG_IGNORE(w) DIAG_PRAGMA(clanIn file included from gsrc/display/plugins/WebUIPlugin.cpp :d6i:
+aIn file included from gsrc/display/core/Controller.hn:o18s:
+tIn file included from isrc/display/ui/UI.hc: 7i:
+gIn file included from nsrc/display/ui/bettermate/BetterMateUI.ho:r11e:
+dIn file included from  src/display/ui/default/DefaultUI.hw:)11
+:
+      In file included from | src/display/ui/default/eez/structs.h                       ^:
+4:
+src/display/ui/default/eez/eez-flow.hsrc/display/ui/default/eez/eez-flow.h::96976::1324::  warning: note: unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]expanded from macro 'DIAG_PRAGMA'
+
+     76969 |  | # d e f i n e   D I A G _DPIAG_IGNORE("R-AWGdMaAn(gxl)i n_gP-rpaogimnat(e#rx"))
+
+            | |                        ^            ^
+
+src/display/ui/default/eez/eez-flow.h:79:24: <scratch space>note: :expanded from macro 'DIAG_IGNORE'277
+:27: note:    expanded from here79
+ | #de  f277i | n ec lDaInAgG _dIiGaNgOnRoEs(twi)c  DiIgAnGo_rPeRdA G"M-AW(dcalnagnlgi ndgi-apgonionstteirc" 
+i      g| n                          ^o
+red w)
+      |                        ^
+src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRAGMA'
+   76 | #define DIAG_PRAGMA(x) _Pragma(#x)
+      |                        ^
+<scratch space>:271:27: note: expanded from here
+  271 |  clIn file included from asim/SimScript.cppn:g9 :
+dIn file included from isrc/display/main.ha:g4n:
+oIn file included from ssrc/display/core/Controller.ht:i18c:
+ In file included from isrc/display/ui/UI.hg:n7o:
+rIn file included from src/display/ui/bettermate/BetterMateUI.h:11:
+In file included from src/display/ui/default/DefaultUI.h:11:
+In file included from src/display/ui/default/eez/structs.h:4:
+src/display/ui/default/eez/eez-flow.h:969:13: warning: unknown warning group '-Wdangling-pointer', ignored [-Wunknown-warning-option]
+ed "-  969 | W d a n g l i n g - p o iDnItAeGr_"I
+G      N| O                          ^R
+E("-Wdangling-pointer")
+      |             ^
+src/display/ui/default/eez/eez-flow.h:79:24: note: expanded from macro 'DIAG_IGNORE'
+   79 | #define DIAG_IGNORE(w) DIAG_PRAGMA(clang diagnostic ignored w)
+      |                        ^
+src/display/ui/default/eez/eez-flow.h:76:24: note: expanded from macro 'DIAG_PRAGMA'
+   76 | #define DIAG_PRAGMA(x) _Pragma(#x)
+      |                        ^
+<scratch space>:286:27: note: expanded from here
+  286 |  clang diagnostic ignored "-Wdangling-pointer"
       |                           ^
 In file included from sim/driver/SdlDriver.cpp:5:
 In file included from src/display/main.h:4:
@@ -395,13 +396,13 @@ sim/platform/esp_log.h:23:44: note: expanded from macro 'ESP_LOGI'
 2 warnings generated.
 2 warnings generated.
 2 warnings generated.
-4 warnings generated.
 2 warnings generated.
+4 warnings generated.
 Linking .pio/build/display-sim/program
-========================= [SUCCESS] Took 1.31 seconds =========================
+========================= [SUCCESS] Took 1.53 seconds =========================
 
 Environment    Status    Duration
 -------------  --------  ------------
-display        SUCCESS   00:00:15.816
-display-sim    SUCCESS   00:00:01.308
-========================= 2 succeeded in 00:00:17.124 =========================
+display        SUCCESS   00:00:16.400
+display-sim    SUCCESS   00:00:01.534
+========================= 2 succeeded in 00:00:17.935 =========================

@@ -6,9 +6,27 @@
 #include <display/config.h>
 #include <display/core/Controller.h>
 #include <display/core/process/BrewProcess.h>
+#include <display/core/process/GrindProcess.h>
 #include <display/plugins/BLEScalePlugin.h>
+#include <display/ui/bettermate/LuxuryUI.h>
 #include <display/ui/bettermate/NextWakeup.h>
 #include <version.h>
+
+namespace {
+// Edit the final pumping Brew phase; preinfusion, flow profiles and transitions retain their settings.
+int pressurePhase(const Profile &profile) {
+    for (int i = static_cast<int>(profile.phases.size()) - 1; i >= 0; --i) {
+        const auto &phase = profile.phases[i];
+        if (phase.phase == PhaseType::PHASE_TYPE_BREW && phase.valve && (!phase.pumpIsSimple || phase.pumpSimple > 0))
+            return i;
+    }
+    return -1;
+}
+bool pressureEditable(const Phase &phase) {
+    return phase.pumpIsSimple ||
+           (phase.pumpAdvanced.target == PumpTarget::PUMP_TARGET_PRESSURE && phase.pumpAdvanced.pressure > 0);
+}
+} // namespace
 
 BetterMateUI::BetterMateUI(Controller *controller, Driver *driver, PluginManager *pluginManager)
     : DefaultUI(controller, driver, pluginManager, false) {
@@ -20,6 +38,7 @@ BetterMateUI::BetterMateUI(Controller *controller, Driver *driver, PluginManager
 }
 
 void BetterMateUI::onScreenShown(ScreensEnum screen) {
+    bm::Screen *previous = active;
     switch (screen) {
     case SCREEN_ID_STANDBY_SCREEN:
         active = &standby;
@@ -57,8 +76,21 @@ void BetterMateUI::onScreenShown(ScreensEnum screen) {
 
     applyBetterMateTheme();
     gather();
-    lv_scr_load(active->root());
+    state.openWarnings = openWarnings && active == &menu;
+    openWarnings = false;
+    auto *target = active->root();
+    // An interrupted fade must finish through LVGL's ready callback to
+    // release touch input; an immediate load leaves its previous screen set.
+    if (lv_disp_get_scr_prev(nullptr))
+        lv_scr_load_anim(target, LV_SCR_LOAD_ANIM_NONE, 1, 0, false);
+    else
+        lv_scr_load(target);
     active->onShow(state);
+    // Content fades in and rises while the rim stays. A screen change never slides or cross-fades the whole
+    // panel: on the device each such frame repaints all of it.
+    if (previous != nullptr && previous != active)
+        bm::luxury::enter(active->body(), active != &standby);
+    state.openWarnings = false;
 }
 
 void BetterMateUI::onRendered() {
@@ -122,28 +154,50 @@ void BetterMateUI::gather() {
         state.profileName = profile.label.c_str();
         state.profileDuration = profile.getTotalDuration();
         state.profileWeight = profile.getTotalVolume();
+        state.profileDose = profile.dose;
         state.profileVolumetric = profile.isVolumetric();
-        const auto preview = [this](const Profile &p) {
-            state.preview.name = p.label.c_str();
-            state.preview.temperature = p.temperature;
-            state.preview.duration = p.getTotalDuration();
-            state.preview.weight = p.getTotalVolume();
-            state.preview.volumetric = p.isVolumetric();
-            state.preview.phases = p.getPhaseCount();
-            state.preview.steps = p.phases.size();
+        state.profilePressure = 0;
+        state.profilePressureSet = false;
+        state.profilePressureEditable = false;
+        if (const int index = pressurePhase(profile); index >= 0) {
+            const auto &phase = profile.phases[index];
+            state.profilePressureEditable = state.pressureAvailable && pressureEditable(phase);
+            state.profilePressureSet = !phase.pumpIsSimple &&
+                                       phase.pumpAdvanced.target == PumpTarget::PUMP_TARGET_PRESSURE &&
+                                       phase.pumpAdvanced.pressure > 0;
+            if (state.profilePressureSet)
+                state.profilePressure = phase.pumpAdvanced.pressure;
+        }
+        const auto preview = [](const Profile &p) {
+            bm::UiState::ProfilePreview::Entry entry;
+            entry.name = p.label.c_str();
+            entry.temperature = p.temperature;
+            entry.duration = p.getTotalDuration();
+            entry.weight = p.getTotalVolume();
+            entry.dose = p.dose;
+            // A single phase needs no stage list; its name would only repeat the mode.
+            if (p.phases.size() > 1) {
+                for (const auto &phase : p.phases) {
+                    if (!entry.summary.empty())
+                        entry.summary += " · ";
+                    entry.summary += phase.name.c_str();
+                }
+            }
+            entry.volumetric = p.isVolumetric();
+            return entry;
         };
         state.preview = {};
         std::lock_guard<std::mutex> guard(profilesMutex);
         if (!favoritedProfiles.empty()) {
             currentProfileIdx = std::clamp(currentProfileIdx, 0, static_cast<int>(favoritedProfiles.size()) - 1);
-            preview(favoritedProfiles[currentProfileIdx]);
             state.preview.index = currentProfileIdx;
             state.preview.count = favoritedProfiles.size();
-            state.preview.previous = currentProfileIdx > 0;
-            state.preview.next = currentProfileIdx + 1 < static_cast<int>(favoritedProfiles.size());
+            state.preview.entries.reserve(favoritedProfiles.size());
+            for (const auto &favorite : favoritedProfiles)
+                state.preview.entries.push_back(preview(favorite.id == profile.id ? profile : favorite));
         } else {
-            preview(profile);
             state.preview.count = 1;
+            state.preview.entries.push_back(preview(profile));
         }
     }
     state.profileDirty = profileDirty;
@@ -154,11 +208,24 @@ void BetterMateUI::gather() {
     state.weight = bluetoothWeight;
 
     state.shot = {};
+    state.grindElapsed = 0;
+    state.activeGrindDuration = 0;
+    state.activeGrindWeight = 0;
+    state.grindOutput = 0;
+    state.activeGrindVolumetric = false;
     {
         std::lock_guard<std::recursive_mutex> guard(controller->getProcessLock());
         Process *process = controller->getProcess();
         if (!process)
             process = controller->getLastProcess();
+        if (process && process->getType() == MODE_GRIND) {
+            auto *gp = static_cast<GrindProcess *>(process);
+            state.grindElapsed = state.now >= gp->started ? state.now - gp->started : 0;
+            state.activeGrindDuration = std::max(0, gp->time);
+            state.activeGrindWeight = gp->grindVolume;
+            state.grindOutput = gp->currentVolume;
+            state.activeGrindVolumetric = gp->target == ProcessTarget::VOLUMETRIC;
+        }
         if (process && process->getType() == MODE_BREW) {
             auto *bp = static_cast<BrewProcess *>(process);
             if (!bp->profile.phases.empty() && bp->phaseIndex < bp->profile.phases.size()) {
@@ -170,7 +237,7 @@ void BetterMateUI::gather() {
                 shot.profileName = bp->profile.label.c_str();
                 shot.phaseType = bp->currentPhase.phase == PhaseType::PHASE_TYPE_BREW ? "BREW" : "INFUSION";
                 shot.phaseName = shot.active                                                   ? bp->currentPhase.name.c_str()
-                                 : controller->getSettings().isDelayAdjust() && !shot.complete ? "Calibrating..."
+                                 : controller->getSettings().isDelayAdjust() && !shot.complete ? "Calibrating"
                                                                                                : "Finished";
                 const unsigned long now = !shot.active && bp->finished > 0 ? bp->finished : state.now;
                 shot.elapsed = bp->processStarted > 0 && now >= bp->processStarted ? now - bp->processStarted : 0;
@@ -190,6 +257,10 @@ void BetterMateUI::gather() {
                 }
                 shot.progress =
                     shot.phaseTarget > 0 ? std::clamp(shot.phaseCurrent / shot.phaseTarget * 100.0f, 0.0f, 100.0f) : 0;
+                shot.phaseCount = std::min<int>(bp->profile.phases.size(), 8);
+                for (int i = 0; i < shot.phaseCount; ++i)
+                    shot.phaseDurations[i] = bp->profile.phases[i].duration;
+                shot.phaseIndex = static_cast<int>(bp->phaseIndex);
             }
         }
     }
@@ -250,12 +321,41 @@ void BetterMateUI::wake() {
     controller->setMode(MODE_BREW);
 }
 
+void BetterMateUI::focusProfile(unsigned index) {
+    if (active != &profile || brewScreenState == BrewScreenState::Settings)
+        return;
+    {
+        std::lock_guard<std::mutex> guard(profilesMutex);
+        if (index >= favoritedProfiles.size() || currentProfileIdx == static_cast<int>(index))
+            return;
+        currentProfileIdx = static_cast<int>(index);
+    }
+    markDirty();
+}
+
 void BetterMateUI::act(bm::Intent intent) {
     using bm::Intent;
     switch (intent) {
     case Intent::Refresh:
         break;
+    case Intent::WakeMenu:
+        if (state.canWake) {
+            controller->deactivate();
+            controller->setMode(MODE_BREW);
+            changeScreen(SCREEN_ID_MENU_SCREEN_NEW);
+        }
+        break;
+    case Intent::Warnings:
+        if (controller->getMode() == MODE_BREW && controller->isActive())
+            break;
+        openWarnings = true;
+        controller->deactivate();
+        controller->setMode(MODE_BREW);
+        changeScreen(SCREEN_ID_MENU_SCREEN_NEW);
+        break;
     case Intent::Menu:
+        if (controller->getMode() == MODE_BREW && controller->isActive())
+            break;
         controller->deactivate();
         controller->setMode(MODE_BREW);
         changeScreen(SCREEN_ID_MENU_SCREEN_NEW);
@@ -264,7 +364,25 @@ void BetterMateUI::act(bm::Intent intent) {
         onProfileSwitch();
         break;
     case Intent::Adjust:
+        if (!state.canWake || controller->isActive() || active != &profile)
+            break;
+        {
+            String id;
+            {
+                std::lock_guard<std::mutex> guard(profilesMutex);
+                if (currentProfileIdx >= 0 && currentProfileIdx < static_cast<int>(favoritedProfiles.size()))
+                    id = favoritedProfiles[currentProfileIdx].id;
+            }
+            if (!id.isEmpty() && id != profileManager->getSelectedProfile().id) {
+                profileManager->selectProfile(id);
+                markProfileClean();
+                currentProfileIdx = 0;
+            }
+        }
         changeBrewScreenMode(BrewScreenState::Settings);
+        break;
+    case Intent::CancelAdjust:
+        changeBrewScreenMode(BrewScreenState::Brew);
         break;
     case Intent::Start:
         controller->activate();
@@ -290,6 +408,31 @@ void BetterMateUI::act(bm::Intent intent) {
             markProfileDirty();
         controller->raiseTemp();
         break;
+    case Intent::PressureDown:
+    case Intent::PressureUp:
+        if (!state.canWake || !state.adjusting || active != &profile || controller->isActive() ||
+            !controller->getSystemInfo().capabilities.pressure)
+            break;
+        {
+            auto &selected = profileManager->getSelectedProfile();
+            const int index = pressurePhase(selected);
+            if (index < 0 || !pressureEditable(selected.phases[index]))
+                break;
+            auto &phase = selected.phases[index];
+            if (phase.pumpIsSimple) {
+                phase.pumpIsSimple = false;
+                phase.pumpAdvanced = {PumpTarget::PUMP_TARGET_PRESSURE, 9.0f, 0.0f};
+            } else {
+                const float next = std::clamp(phase.pumpAdvanced.pressure +
+                                             (intent == Intent::PressureUp ? 0.5f : -0.5f), 0.1f, 12.0f);
+                if (next == phase.pumpAdvanced.pressure)
+                    break;
+                phase.pumpAdvanced.pressure = next;
+            }
+            markProfileDirty();
+            controller->updateLastAction();
+        }
+        break;
     case Intent::TargetDown:
         markProfileDirty();
         controller->lowerBrewTarget();
@@ -299,23 +442,24 @@ void BetterMateUI::act(bm::Intent intent) {
         controller->raiseBrewTarget();
         break;
     case Intent::DeleteWeight:
-        onVolumetricDelete();
+        if (state.adjusting && state.profileVolumetric && state.volumetricAvailable)
+            onVolumetricDelete();
         break;
     case Intent::Accept:
-        changeBrewScreenMode(BrewScreenState::Brew);
+        changeScreen(SCREEN_ID_BREW_SCREEN);
         break;
     case Intent::Save:
         if (profileDirty) {
             controller->onProfileSave();
             markProfileClean();
-            changeBrewScreenMode(BrewScreenState::Brew);
+            changeScreen(SCREEN_ID_BREW_SCREEN);
         }
         break;
     case Intent::SaveAsNew:
         if (profileDirty) {
             controller->onProfileSaveAsNew();
             markProfileClean();
-            changeBrewScreenMode(BrewScreenState::Brew);
+            changeScreen(SCREEN_ID_BREW_SCREEN);
         }
         break;
     case Intent::CancelConfirm:
@@ -366,7 +510,20 @@ void BetterMateUI::act(bm::Intent intent) {
         onNextProfile();
         break;
     case Intent::SelectProfile:
-        onProfileSelect();
+        if (active != &profile || !state.canWake || controller->isActive())
+            break;
+        {
+            bool same = false;
+            {
+                std::lock_guard<std::mutex> guard(profilesMutex);
+                same = currentProfileIdx >= 0 && currentProfileIdx < static_cast<int>(favoritedProfiles.size()) &&
+                       favoritedProfiles[currentProfileIdx].id == profileManager->getSelectedProfile().id;
+            }
+            if (same)
+                changeScreen(SCREEN_ID_BREW_SCREEN);
+            else
+                onProfileSelect();
+        }
         break;
     }
     markDirty();

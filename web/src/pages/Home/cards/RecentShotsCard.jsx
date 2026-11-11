@@ -38,6 +38,15 @@ function formatShotDateTime(timestamp, hour12) {
   });
 }
 
+function formatShotTime(timestamp, hour12) {
+  if (!timestamp || timestamp < 10000) return '';
+  return new Date(timestamp * 1000).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12,
+  });
+}
+
 async function loadRecentShots(recentShotCount) {
   // Same binary format as index.bin, truncated server-side to the newest entries.
   const resp = await fetch(`/api/history/recent.bin?limit=${recentShotCount}`);
@@ -74,99 +83,64 @@ const METRIC_DEFS = {
   },
 };
 
-function ShotMiniCard({ shot, slots }) {
-  const analyzerUrl = `/analyzer/internal/${shot.id}`;
-  const profileLabel = cleanName(shot.profile || 'Unknown');
-  const dateLabel = formatShotDateTime(shot.timestamp, !clock24hSignal.value);
+function ShotRow({ shot, slots }) {
+  const hour12 = !clock24hSignal.value;
+  const facts = slots
+    .map(slotId => {
+      const def = METRIC_DEFS[slotId];
+      const value = def ? def.getValue(shot) : null;
+      return value == null ? null : `${value} ${def.unit}`;
+    })
+    .filter(Boolean)
+    .join(', ');
 
   return (
-    <div className='flex min-w-0 flex-row items-center gap-3 rounded-xl bg-[var(--surface-2)] p-3 sm:flex-col sm:items-stretch lg:p-2.5 xl:p-3'>
-      {/* Identity — left on mobile, top on sm+ */}
-      <div className='flex min-w-0 flex-1 items-start gap-2'>
-        <div className='min-w-0 flex-1'>
-          <div className='text-base-content truncate text-sm font-semibold'>
-            shot-{shot.id}
-            <span className='ml-1.5 text-xs font-normal text-[var(--ink-muted)]'>
-              · {getRelativeDayLabel(shot.timestamp)}
-            </span>
-          </div>
-          <div className='truncate text-xs text-[var(--ink-muted)]'>{profileLabel}</div>
-          {/* Date shown below profile on mobile only */}
-          <div className='mt-0.5 sm:hidden'>
-            <span className='text-xs text-[var(--ink-muted)] italic'>{dateLabel}</span>
-          </div>
-        </div>
-        <a
-          href={analyzerUrl}
-          className='hover:text-primary shrink-0 text-xs text-[var(--ink-muted)] transition-colors'
-          aria-label='Open in Analyzer'
-          title='Open in Analyzer'
-        >
-          <Icon name={'search'} />
-        </a>
-      </div>
-
-      {/* Metrics — right on mobile, below identity on sm+ */}
-      <div className='flex shrink-0 gap-2 sm:mt-1.5 lg:gap-1.5 xl:gap-2'>
-        {slots.map(slotId => {
-          const def = METRIC_DEFS[slotId];
-          const value = def ? def.getValue(shot) : null;
-          return (
-            <div key={slotId} className='min-w-0 flex-1 text-center'>
-              <div className='flex items-baseline justify-center gap-1.5 lg:gap-1 xl:gap-1.5'>
-                <span className='text-base-content font-mono text-sm font-medium tabular-nums'>
-                  {value ?? '—'}
-                </span>
-                {value != null && def && (
-                  <span className='text-xs text-[var(--ink-muted)] lg:text-[0.68rem] xl:text-xs'>
-                    {def.unit}
-                  </span>
-                )}
-              </div>
-              <div className='text-[0.6rem] font-semibold tracking-wider text-[var(--ink-muted)] uppercase'>
-                {def?.label ?? slotId}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Date shown below metrics on sm+ only */}
-      <div className='mt-1 hidden sm:block'>
-        <span className='text-xs text-[var(--ink-muted)] italic'>{dateLabel}</span>
-      </div>
-    </div>
+    <li>
+      <a
+        href={`/analyzer/internal/${shot.id}`}
+        className='bm-row'
+        aria-label='Open in Analyzer'
+        title={formatShotDateTime(shot.timestamp, hour12)}
+      >
+        <span className='bm-row__icon'>
+          <Icon name='coffee' />
+        </span>
+        <span className='min-w-0 flex-1'>
+          <span className='bm-row__title'>{cleanName(shot.profile || 'Unknown')}</span>
+          <span className='bm-row__sub'>{facts}</span>
+        </span>
+        <span className='shrink-0 text-right text-sm leading-5'>
+          <span className='block'>{getRelativeDayLabel(shot.timestamp)}</span>
+          <span className='block text-[var(--ink-muted)]'>
+            {formatShotTime(shot.timestamp, hour12)}
+          </span>
+        </span>
+        <span className='bm-row__arrow'>
+          <Icon name='arrow-right' />
+        </span>
+      </a>
+    </li>
   );
 }
 
-ShotMiniCard.propTypes = {
+ShotRow.propTypes = {
   shot: PropTypes.object.isRequired,
   slots: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
-function ShotMiniCardSkeleton({ slots }) {
+function ShotRowSkeleton() {
   return (
-    <div className='flex min-w-0 flex-col gap-2 rounded-xl bg-[var(--surface-2)] p-3'>
-      <SkeletonBlock className='h-2.5 w-3/4' />
-      <SkeletonBlock className='h-2 w-1/2' />
-      <div className='mt-1 flex gap-2'>
-        {slots.map((_, i) => (
-          <div key={i} className='flex flex-1 flex-col items-center gap-1'>
-            <SkeletonBlock className='h-3.5 w-7' />
-            <SkeletonBlock className='h-2 w-6' />
-          </div>
-        ))}
+    <div className='bm-row'>
+      <SkeletonBlock className='h-11 w-11 shrink-0 rounded-full' />
+      <div className='flex min-w-0 flex-1 flex-col gap-2'>
+        <SkeletonBlock className='h-3 w-2/3' />
+        <SkeletonBlock className='h-2.5 w-1/2' />
       </div>
-      <SkeletonBlock className='h-2 w-3/5' />
     </div>
   );
 }
 
-ShotMiniCardSkeleton.propTypes = {
-  slots: PropTypes.arrayOf(PropTypes.string).isRequired,
-};
-
-export function RecentShotsCard() {
+export function RecentShotsCard({ max }) {
   const apiService = useContext(ApiServiceContext);
   const [shots, setShots] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -220,30 +194,39 @@ export function RecentShotsCard() {
     };
   }, [refreshKey]);
 
-  if (loading) {
-    return (
-      <div className='card bg-base-100 flex flex-col gap-2 rounded-xl p-3'>
-        <SkeletonBlock className='h-2 w-20' />
-        <div className='grid grid-cols-1 gap-3 sm:[grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]'>
-          {Array.from({ length: recentShotCountSignal.value }).map((_, i) => (
-            <ShotMiniCardSkeleton key={i} slots={slots} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-  if (shots.length === 0) return null;
-
   return (
-    <div className='card bg-base-100 flex flex-col gap-2 rounded-xl p-3'>
-      <div className='text-[0.6rem] tracking-wider text-[var(--ink-muted)] uppercase'>
-        Recent Shots
+    <section className='bm-group' aria-label='Recent shots'>
+      <div className='bm-group__head'>
+        <h2 className='bm-group__title'>Recent shots</h2>
+        <a href='/history' className='bm-link'>
+          All shots
+        </a>
       </div>
-      <div className='grid grid-cols-1 gap-3 sm:[grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]'>
-        {shots.map(shot => (
-          <ShotMiniCard key={shot.id} shot={shot} slots={slots} />
-        ))}
-      </div>
-    </div>
+      {loading && (
+        <div>
+          {Array.from({ length: Math.min(recentShotCountSignal.value, max ?? Infinity) }).map(
+            (_, i) => (
+              <ShotRowSkeleton key={i} />
+            ),
+          )}
+        </div>
+      )}
+      {!loading && shots.length === 0 && (
+        <p className='text-sm text-[var(--ink-muted)]'>
+          No shots yet. Pull a shot and it will show up here.
+        </p>
+      )}
+      {!loading && shots.length > 0 && (
+        <ul>
+          {shots.slice(0, max).map(shot => (
+            <ShotRow key={shot.id} shot={shot} slots={slots} />
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
+
+RecentShotsCard.propTypes = {
+  max: PropTypes.number,
+};

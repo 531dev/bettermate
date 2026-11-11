@@ -48,6 +48,11 @@
       "maximum": 150,
       "description": "Boiler setpoint in °C for the whole profile. Individual phases override this by setting a non-zero `phase.temperature`. Web UI accepts 0–150 °C; firmware hard limits are `MIN_TEMP=0` and `MAX_TEMP=160` (`src/display/core/constants.h:15-16`) — the parser itself does not clamp at load time, so profiles outside this range should be treated as invalid by validators even though the firmware will parse them."
     },
+    "dose": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Optional dry coffee dose in grams, shown as IN on the brew recipe. Omit or use zero when unknown. Recipe metadata only; does not control the pump, grinder, or shot stop conditions."
+    },
     "favorite": {
       "type": "boolean",
       "default": false,

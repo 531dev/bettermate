@@ -72,6 +72,9 @@ export function ExtendedProfileForm(props) {
           data={data}
           onChangeLabel={e => onFieldChange('label', e.target.value)}
           onChangeDescription={e => onFieldChange('description', e.target.value)}
+          onChangeDose={e =>
+            onFieldChange('dose', e.target.value === '' ? undefined : Number(e.target.value))
+          }
           onChangeTemperature={e => onFieldChange('temperature', e.target.value)}
           onChangeUtility={e => onFieldChange('utility', !!e.target.checked)}
         />
@@ -147,14 +150,14 @@ export function ExtendedProfileForm(props) {
         </Card>
       </div>
 
-      <div className='pt-4 lg:col-span-10'>
-        <div className='flex flex-col gap-2 sm:flex-row'>
-          <a href='/profiles' className='btn btn-outline'>
+      <div className='bm-actions mt-2 lg:col-span-10'>
+        <div className='flex w-full gap-2 sm:w-auto'>
+          <a href='/profiles' className='btn btn-outline flex-1 sm:flex-none'>
             Back
           </a>
           <button
             type='submit'
-            className='btn btn-primary gap-2'
+            className='btn btn-primary flex-[2] gap-2 sm:flex-none sm:px-10'
             disabled={saving}
             aria-label={saving ? 'Saving profile...' : 'Save profile'}
           >

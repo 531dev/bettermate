@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Verify Menu/Info/Profile navigation, favorite ordering, selection and scannable network QR codes."""
+"""Verify Menu/Info/Profile navigation, favorite ordering, selection and scannable network QR codes.
+
+Modes has no always-on network icons: Info is reached by scrolling the picker to "Info", or through the
+Wi-Fi-lost glyph at 12 o'clock while the network is down. Profile positions are checked on the dots row
+(see verify_display_profiles.position) because the PROFILES eyebrow no longer shows "n / m".
+"""
 
 import argparse
 import json
@@ -9,6 +14,7 @@ import subprocess
 import tempfile
 
 from PIL import Image
+from verify_display_profiles import check_positions, position
 from verify_display_standby import ROOT, run_case
 
 
@@ -32,61 +38,81 @@ PROFILES = [
 ]
 
 
+# Scroll the Modes picker to its last row, then open it.
+TO_INFO = ("swipe 240 390 240 90 300; wait 900; swipe 240 320 240 120 250; wait 700; expect text Info; "
+           "tap 240 216; wait 700")
+QUIET = {"wl_temp": "0", "wl_flush": "0"}
+
 CASES = [
-    ("menu-info", """
-        wait 3000; tap 240 240; wait 500; tap 240 450; wait 500;
-        expect screen 4; expect text Choose a mode; expect text BREW; expect text STEAM;
-        expect text WATER; expect text GRIND; shot menu-dark.bmp;
-        theme 1; wait 500; shot menu-light.bmp; theme 2; wait 500; shot menu-amoled.bmp;
-        tap 240 260; wait 500; expect screen 9; expect text BetterMate; expect text GaggiMate-Sim;
-        expect text IP: 192.168.1.123; expect text OPEN WEB UI; expect text CONTROLLER sim-3.0; shot info-sta-amoled.bmp;
-        theme 0; wait 500; shot info-sta-dark.bmp; theme 1; wait 500; shot info-sta-light.bmp;
-        wifi ap; wait 500; expect text JOIN WIFI; expect text BetterMate; expect text IP: 4.4.4.1; shot info-ap.bmp;
-        wifi sta; wait 500; expect text OPEN WEB UI; expect text IP: 192.168.1.123;
-        wifi disconnected; wait 500; expect text Disconnected; expect hidden OPEN WEB UI; expect hidden JOIN WIFI;
-        shot info-disconnected.bmp; wifi sta; wait 500;
+    ("menu-info", f"""
+        wait 3000; tap 240 240; wait 500;
+        expect screen 4; expect hidden TEMP; expect hidden PRESSURE; expect text Brew; expect text Steam;
+        expect text Grind; shot menu-dark.bmp;
+        theme 1; wait 2200; shot menu-light.bmp; theme 2; wait 2200; shot menu-amoled.bmp;
+        {TO_INFO}; expect screen 9; expect text CONNECTED TO; expect text GaggiMate-Sim;
+        expect text 192.168.1.123; expect text SCAN TO OPEN;
+        tap 240 386; wait 500; expect text DISPLAY; expect text CONTROLLER; expect text sim-3.0;
+        expect text NETWORK; expect hidden SCAN TO OPEN;
+        tap 240 386; wait 500; expect text ABOUT; expect hidden CONTROLLER; expect text SCAN TO OPEN;
+        shot info-sta-amoled.bmp;
+        theme 0; wait 2200; shot info-sta-dark.bmp; theme 1; wait 2200; shot info-sta-light.bmp;
+        wifi ap; wait 600; expect text SCAN TO JOIN; expect text SETUP NETWORK; expect text BetterMate;
+        expect text 4.4.4.1; shot info-ap.bmp;
+        wifi sta; wait 600; expect text SCAN TO OPEN; expect text 192.168.1.123;
+        wifi disconnected; wait 600; expect text Not connected; expect text OFFLINE;
+        expect text Connect to Wi-Fi to show a code; expect hidden SCAN TO OPEN; expect hidden SCAN TO JOIN;
+        shot info-disconnected.bmp; wifi sta; wait 600;
         swipe 240 350 240 120; wait 500; expect screen 4;
-        tap 240 450; wait 500; expect screen 1; expect mode 0; tap 240 240; wait 500; expect screen 2; quit
+        tap 240 442; wait 500; expect screen 1; expect mode 0; tap 240 240; wait 500; expect screen 4; quit
     """, {"wap": PASSWORD}, None),
     ("no-grinder", """
-        wait 3000; tap 240 240; wait 500; tap 240 450; wait 500; expect screen 4;
-        expect hidden GRIND; expect text BREW; expect text STEAM; expect text WATER; shot menu-three.bmp;
-        tap 145 335; wait 500; expect screen 4; tap 240 330; wait 500; expect screen 6; expect mode 3;
+        wait 3000; tap 240 240; wait 500; expect screen 4;
+        expect hidden Grind; expect text Brew; expect text Steam; expect text Water; shot menu-three.bmp;
+        tap 20 216; wait 500; expect screen 4; tap 240 372; wait 500; expect screen 6; expect mode 3;
         tap 240 450; wait 500; expect screen 4; controller disconnected; wait 500;
-        tap 145 155; wait 500; expect mode 0; expect active 0; quit
+        tap 240 216; wait 500; expect mode 0; expect active 0; quit
     """, {"alt_relay": "0"}, None),
-    ("profile-favorites", """
-        wait 3000; tap 240 240; wait 500; tap 142 374; wait 500;
-        expect screen 7; expect text CURRENT PROFILE; expect text First; expect text 1 / 3;
-        expect text 36.0 g; expect text 1 phase · 1 step; shot profile-dark.bmp;
-        theme 1; wait 500; shot profile-light.bmp; theme 2; wait 500; shot profile-amoled.bmp;
-        tap 62 240; wait 300; expect text First;
-        tap 418 240; wait 300; expect text SELECT PROFILE; expect text Second; expect text 2 / 3;
-        expect text 0:30; shot profile-timed.bmp;
-        swipe 330 230 140 230; wait 300; expect text Bloom; expect text 3 / 3;
-        expect text 2 phases · 3 steps; expect text 42.0 g; shot profile-bloom.bmp;
-        tap 418 240; wait 300; expect text Bloom;
-        swipe 140 230 330 230; wait 300; expect text Second;
-        tap 240 382; wait 500; expect screen 2; expect text Second; expect temperature 95;
-        tap 338 374; wait 300; tap 350 170; wait 300; expect temperature 96; tap 240 382; wait 300;
-        tap 142 374; wait 500; expect text Second; expect text CURRENT PROFILE;
-        tap 418 240; wait 300; expect text First; tap 240 382; wait 500; expect screen 2; expect temperature 93;
-        tap 338 374; wait 300; tap 142 382; wait 300; expect text ADJUST PROFILE;
-        tap 240 382; wait 300; tap 142 374; wait 500; swipe 240 310 240 120; wait 500;
+    ("profile-favorites", f"""
+        wait 3000; tap 240 240; wait 500; tap 240 216; wait 500; tap 240 310; wait 500;
+        expect screen 7; expect text PROFILES; expect text First; expect hidden Second; {position(1, 3)};
+        expect text 93° · 36 g · 30 s; expect hidden Brew; shot profile-dark.bmp;
+        theme 1; wait 2200; shot profile-light.bmp; theme 2; wait 2200; shot profile-amoled.bmp;
+        tap 240 62; wait 300; expect screen 7; expect text First; {position(1, 3)};
+        swipe 370 224 110 224 600; wait 700; expect text Second; expect hidden First; {position(2, 3)};
+        expect text 95° · 30 s; shot profile-timed.bmp;
+        swipe 370 224 110 224 600; wait 700; expect text Bloom; {position(3, 3)};
+        expect text Wet · Bloom · Brew; expect text 92° · 42 g · 40 s; shot profile-bloom.bmp;
+        swipe 370 224 110 224 600; wait 700; expect text Bloom; {position(3, 3)};
+        swipe 110 224 370 224 600; wait 700; expect text Second; {position(2, 3)};
+        tap 240 224; wait 500; expect screen 2; expect text Second; expect temperature 95;
+        tap 240 310; wait 500; tap 240 392; wait 500; expect text ADJUST; tap 384 182; wait 300;
+        expect temperature 96; expect text UNSAVED;
+        tap 240 392; wait 500; expect text Save changes; tap 240 346; wait 700; expect screen 2;
+        tap 240 310; wait 500; expect text Second; {position(1, 3)};
+        swipe 370 224 110 224 600; wait 700; expect text First; {position(2, 3)};
+        tap 240 224; wait 500; expect screen 2; expect temperature 93;
+        tap 240 310; wait 500; tap 240 392; wait 500; expect text ADJUST; expect hidden SAVE;
+        tap 240 392; wait 300; expect text ADJUST; expect hidden Save changes;
+        tap 240 450; wait 500; expect screen 7; expect text First; tap 240 224; wait 500; expect screen 2;
+        tap 240 310; wait 500; tap 240 450; wait 500;
         expect screen 4; expect mode 1; expect active 0; quit
     """, {"sp": "first", "fp": "first,second,first,bloom"}, PROFILES),
-    ("single-ring", """
-        pressure-sensor 0; wait 3000; tap 240 240; wait 500; tap 240 450; wait 500;
+    ("single-ring", f"""
+        pressure-sensor 0; wait 3000; tap 240 240; wait 500;
         expect screen 4; expect hidden PRESSURE; shot menu-single.bmp;
-        tap 240 260; wait 500; expect screen 9; expect text OPEN WEB UI; shot info-single.bmp;
-        tap 240 450; wait 500; tap 145 155; wait 500; tap 142 374; wait 500;
+        {TO_INFO}; expect screen 9; expect text SCAN TO OPEN; shot info-single.bmp;
+        tap 240 450; wait 500; tap 240 216; wait 500; tap 240 310; wait 500;
         expect screen 7; expect hidden PRESSURE; shot profile-single.bmp;
-        tap 240 382; wait 500; expect screen 2; quit
+        tap 240 392; wait 500; expect text TEMPERATURE; expect hidden PRESSURE; expect hidden Add;
+        shot adjust-single.bmp; tap 240 450; wait 500; expect screen 7;
+        tap 240 224; wait 500; expect screen 2; quit
     """, None, None),
     ("open-ap", """
-        wait 3000; tap 240 240; wait 500; tap 240 450; wait 500; tap 240 260; wait 500;
-        wifi ap-open; wait 500; expect text JOIN WIFI; shot info-open-ap.bmp; quit
-    """, {"wap": ""}, None),
+        wait 3000; tap 240 240; wait 500; expect screen 4;
+        wifi disconnected; wait 600; tap 240 34; wait 700; expect screen 9; expect text OFFLINE;
+        wifi ap-open; wait 600; expect text SCAN TO JOIN; expect text SETUP NETWORK; expect text BetterMate;
+        shot info-open-ap.bmp; quit
+    """, dict(QUIET, wap=""), None),
 ]
 
 
@@ -104,6 +130,7 @@ def main():
             continue
         run_case(args.binary.resolve(), output, name, script, preferences, profiles)
         count += script.count("expect ")
+        count += check_positions(output / name)
         for bmp in (output / name).glob("*.bmp"):
             with Image.open(bmp) as frame:
                 frame.save(bmp.with_suffix(".png"))

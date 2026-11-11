@@ -54,12 +54,13 @@ def main():
 
     run_case(binary, output, "themes-navigation", """
         wait 3000; expect screen 1; expect mode 0; expect active 0; shot standby-dark.bmp;
-        theme 1; wait 1500; shot standby-light.bmp;
-        theme 2; wait 1500; shot standby-amoled.bmp;
-        tap 240 240; wait 1000; expect screen 2; expect mode 1; expect active 0; shot wake-brew.bmp;
+        theme 1; wait 2200; shot standby-light.bmp;
+        theme 2; wait 2200; shot standby-amoled.bmp;
+        tap 240 240; wait 1000; expect screen 4; expect mode 1; expect active 0; shot wake-menu.bmp;
+        tap 240 216; wait 500; expect screen 2;
         tap 240 450; wait 1000; expect screen 4; shot menu.bmp;
-        tap 240 450; wait 1000; expect screen 1; expect mode 0; shot return-standby.bmp;
-        tap 50 240; wait 1000; expect screen 2; expect mode 1; expect active 0; quit
+        tap 240 442; wait 1000; expect screen 1; expect mode 0; shot return-standby.bmp;
+        tap 50 240; wait 1000; expect screen 4; expect mode 1; expect active 0; quit
     """)
 
     # A schedule several days away exercises the weekday label without waking during this check.
@@ -69,9 +70,8 @@ def main():
         wait 3000; shot standby-12h-scheduled.bmp;
         wait 31000; expect screen 1; expect mode 0; shot standby-rest.bmp;
         wait 61000; shot standby-drift.bmp;
-        tap 240 240; wait 1000; expect screen 2; expect mode 1; expect active 0; shot rest-wake-brew.bmp;
-        tap 240 450; wait 1000; expect screen 4;
-        tap 240 450; wait 1000; expect screen 1; shot rest-reset-standby.bmp; quit
+        tap 240 240; wait 1000; expect screen 4; expect mode 1; expect active 0; shot rest-wake-menu.bmp;
+        tap 240 442; wait 1000; expect screen 1; shot rest-reset-standby.bmp; quit
     """, {"theme": "2", "clk_24h": "0", "ab_en": "1", "ab_schedules": f"07:00|{''.join(days)}"})
 
     run_case(binary, output, "wake-guards", """
@@ -87,7 +87,7 @@ def main():
         tap 240 240; wait 1000; expect screen 1; expect mode 0; expect active 0;
         error 0; wait 1000; autotune; wait 200; shot autotuning.bmp;
         tap 240 240; expect screen 1; expect mode 0; expect active 0;
-        wait 2000; tap 240 240; wait 1000; expect screen 2; expect mode 1; expect active 0;
+        wait 2000; tap 240 240; wait 1000; expect screen 4; expect mode 1; expect active 0;
         update; wait 1000; shot updating.bmp;
         tap 240 240; wait 1000; expect screen 1; expect mode 0; expect active 0; quit
     """)

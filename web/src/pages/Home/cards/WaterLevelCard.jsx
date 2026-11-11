@@ -13,7 +13,7 @@ export function WaterLevelCard({ waterLevelPercent, inCard = false }) {
         <div className='text-[0.6rem] font-semibold tracking-wider text-[var(--ink-muted)] uppercase'>
           Water Tank
         </div>
-        <div className='font-mono text-xs font-bold text-[var(--primary)] tabular-nums'>{pct}%</div>
+        <div className='font-mono text-xs font-bold text-[var(--primary-text)] tabular-nums'>{pct}%</div>
       </div>
       <div className='bg-base-content/10 h-2 w-full overflow-hidden rounded-full'>
         <div

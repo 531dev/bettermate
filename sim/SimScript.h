@@ -23,6 +23,7 @@
 //   expect <grind-active|grind-duration|grind-weight> <n> check grinding, seconds, or tenths of a gram
 //   expect <text|hidden> <label>    check whether an exact label is visible on the real LVGL screen
 //   shot <path>                    write a BMP of the current frame
+//   layout <path>                  write every visible object's geometry and text extents as JSON lines
 //   quit                           leave the simulator
 #pragma once
 
@@ -58,6 +59,7 @@ class SimScript {
         Expect,
         ExpectText,
         Shot,
+        Layout,
         Quit
     };
     struct Step {

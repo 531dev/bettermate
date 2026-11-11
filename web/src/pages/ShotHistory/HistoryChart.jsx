@@ -1,5 +1,6 @@
 import { Chart } from 'chart.js';
 import { ChartComponent } from '../../components/Chart.jsx';
+import { niceAxis, phaseMarkerColors } from '../../utils/chartTheme.js';
 
 // Helper function to get phase name from shot data (v5+) or fallback to profile/generic
 function getPhaseName(shot, phaseNumber) {
@@ -64,6 +65,7 @@ function getChartData(shot) {
   const minX = Math.min(...timeValues);
   const maxX = Math.max(...timeValues);
   const padding = maxTemp - minTemp > 10 ? 2 : 5;
+  const tempAxis = niceAxis(Math.max(minTemp - padding, 0), maxTemp + padding);
 
   // Check if weight data has any non-zero values
   const hasWeight = v.some(point => point.y > 0);
@@ -72,6 +74,7 @@ function getChartData(shot) {
   // Create phase annotations
   const phaseAnnotations = {};
   const isSmall = window.innerWidth < 640;
+  const marker = phaseMarkerColors();
 
   // Add shot start marker
   if (data.length > 0) {
@@ -81,7 +84,7 @@ function getChartData(shot) {
       type: 'line',
       xMin: shotStartTime,
       xMax: shotStartTime,
-      borderColor: '#6B7280', // Gray color to match other phase lines
+      borderColor: marker.line,
       borderWidth: 1,
       label: {
         display: true,
@@ -91,8 +94,8 @@ function getChartData(shot) {
         xAdjust: -5,
         yAdjust: 0,
         padding: { x: 6, y: 0 },
-        color: 'rgb(255,255,255)',
-        backgroundColor: 'rgba(22,33,50,0.75)',
+        color: marker.text,
+        backgroundColor: marker.background,
         textAlign: 'start',
         font: {
           size: isSmall ? 9 : 11,
@@ -111,7 +114,7 @@ function getChartData(shot) {
       type: 'line',
       xMin: transition.time,
       xMax: transition.time,
-      borderColor: '#6B7280', // Gray color to match OverviewChart
+      borderColor: marker.line,
       borderWidth: 1,
       label: {
         display: true,
@@ -123,8 +126,8 @@ function getChartData(shot) {
         xAdjust: -10,
         yAdjust: 0,
         padding: { x: 6, y: 0 },
-        color: 'rgb(255,255,255)',
-        backgroundColor: 'rgba(22,33,50,0.75)',
+        color: marker.text,
+        backgroundColor: marker.background,
         textAlign: 'start',
         font: {
           size: isSmall ? 9 : 11,
@@ -146,7 +149,6 @@ function getChartData(shot) {
         },
         {
           label: 'Target Temperature',
-          fill: true,
           borderColor: '#731F00',
           borderDash: [6, 6],
           pointStyle: false,
@@ -161,7 +163,6 @@ function getChartData(shot) {
         },
         {
           label: 'Target Pressure',
-          fill: true,
           borderColor: '#0066CC',
           borderDash: [6, 6],
           pointStyle: false,
@@ -234,17 +235,15 @@ function getChartData(shot) {
             },
             generateLabels: function (chart) {
               const original = Chart.defaults.plugins.legend.labels.generateLabels;
-              const labels = original.call(this, chart);
-
-              labels.forEach((label, index) => {
-                const dataset = chart.data.datasets[index];
-                label.lineWidth = 3;
-                if (dataset.borderDash && dataset.borderDash.length > 0) {
-                  label.lineDash = dataset.borderDash;
-                }
-              });
-
-              return labels;
+              // Targets are the dashed line in the same color, so the legend names each series once.
+              return original
+                .call(this, chart)
+                .filter(label => !label.text.startsWith('Target'))
+                .map(label => ({
+                  ...label,
+                  text: label.text.replace('Current ', ''),
+                  lineWidth: 3,
+                }));
             },
           },
         },
@@ -262,26 +261,30 @@ function getChartData(shot) {
           max: maxX,
           type: 'linear',
           title: { display: true, text: 'Time (s)' },
+          grid: { display: false },
           ticks: { font: { size: window.innerWidth < 640 ? 10 : 12 } },
         },
         y: {
           type: 'linear',
           ticks: {
-            callback: value => `${value.toFixed()} °C`,
+            stepSize: tempAxis.step,
+            callback: value => `${value.toFixed()}°`,
             font: {
               size: window.innerWidth < 640 ? 10 : 12,
             },
           },
-          min: Math.max(minTemp - padding, 0),
-          max: maxTemp + padding,
+          min: tempAxis.min,
+          max: tempAxis.max,
         },
         y1: {
           type: 'linear',
           min: 0,
           max: 16,
           position: 'right',
+          title: { display: true, text: 'bar, ml/s' },
           ticks: {
-            callback: value => `${value.toFixed()} bar / g/s`,
+            maxTicksLimit: 5,
+            callback: value => value.toFixed(),
             font: {
               size: window.innerWidth < 640 ? 10 : 12,
             },
@@ -292,16 +295,8 @@ function getChartData(shot) {
           ? {
               y2: {
                 type: 'linear',
+                display: false,
                 min: 0,
-                position: 'right',
-                offset: true,
-                ticks: {
-                  callback: value => `${value.toFixed()} g`,
-                  font: {
-                    size: window.innerWidth < 640 ? 10 : 12,
-                  },
-                },
-                grid: { drawOnChartArea: false },
               },
             }
           : {}),

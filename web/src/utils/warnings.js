@@ -51,3 +51,10 @@ export function activeWarnings(states = []) {
     .map(s => ({ ...warningByKey(s.key), ...s }))
     .filter(w => w.icon);
 }
+
+// Reminders about the next shot: they only matter on the dashboard, in the modes they affect.
+const SHOT_REMINDERS = ['flush', 'temperature'];
+
+export function urgentWarnings(states = []) {
+  return activeWarnings(states).filter(w => !SHOT_REMINDERS.includes(w.key));
+}

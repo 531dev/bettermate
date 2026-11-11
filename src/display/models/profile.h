@@ -168,6 +168,7 @@ struct Profile {
     String description;
     bool utility = false;
     float temperature;
+    float dose = 0.0f; // optional recipe metadata; never controls the brew process
     bool favorite = false;
     bool selected = false;
     std::vector<Phase> phases;
@@ -276,6 +277,7 @@ inline bool parseProfile(const JsonObject &obj, Profile &profile) {
     profile.type = obj["type"].as<String>();
     profile.description = obj["description"].as<String>();
     profile.temperature = obj["temperature"].as<float>();
+    profile.dose = obj["dose"] | 0.0f;
     profile.favorite = obj["favorite"] | false;
     profile.selected = obj["selected"] | false;
     profile.utility = obj["utility"] | false;
@@ -383,6 +385,8 @@ inline void writeProfile(JsonObject &obj, const Profile &profile) {
     obj["type"] = profile.type;
     obj["description"] = profile.description;
     obj["temperature"] = profile.temperature;
+    if (profile.dose > 0)
+        obj["dose"] = profile.dose;
     obj["favorite"] = profile.favorite;
     obj["selected"] = profile.selected;
     obj["utility"] = profile.utility;

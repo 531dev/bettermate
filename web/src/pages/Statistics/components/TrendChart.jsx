@@ -123,7 +123,7 @@ function formatUniqueTrendMetricTick(value, index, ticks, metricKey) {
   return label === previousLabel ? '' : label;
 }
 
-const CHART_FONT_FAMILY = '"JetBrains Mono", ui-monospace, monospace';
+const CHART_FONT_FAMILY = '"Jost", system-ui, sans-serif';
 const CHART_TICK_FONT = { family: CHART_FONT_FAMILY, size: 10, weight: '400' };
 const CHART_TOOLTIP_TITLE_FONT = { family: CHART_FONT_FAMILY, size: 11, weight: '700' };
 const CHART_TOOLTIP_BODY_FONT = { family: CHART_FONT_FAMILY, size: 10, weight: '400' };

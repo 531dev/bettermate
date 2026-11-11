@@ -1,7 +1,6 @@
 import Card from '../../components/Card.jsx';
 
 export function ProfileMainInformation(props) {
-  console.log(props.data);
   return (
     <Card sm={10} title='Profile Information'>
       <div className='form-control'>
@@ -53,6 +52,29 @@ export function ProfileMainInformation(props) {
             <span aria-label='degrees Celsius'>°C</span>
           </label>
         </div>
+      </div>
+      <div className='form-control'>
+        <label htmlFor='dose' className='mb-2 block text-sm font-medium'>
+          Coffee dose (optional)
+        </label>
+        <label className='input w-full'>
+          <input
+            id='dose'
+            name='dose'
+            aria-label='Coffee dose in grams'
+            type='number'
+            min='0.1'
+            max='250'
+            step='0.1'
+            value={props.data?.dose ?? ''}
+            onChange={props.onChangeDose}
+            aria-describedby='dose-help'
+          />
+          <span>g</span>
+        </label>
+        <p id='dose-help' className='mt-2 text-sm text-[var(--ink-muted)]'>
+          Dry coffee shown as IN on the display. This does not set the grinder target.
+        </p>
       </div>
       <div className='form-control'>
         <label

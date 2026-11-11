@@ -405,7 +405,7 @@ export function createShotChartConfigs({
             max: model.mainAxisMax,
             ticks: {
               display: true,
-              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
+              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -442,7 +442,7 @@ export function createShotChartConfigs({
             max: model.weightAxisMax,
             ticks: {
               display: showWeightAxis,
-              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
+              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -459,7 +459,7 @@ export function createShotChartConfigs({
             max: model.puckResistanceAxisMax,
             ticks: {
               display: showPuckResistanceAxis,
-              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
+              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -476,7 +476,7 @@ export function createShotChartConfigs({
             max: model.liquidResistanceAxisMax,
             ticks: {
               display: showLiquidResistanceAxis,
-              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
+              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -534,7 +534,7 @@ export function createShotChartConfigs({
             ticks: {
               display: true,
               autoSkip: false,
-              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
+              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
               color: neutralAxisTickColor,
               callback: formatResponsiveXAxisTick,
               padding: 4,
@@ -559,7 +559,7 @@ export function createShotChartConfigs({
             max: model.tempAxisMax,
             ticks: {
               display: true,
-              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
+              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
               color: neutralAxisTickColor,
               callback: formatUniqueAxisTick,
             },
@@ -577,7 +577,7 @@ export function createShotChartConfigs({
             border: { display: false },
             ticks: {
               display: showWeightAxis,
-              font: { size: 10, family: '"JetBrains Mono", ui-monospace, monospace' },
+              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
               color: 'rgba(0, 0, 0, 0)',
               callback: formatUniqueAxisTick,
             },

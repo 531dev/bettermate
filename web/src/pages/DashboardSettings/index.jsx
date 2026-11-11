@@ -42,7 +42,6 @@ import {
   getShotMetricSlots,
   setShotMetricSlots,
   DASHBOARD_MODES,
-  getDashboardMode,
   setDashboardMode,
 } from '../../utils/dashboardManager.js';
 import { METRIC_DEFINITIONS } from '../../utils/metricDefinitions.js';
@@ -71,13 +70,6 @@ export function DashboardSettings() {
     setDashboardMode(DASHBOARD_MODES.CUSTOM);
   }, []);
 
-  // Covers a preset being selected from the nav dropdown while this page stays mounted.
-  const markCustomized = () => {
-    if (getDashboardMode() !== DASHBOARD_MODES.CUSTOM) {
-      setDashboardMode(DASHBOARD_MODES.CUSTOM);
-    }
-  };
-
   const hiddenMetrics = METRIC_DEFINITIONS.filter(
     m => !m.required && !metricOrder.includes(m.id) && m.available(machine.value.status),
   );
@@ -100,16 +92,10 @@ export function DashboardSettings() {
   return (
     <>
       <div className='mb-4 flex flex-row items-center gap-2'>
-        <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
-          Dashboard Settings
-        </h2>
+        <h2 className='bm-page-title flex-grow'>Dashboard Settings</h2>
       </div>
 
-      <div
-        className='grid grid-cols-1 gap-4 lg:grid-cols-10'
-        onChangeCapture={markCustomized}
-        onClickCapture={markCustomized}
-      >
+      <div className='grid grid-cols-1 gap-4 lg:grid-cols-10'>
         {/* ── Card 1: General Settings ─────────────────────────────────── */}
         <Card sm={10} lg={5} title='General Settings'>
           <SettingsFormField label='Dashboard Layout' htmlFor='dashboardLayout'>

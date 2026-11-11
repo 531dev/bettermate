@@ -5,6 +5,7 @@
 #include <ctime>
 #include <display/core/WarningManager.h>
 #include <string>
+#include <vector>
 
 namespace bm {
 
@@ -41,8 +42,12 @@ struct UiState {
     std::string profileName;
     float profileDuration = 0.0f; // seconds
     float profileWeight = 0.0f;
+    float profileDose = 0.0f; // optional recipe metadata, grams of dry coffee
     bool profileVolumetric = false;
     bool profileDirty = false;
+    float profilePressure = 0.0f;
+    bool profilePressureSet = false;
+    bool profilePressureEditable = false;
     bool adjusting = false;
     bool confirming = false;
     bool volumetricAvailable = false;
@@ -56,19 +61,25 @@ struct UiState {
     bool grindVolumetric = false;
     unsigned long grindDuration = 0;
     double grindWeight = 0.0;
+    unsigned long grindElapsed = 0;
+    unsigned long activeGrindDuration = 0;
+    double activeGrindWeight = 0.0;
+    double grindOutput = 0.0;
+    bool activeGrindVolumetric = false;
 
     struct ProfilePreview {
-        std::string name;
-        float temperature = 0.0f;
-        float duration = 0.0f;
-        float weight = 0.0f;
-        bool volumetric = false;
-        unsigned phases = 0;
-        unsigned steps = 0;
+        struct Entry {
+            std::string name;
+            std::string summary;
+            float temperature = 0.0f;
+            float duration = 0.0f;
+            float weight = 0.0f;
+            float dose = 0.0f;
+            bool volumetric = false;
+        };
+        std::vector<Entry> entries;
         unsigned index = 0;
         unsigned count = 0;
-        bool previous = false;
-        bool next = false;
     } preview;
 
     // Network QR content is prepared by the host; passwords never become screen labels.
@@ -96,6 +107,10 @@ struct UiState {
         float phaseTarget = 0.0f;
         float progress = 0.0f; // 0..100
         double weight = 0.0;
+        // Planned seconds per phase and the running phase, for the segmented progress ring.
+        float phaseDurations[8]{};
+        int phaseCount = 0;
+        int phaseIndex = 0;
     } shot;
 
     // Clock
@@ -113,6 +128,8 @@ struct UiState {
     // Warnings by WarningType: shown as a warning, or as an error that must be confirmed before brewing
     bool warn[WARNING_TYPE_COUNT] = {};
     bool error[WARNING_TYPE_COUNT] = {};
+    // Set for one show of the Modes screen when the warning indicator was tapped elsewhere.
+    bool openWarnings = false;
 };
 
 } // namespace bm

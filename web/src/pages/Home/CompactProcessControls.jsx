@@ -1,3 +1,5 @@
+import Adjuster from './Adjuster.jsx';
+import TargetToggle from './TargetToggle.jsx';
 import { Icon } from '../../components/Icon.jsx';
 import { WarningIcon } from '../../components/WarningIcon.jsx';
 import { activeWarnings, WARNING_LEVEL } from '../../utils/warnings.js';
@@ -27,7 +29,7 @@ const Metric = ({ icon, current, target, unit }) => (
 const FinishedView = ({ elapsed }) => (
   <div className='space-y-1 text-center'>
     <div className='text-base-content text-lg font-bold'>Finished</div>
-    <div className='text-base-content font-mono text-2xl font-bold tabular-nums'>{elapsed}</div>
+    <div className='text-base-content font-mono text-2xl font-light tabular-nums'>{elapsed}</div>
   </div>
 );
 
@@ -45,7 +47,7 @@ const ActiveView = ({ p, grind }) => {
             <span className='text-base-content min-w-0 truncate text-sm font-bold'>{p.l}</span>
           )}
         </div>
-        <span className='text-base-content shrink-0 font-mono text-xl font-bold tabular-nums'>
+        <span className='text-base-content shrink-0 font-mono text-xl font-light tabular-nums'>
           {fmtElapsed(p?.e)}
         </span>
       </div>
@@ -256,11 +258,12 @@ export default function CompactProcessControls() {
           {showPrimary && (
             <button
               type='button'
-              className='btn btn-circle btn-md btn-primary'
+              className='btn btn-primary min-h-11 gap-2'
               onClick={handlePrimary}
               aria-label={getPrimaryLabel(isActive, isFinished)}
             >
               <Icon name={getPrimaryIcon(isActive, isFinished)} className='text-lg' />
+              {getPrimaryLabel(isActive, isFinished)}
             </button>
           )}
           <div className='flex-1' aria-hidden='true' />

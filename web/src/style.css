@@ -1,26 +1,21 @@
 @import 'tailwindcss';
 @import './design/themes.css';
+@import './design/luxury.css';
 @plugin 'daisyui' {
   themes: false;
 }
 
 @font-face {
-  font-family: 'Space Grotesk';
-  src: url('/fonts/SpaceGrotesk-Variable.woff2') format('woff2');
+  font-family: 'Jost';
+  src: url('/fonts/Jost-Variable.woff2') format('woff2');
   font-style: normal;
-  font-weight: 300 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'JetBrains Mono';
-  src: url('/fonts/JetBrainsMono-Variable.woff2') format('woff2');
-  font-style: normal;
-  font-weight: 100 800;
+  font-weight: 100 900;
   font-display: swap;
 }
 @theme {
-  --font-sans: 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Jost', system-ui, sans-serif;
+  /* Existing numeric utilities share Jost's tabular figures. */
+  --font-mono: 'Jost', system-ui, sans-serif;
 }
 
 /* Analyzer/statistics keep their existing API and read the shared color tokens. */
@@ -55,7 +50,7 @@
   --analyzer-source-gm-badge-text: var(--ink-muted);
   --analyzer-source-web-badge-bg: var(--primary-soft);
   --analyzer-source-web-badge-border: var(--line);
-  --analyzer-source-web-badge-text: var(--primary);
+  --analyzer-source-web-badge-text: var(--primary-text);
   --analyzer-stop-label: var(--danger);
   --analyzer-target-flow-anchor: var(--series-flow);
   --analyzer-target-flow-text: var(--series-flow);
@@ -93,6 +88,8 @@
     color: var(--ink);
     font-size: 15px;
     line-height: 22px;
+    font-kerning: normal;
+    font-variant-numeric: lining-nums tabular-nums;
   }
   :focus-visible {
     outline: 2px solid var(--focus);
@@ -100,6 +97,12 @@
   }
 }
 @layer components {
+  h1,
+  h2,
+  h3 {
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
   .btn {
     border-radius: 9999px;
     font-size: 13px;
@@ -143,7 +146,7 @@
     color: var(--danger);
   }
   .text-info {
-    color: var(--primary);
+    color: var(--primary-text);
   }
   .bm-wordmark-dark {
     display: none;

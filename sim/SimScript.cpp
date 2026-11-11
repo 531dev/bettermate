@@ -26,6 +26,84 @@ static bool visibleText(lv_obj_t *obj, const char *text) {
     return false;
 }
 
+static int effectiveOpa(lv_obj_t *obj) {
+    int opa = LV_OPA_COVER;
+    for (lv_obj_t *o = obj; o; o = lv_obj_get_parent(o))
+        opa = opa * lv_obj_get_style_opa(o, LV_PART_MAIN) / LV_OPA_COVER;
+    return opa;
+}
+
+static std::string jsonText(const char *text) {
+    std::string out;
+    for (const char *c = text; *c; ++c) {
+        if (*c == '"' || *c == '\\')
+            out += '\\';
+        if (*c == '\n') {
+            out += "\\n";
+            continue;
+        }
+        out += *c;
+    }
+    return out;
+}
+
+// One JSON object per visible object: geometry, input state, outline and, for labels, the area the glyphs
+// actually cover. scripts/verify_display_rules.py reads these to check overlap, edge clearance and controls.
+static void dumpLayout(lv_obj_t *obj, FILE *out, int depth, int parentId, int &nextId) {
+    if (!lv_obj_is_visible(obj) || lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN))
+        return;
+    const int opa = effectiveOpa(obj);
+    if (opa == 0)
+        return;
+    const int id = nextId++;
+    lv_area_t a;
+    lv_obj_get_coords(obj, &a);
+    const char *kind = lv_obj_check_type(obj, &lv_label_class)    ? "label"
+                       : lv_obj_check_type(obj, &lv_arc_class)    ? "arc"
+                       : lv_obj_check_type(obj, &lv_line_class)   ? "line"
+                       : lv_obj_check_type(obj, &lv_img_class)    ? "img"
+                       : lv_obj_check_type(obj, &lv_qrcode_class) ? "qrcode"
+                                                                  : "obj";
+    fprintf(out,
+            "{\"id\":%d,\"parent\":%d,\"depth\":%d,\"kind\":\"%s\",\"x1\":%d,\"y1\":%d,\"x2\":%d,\"y2\":%d,\"opa\":%d,"
+            "\"clickable\":%s,\"disabled\":%s,\"border\":%d,\"border_opa\":%d,\"radius\":%d,\"bg_opa\":%d",
+            id, parentId, depth, kind, a.x1, a.y1, a.x2, a.y2, opa,
+            lv_obj_has_flag(obj, LV_OBJ_FLAG_CLICKABLE) ? "true" : "false",
+            lv_obj_has_state(obj, LV_STATE_DISABLED) ? "true" : "false", lv_obj_get_style_border_width(obj, LV_PART_MAIN),
+            lv_obj_get_style_border_opa(obj, LV_PART_MAIN), lv_obj_get_style_radius(obj, LV_PART_MAIN),
+            lv_obj_get_style_bg_opa(obj, LV_PART_MAIN));
+    if (kind[0] == 'l' && kind[1] == 'a') {
+        const char *text = lv_label_get_text(obj);
+        const lv_font_t *font = lv_obj_get_style_text_font(obj, LV_PART_MAIN);
+        const lv_coord_t letter = lv_obj_get_style_text_letter_space(obj, LV_PART_MAIN);
+        const lv_coord_t line = lv_obj_get_style_text_line_space(obj, LV_PART_MAIN);
+        lv_area_t content;
+        lv_obj_get_content_coords(obj, &content);
+        const lv_coord_t width = lv_area_get_width(&content);
+        lv_point_t size;
+        lv_txt_get_size(&size, text, font, letter, line, lv_obj_get_width(obj) > 0 ? width : LV_COORD_MAX,
+                        LV_TEXT_FLAG_NONE);
+        if (size.x > width)
+            size.x = width;
+        const lv_text_align_t align = lv_obj_get_style_text_align(obj, LV_PART_MAIN);
+        lv_coord_t tx = content.x1;
+        if (align == LV_TEXT_ALIGN_CENTER)
+            tx = content.x1 + (width - size.x) / 2;
+        else if (align == LV_TEXT_ALIGN_RIGHT)
+            tx = content.x2 - size.x + 1;
+        const int zoom = lv_obj_get_style_transform_zoom(obj, LV_PART_MAIN);
+        fprintf(out, ",\"text\":\"%s\",\"tx1\":%d,\"ty1\":%d,\"tx2\":%d,\"ty2\":%d,\"zoom\":%d,\"font\":%d",
+                jsonText(text).c_str(), tx, content.y1, tx + size.x - 1, content.y1 + size.y - 1, zoom,
+                font ? font->line_height : 0);
+    } else if (kind[0] == 'a') {
+        fprintf(out, ",\"bg_start\":%d,\"bg_end\":%d,\"value\":%d,\"arc_width\":%d", lv_arc_get_bg_angle_start(obj),
+                lv_arc_get_bg_angle_end(obj), lv_arc_get_value(obj), lv_obj_get_style_arc_width(obj, LV_PART_MAIN));
+    }
+    fprintf(out, "}\n");
+    for (uint32_t i = 0; i < lv_obj_get_child_cnt(obj); ++i)
+        dumpLayout(lv_obj_get_child(obj, i), out, depth + 1, id, nextId);
+}
+
 bool SimScript::parse(const char *text) {
     std::stringstream commands(text);
     std::string command;
@@ -115,10 +193,10 @@ bool SimScript::parse(const char *text) {
             steps.push_back({Kind::Weight, static_cast<int>(value * 1000), 0, false, {}});
         } else if (verb == "autotune" || verb == "update") {
             steps.push_back({verb == "autotune" ? Kind::Autotune : Kind::Update, 0, 0, false, {}});
-        } else if (verb == "shot") {
+        } else if (verb == "shot" || verb == "layout") {
             std::string path;
             ok = static_cast<bool>(words >> path);
-            steps.push_back({Kind::Shot, 0, 0, false, path});
+            steps.push_back({verb == "shot" ? Kind::Shot : Kind::Layout, 0, 0, false, path});
         } else if (verb == "quit") {
             steps.push_back({Kind::Quit, 0, 0, false, {}});
         } else {
@@ -217,6 +295,16 @@ bool SimScript::run(SdlDriver *driver) {
         case Kind::Shot:
             driver->screenshot(step.path.c_str());
             break;
+        case Kind::Layout: {
+            lv_refr_now(nullptr);
+            if (FILE *out = fopen(step.path.c_str(), "w")) {
+                int nextId = 0;
+                fprintf(out, "{\"screen\":%d}\n", eez_flow_get_current_screen());
+                dumpLayout(lv_scr_act(), out, 0, -1, nextId);
+                fclose(out);
+            }
+            break;
+        }
         case Kind::Quit:
             return true;
         }

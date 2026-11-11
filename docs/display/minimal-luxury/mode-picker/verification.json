@@ -1,0 +1,16 @@
+{
+  "luxury_assertions": 129,
+  "navigation_assertions": 76,
+  "usability_assertions": 58,
+  "total_assertions": 263,
+  "qr_decodes": 5,
+  "simulator_build": "passed",
+  "display_build": "passed",
+  "firmware_flash_bytes": 3776081,
+  "captures": "/private/tmp/bettermate-vertical-picker-release",
+  "black_background": {
+    "appearance_assertions": 18,
+    "pixel_check": "passed",
+    "captures": "/private/tmp/bettermate-black-picker-check"
+  }
+}

@@ -1,60 +1,99 @@
 #include "StatusScreen.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
+#include <cstring>
 
 namespace bm {
 
 void StatusScreen::build(lv_obj_t *root) {
     buildFrame(root);
-    lv_obj_set_y(pairs, 244);
-    lv_obj_t *phaseRow = ui::row(root, 12);
-    lv_obj_align(phaseRow, LV_ALIGN_TOP_MID, 0, 112);
-    phaseType = ui::label(phaseRow, Type::Label, Fg::Muted);
-    weight = ui::label(phaseRow, Type::Label, Fg::Ink);
-    text(root, 0, 132, Type::Label, Fg::Muted, "SHOT TIME");
-    hero = text(root, 0, 154, Type::Metric, Fg::Ink, "", 300);
-    lv_obj_set_height(hero, 78);
-    lv_obj_add_flag(hero, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_GESTURE_BUBBLE);
-    bind(hero, Intent::Menu);
-    shotTarget = text(root, 0, 222, Type::Label, Fg::Muted);
-    progress = ui::fill(root, Bg::Line, LV_RADIUS_CIRCLE);
-    lv_obj_set_size(progress, 280, 6);
-    lv_obj_set_pos(progress, 100, 320);
-    progressFill = ui::fill(progress, Bg::Primary, LV_RADIUS_CIRCLE);
-    lv_obj_set_size(progressFill, 0, 6);
-    phaseProgress = text(root, 0, 329, Type::Label, Fg::Muted);
-    action = button(root, 240, 386, 72, &bm_icon_stop_48, Intent::Finish, Bg::Primary, Fg::OnPrimary);
-    actionIcon = lv_obj_get_child(action, 0);
+    pressureRim.build(content, luxury::Rim::Shape::Dial);
+    phases.build(content);
+    lv_obj_align(modeLabel, LV_ALIGN_TOP_MID, 0, 62);
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 88);
+    pressureValue = luxury::label(content, 0, 122, &bm_luxury_recipe, "", 220, 1);
+    hero = luxury::label(content, 0, 150, &bm_luxury_clock, "", 340);
+    phaseName = luxury::label(content, 0, 280, &bm_luxury_detail, "", 300, 2);
+    summary = luxury::label(content, 0, 276, &bm_luxury_recipe, "", 300);
+    weight = luxury::label(content, 0, 308, &bm_luxury_recipe, "", 240);
+    temperature = luxury::label(content, 0, 338, &bm_luxury_detail, "", 240, 2);
+    action = luxury::pill(content, 240, 392, 152, 56, "STOP");
+    bind(action, Intent::Finish);
 }
 
-void StatusScreen::update(const UiState &state) {
-    updateFrame(state);
-    const auto &shot = state.shot;
-    ui::setText(modeLabel, shot.complete ? "SHOT COMPLETE" : "BREW");
-    ui::setText(title, shot.phaseName.c_str());
-    ui::setText(phaseType, shot.phaseType.c_str());
-    char buf[64], elapsed[24], duration[24];
+void StatusScreen::onShow(const UiState &state) {
+    luxury::Instant now;
+    update(state);
+}
+
+void StatusScreen::update(const UiState &s) {
+    updateFrame(s, s.shot.complete);
+    const auto p = luxury::palette();
+    const auto &shot = s.shot;
+    const bool running = !shot.complete;
+    char buf[96], elapsed[24];
+
+    ui::setText(modeLabel, "SHOT COMPLETE");
+    luxury::fade(modeLabel, shot.complete, luxury::MOTION_STATE);
+    ui::setText(title, shot.profileName.c_str());
+    luxury::color(title, p.muted);
+
+    // Rim: live pressure with the phase's target notch; inside it, one segment per phase.
+    pressureRim.colors(p.line, p.accent, p.ink);
+    pressureRim.set(luxury::rimFraction(s.pressure, luxury::RIM_MAX_PRESSURE),
+                    s.targetPressure > 0.05f ? luxury::rimFraction(s.targetPressure, luxury::RIM_MAX_PRESSURE) : -1,
+                    false);
+    pressureRim.show(s.pressureAvailable && running);
+    phases.plan(shot.phaseDurations, shot.phaseCount);
+    phases.colors(p.line, p.ink);
+    phases.set(shot.phaseIndex, shot.progress / 100.0f, shot.complete);
+    phases.show(running);
+
+    snprintf(buf, sizeof(buf), "%.1f bar", s.pressure);
+    ui::setText(pressureValue, buf);
+    luxury::color(pressureValue, p.accent);
+    luxury::fade(pressureValue, s.pressureAvailable && running, luxury::MOTION_STATE);
+
     formatTime(shot.elapsed, elapsed, sizeof(elapsed));
     ui::setText(hero, elapsed);
-    formatTime(static_cast<unsigned long>(shot.duration * 1000), duration, sizeof(duration));
-    if (shot.volumetric)
-        snprintf(buf, sizeof(buf), "%.0f G TARGET · %.0f °C", shot.targetWeight, shot.targetTemp);
+    lv_obj_set_style_text_font(hero, strlen(elapsed) > 5 ? &bm_luxury_reading : &bm_luxury_clock, 0);
+    luxury::color(hero, p.ink);
+
+    ui::setText(phaseName, shot.phaseName.c_str());
+    luxury::color(phaseName, p.muted);
+    luxury::fade(phaseName, running, luxury::MOTION_STATE);
+
+    // Completion: the rings fade and, when the shot was weighed, its yield and ratio take the phase's place.
+    // The frozen timer already says how long it ran.
+    const bool weighed = s.volumetricAvailable && shot.weight > 0.05;
+    if (weighed && s.profileDose > 0)
+        snprintf(buf, sizeof(buf), "%.1f g · 1:%.1f", shot.weight, shot.weight / s.profileDose);
     else
-        snprintf(buf, sizeof(buf), "%s TARGET · %.0f °C", duration, shot.targetTemp);
-    ui::setText(shotTarget, buf);
-    ui::setVisible(progress, !shot.complete);
-    ui::setVisible(phaseProgress, !shot.complete);
-    const int width = static_cast<int>(std::clamp(shot.progress, 0.0f, 100.0f) * 2.8f);
-    if (lv_obj_get_width(progressFill) != width)
-        lv_obj_set_width(progressFill, width);
-    snprintf(buf, sizeof(buf), "%.1f%s / %.1f%s", shot.phaseCurrent, shot.phaseWeight ? "g" : "s", shot.phaseTarget,
-             shot.phaseWeight ? "g" : "s");
-    ui::setText(phaseProgress, buf);
-    ui::setVisible(weight, state.volumetricAvailable && (shot.complete || state.bluetoothScale));
-    snprintf(buf, sizeof(buf), "%.1f G%s", shot.weight, shot.complete ? " FINAL" : "");
+        snprintf(buf, sizeof(buf), "%.1f g", shot.weight);
+    ui::setText(summary, buf);
+    luxury::color(summary, p.ink);
+    luxury::fade(summary, shot.complete && weighed, luxury::MOTION_PAGE);
+
+    // Weight only with a scale; temperature only when it strays from the shot's target.
+    const bool showWeight = running && s.volumetricAvailable && s.bluetoothScale;
+    if (shot.volumetric && shot.targetWeight > 0)
+        snprintf(buf, sizeof(buf), "%.1f / %.1f g", shot.weight, shot.targetWeight);
+    else
+        snprintf(buf, sizeof(buf), "%.1f g", shot.weight);
     ui::setText(weight, buf);
-    ui::setIcon(actionIcon, shot.complete ? &bm_icon_check_48 : &bm_icon_stop_48);
+    luxury::color(weight, p.ink);
+    luxury::fade(weight, showWeight, luxury::MOTION_STATE);
+    const bool strays = running && shot.targetTemp > 0 && std::fabs(s.currentTemp - shot.targetTemp) > 3.0f;
+    snprintf(buf, sizeof(buf), "TEMPERATURE %ld°", lroundf(s.currentTemp));
+    ui::setText(temperature, buf);
+    luxury::color(temperature, p.warning);
+    luxury::fade(temperature, strays, luxury::MOTION_STATE);
+
+    ui::setText(lv_obj_get_child(action, 0), shot.complete ? "DONE" : "STOP");
+    luxury::border(action, p.accent);
+    luxury::color(lv_obj_get_child(action, 0), p.accent);
 }
 
 } // namespace bm

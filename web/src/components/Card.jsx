@@ -33,12 +33,12 @@ export default function Card({
       role={role}
     >
       {title && (
-        <div className='card-header flex shrink-0 px-4 pt-4 max-lg:hidden'>
-          <h2 className='card-title text-lg sm:text-xl'>{title}</h2>
+        <div className='card-header flex shrink-0 px-5 pt-4 max-sm:px-4'>
+          <h2 className='bm-group__title'>{title}</h2>
         </div>
       )}
       <div
-        className={`card-body flex min-h-0 flex-col gap-3 p-5 max-sm:p-4 ${fullHeight ? 'flex-1' : ''}`}
+        className={`card-body flex min-h-0 flex-col gap-3 p-5 max-sm:p-4 ${title ? 'pt-3 max-sm:pt-3' : ''} ${fullHeight ? 'flex-1' : ''}`}
       >
         {children}
       </div>

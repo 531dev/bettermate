@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import { iconPaths } from '../design/iconPaths.js';
+import { outlinePaths } from '../design/outlinePaths.js';
 
-// Match the round display's source glyphs. Fixed 24 px keeps every pixel on the same grid.
+// Stroke glyphs stay legible at a consistent size in controls and chart toolbars.
 export function Icon({ name, className = '', rotation = 0, spin = false, title, style, ...props }) {
   return (
     <svg
@@ -9,8 +9,11 @@ export function Icon({ name, className = '', rotation = 0, spin = false, title, 
       viewBox='0 0 24 24'
       width='24'
       height='24'
-      fill='currentColor'
-      shape-rendering='crispEdges'
+      fill='none'
+      stroke='currentColor'
+      stroke-width='1.6'
+      stroke-linecap='round'
+      stroke-linejoin='round'
       data-icon={name}
       className={`bm-icon ${spin ? 'animate-spin' : ''} ${className}`}
       style={{
@@ -26,7 +29,7 @@ export function Icon({ name, className = '', rotation = 0, spin = false, title, 
       aria-hidden={title ? undefined : true}
     >
       {title && <title>{title}</title>}
-      <path d={iconPaths[name] || iconPaths.info} />
+      <path d={outlinePaths[name] || outlinePaths.info} />
     </svg>
   );
 }

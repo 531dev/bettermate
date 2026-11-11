@@ -200,6 +200,7 @@ export default class ApiService {
     map('pkr', 'currentPuckResistance', v => v ?? 0);
     map('pf', 'currentPuckFlow', v => v ?? 0);
     map('cv', 'currentCoffeeVolume', v => v ?? 0);
+    map('wp', 'currentWaterPumped', v => v ?? 0);
     map('up', 'update', v => !!v);
     map('warn', 'warnings', parseWarningStates);
     map('sys', 'system', v => ({ state: v?.s ?? 'ready', message: v?.m ?? '', code: v?.c ?? 0 }));

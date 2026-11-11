@@ -11,10 +11,11 @@ function AdjBtn({ icon, onClick, visible, disabled, label }) {
   if (!visible) return null;
   return (
     <button
+      type='button'
       onClick={onClick}
       disabled={disabled}
       aria-label={`${icon === 'minus' ? 'Decrease' : 'Increase'} ${label.toLowerCase()} target`}
-      className='btn btn-ghost btn-xs flex h-8 w-8 items-center justify-center rounded-full bg-[var(--surface-2)] p-0'
+      className='btn btn-outline flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--surface-2)] p-0'
     >
       <Icon name={icon} className='h-2.5 w-2.5' />
     </button>
@@ -33,7 +34,7 @@ function MetricCell({
   inCard = false,
   compact = false,
 }) {
-  const showAdj = adjustable && !compact;
+  const showAdj = adjustable;
   return (
     <div
       className={`flex flex-col items-center justify-between rounded-xl ${compact ? 'gap-1 p-2' : 'gap-2 p-3'} ${inCard ? 'bg-[var(--surface-2)]' : 'card bg-base-100'}`}
@@ -54,7 +55,7 @@ function MetricCell({
         {label}
       </div>
       <div className='flex w-full items-center justify-between'>
-        {!compact && (
+        {showAdj && (
           <AdjBtn
             icon={'minus'}
             label={label}
@@ -65,13 +66,13 @@ function MetricCell({
         )}
         <div className='flex-1 text-center font-mono tabular-nums'>
           <span
-            className={`text-base-content block font-medium ${compact ? 'text-[15px]' : 'text-[20px]'}`}
+            className={`text-base-content block ${compact ? 'text-[18px] font-normal' : 'text-[24px] font-light'}`}
           >
             {current}
           </span>
           {target != null && (
             <span className='block'>
-              <span className='mx-0.5 text-xs text-[var(--ink-muted)]'>/</span>
+              <span className='mr-1 text-xs text-[var(--ink-muted)]'>Target</span>
               <span className='text-[13px] font-medium text-[var(--ink-muted)]'>
                 {target}
                 {unit}
@@ -79,7 +80,7 @@ function MetricCell({
             </span>
           )}
         </div>
-        {!compact && (
+        {showAdj && (
           <AdjBtn
             icon={'plus'}
             label={label}
@@ -115,7 +116,7 @@ export function MetricsGrid({ metrics = [], inCard = false, compact = false }) {
   const userCols = metricsColumnsSignal.value;
   const lastRowFill = metricsLastRowFillSignal.value;
   const [effectiveCols, setEffectiveCols] = useState(userCols);
-  const minCellWidth = compact ? 100 : 160;
+  const minCellWidth = metrics.some(m => m.adjustable) ? 200 : compact ? 100 : 160;
 
   useEffect(() => {
     const el = containerRef.current;

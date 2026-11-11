@@ -1,161 +1,60 @@
 import { Icon } from './Icon.jsx';
+import { ModeRail } from './ModeNav.jsx';
 import { useLocation } from 'preact-iso';
 import { useEffect, useRef } from 'preact/hooks';
-import {
-  DASHBOARD_MODES,
-  dashboardModeSignal,
-  setDashboardMode,
-} from '../utils/dashboardManager.js';
 import { machine } from '../services/ApiService.js';
 import { computed } from '@preact/signals';
 
 const update = computed(() => machine.value.status.update);
 
-const NAVIGATION_SECTIONS = [
+// Analysis lives under History, so the menu stays about the daily routine.
+const NAVIGATION_ITEMS = [
   {
-    id: 'dashboard',
-    showDivider: true,
-    items: [
-      {
-        label: 'Dashboard',
-        link: '/',
-        icon: 'house',
-        editLink: '/dashboard-settings',
-        editIcon: 'pencil',
-      },
-    ],
+    label: 'Dashboard',
+    link: '/',
+    icon: 'house',
+    isActive: p => p === '/' || p === '/dashboard-settings',
+  },
+  { label: 'Profiles', link: '/profiles', icon: 'list', isActive: p => p.startsWith('/profiles') },
+  {
+    label: 'History',
+    link: '/history',
+    icon: 'history',
+    isActive: p => ['/history', '/analyzer', '/statistics'].some(root => p.startsWith(root)),
   },
   {
-    id: 'analysis',
-    showDivider: true,
-    items: [
-      { label: 'Profiles', link: '/profiles', icon: 'list' },
-      { label: 'Shot History', link: '/history', icon: 'history' },
-      { label: 'Shot Analyzer', link: '/analyzer', icon: 'search', isNew: false },
-      { label: 'Statistics', link: '/statistics', icon: 'chart-column', isNew: false },
-    ],
-  },
-  {
-    id: 'settings',
-    showDivider: true,
-    items: [{ label: 'Settings', link: '/settings', icon: 'settings' }],
+    label: 'Settings',
+    link: '/settings',
+    icon: 'settings',
+    isActive: p => p.startsWith('/settings'),
   },
 ];
 
-function DashboardModeDropdown({ editLink, editIcon, editActive, isActive }) {
-  const mode = dashboardModeSignal.value;
-
-  // daisyUI dropdowns are focus-driven — blur to close after a selection.
-  const selectMode = value => {
-    setDashboardMode(value);
-    document.activeElement?.blur();
-  };
-
-  const options = [
-    { value: DASHBOARD_MODES.SIMPLE, label: 'Simple' },
-    { value: DASHBOARD_MODES.ADVANCED, label: 'Advanced' },
-  ];
-
-  return (
-    <div className='dropdown dropdown-end h-full'>
-      {/* div+tabindex instead of <button>: Safari doesn't focus buttons on click,
-          which daisyUI's focus-driven dropdown relies on. */}
-      <div
-        tabIndex={0}
-        role='button'
-        aria-label='Dashboard view'
-        title='Dashboard view'
-        className={`flex h-full cursor-pointer items-center justify-center rounded-r-xl px-2.5 ${
-          editActive
-            ? 'bg-info text-info-content'
-            : isActive
-              ? 'bg-info text-info-content hover:text-info-content'
-              : 'hover:bg-base-content/10 hover:text-base-content bg-transparent text-[var(--ink-muted)]'
-        }`}
-      >
-        <Icon name={editIcon} className='h-3 w-3' />
-      </div>
-      <ul
-        tabIndex={0}
-        className='dropdown-content menu bg-base-100 rounded-box border-base-300 z-10 mt-1 w-44 border p-2'
-      >
-        {options.map(option => (
-          <li key={option.value}>
-            <button type='button' onClick={() => selectMode(option.value)}>
-              <span className='flex-grow'>{option.label}</span>
-              {mode === option.value && <Icon name={'check'} className='h-3 w-3' />}
-            </button>
-          </li>
-        ))}
-        <li>
-          <a href={editLink} onClick={() => selectMode(DASHBOARD_MODES.CUSTOM)}>
-            <span className='flex-grow'>Customize</span>
-            {mode === DASHBOARD_MODES.CUSTOM && <Icon name={'check'} className='h-3 w-3' />}
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
-}
-
-function MenuItem({
-  collapsed = false,
-  icon,
-  isNew = false,
-  isUnread = false,
-  label,
-  link,
-  editLink,
-  editIcon,
-}) {
+function MenuItem({ collapsed = false, icon, isUnread = false, label, link, isActive }) {
   const { path } = useLocation();
-  const isActive = path === link;
-  const editActive = path === editLink;
-  const isExpanded = collapsed === false;
-  const editLinkEnabled = editLink && editIcon && !collapsed;
-  // Rounding lives on the children — the row wrapper can't use overflow-hidden
-  // or it would clip the dashboard-mode dropdown.
-  const commonClasses = `btn btn-md border-none h-11 ${editLinkEnabled ? 'rounded-l-xl rounded-r-none' : 'rounded-xl'}`;
+  const active = isActive(path);
   const baseClassName = collapsed
     ? 'btn-square min-h-0 min-w-0 bg-transparent px-0 text-base-content hover:bg-base-content/10 hover:text-base-content'
     : 'justify-start gap-3 text-base-content hover:text-base-content hover:bg-base-content/10 bg-transparent border-none px-2';
   const activeClassName = collapsed
     ? 'btn-square min-h-0 min-w-0 bg-info px-0 text-info-content hover:bg-info hover:text-info-content'
     : 'justify-start gap-3 bg-info text-info-content hover:bg-info hover:text-info-content px-2';
-  const className = `${commonClasses} ${isActive ? activeClassName : baseClassName}`;
 
   return (
     <div className={`flex h-11 flex-row ${collapsed ? 'w-12' : 'w-full'}`}>
       <a
         href={link}
-        className={`flex-grow ${className} relative`}
+        className={`btn btn-md relative h-11 flex-grow rounded-xl border-none ${active ? activeClassName : baseClassName}`}
         aria-label={collapsed ? label : undefined}
-        aria-current={isActive ? 'page' : undefined}
+        aria-current={active ? 'page' : undefined}
         title={collapsed ? label : undefined}
       >
         <Icon name={icon} />
         {isUnread && (
           <span className='indicator-item status status-warning absolute -top-0 -right-0'></span>
         )}
-        {isExpanded ? (
-          <div className='indicator'>
-            {isNew ? (
-              <span className='indicator-item pl-8 text-xs font-bold text-[var(--success)]'>
-                NEW
-              </span>
-            ) : null}
-            <span>{label}</span>
-          </div>
-        ) : null}
+        {!collapsed && <span>{label}</span>}
       </a>
-      {editLinkEnabled && (
-        <DashboardModeDropdown
-          editLink={editLink}
-          editIcon={editIcon}
-          editActive={editActive}
-          isActive={isActive}
-        />
-      )}
     </div>
   );
 }
@@ -188,26 +87,30 @@ export function Navigation({ collapsed = false, onToggleCollapsed }) {
         />
       )}
       <aside
-        className={`sidebar border-base-300 bg-base-100 fixed top-0 left-0 z-9999 flex h-screen flex-col overflow-y-auto border-r p-5 md:static landscape:static ${
-          collapsed ? 'hidden md:flex md:w-[90px] landscape:flex landscape:w-[90px]' : 'w-[290px]'
+        className={`sidebar bg-base-100 fixed top-0 left-0 z-9999 flex h-dvh flex-col overflow-y-auto rounded-r-3xl p-3 pl-[max(0.75rem,env(safe-area-inset-left))] md:static md:m-2 md:mr-0 md:h-[calc(100dvh-1rem)] md:shrink-0 md:rounded-3xl landscape:static landscape:m-2 landscape:mr-0 landscape:h-[calc(100dvh-1rem)] landscape:shrink-0 landscape:rounded-3xl ${
+          collapsed
+            ? 'hidden md:flex md:w-[72px] landscape:flex landscape:w-[72px]'
+            : 'w-[272px] md:w-[248px]'
         }`}
       >
         <div className='flex h-full flex-col'>
           <div>
             <div
-              className={`align-center flex h-11 flex-row items-center justify-center gap-2 ${collapsed ? 'w-12' : 'w-full'}`}
+              className={`align-center mb-4 flex h-11 flex-row items-center justify-center gap-2 ${collapsed ? 'w-12' : 'w-full'}`}
             >
               {collapsed ? (
-                <Icon name='coffee' title='BetterMate' />
+                <a href='/' aria-label='BetterMate dashboard'>
+                  <img className='h-7 w-7' src='/bettermate.svg' alt='' />
+                </a>
               ) : (
-                <a href='/' aria-label='BetterMate dashboard' className='w-full'>
+                <a href='/' aria-label='BetterMate dashboard' className='w-full px-2'>
                   <img
-                    className='bm-wordmark-light w-full'
+                    className='bm-wordmark-light h-6 w-auto'
                     src='/bettermate-wordmark.svg'
                     alt='BetterMate'
                   />
                   <img
-                    className='bm-wordmark-dark w-full'
+                    className='bm-wordmark-dark h-6 w-auto'
                     src='/bettermate-wordmark-inverse.svg'
                     alt='BetterMate'
                   />
@@ -215,55 +118,24 @@ export function Navigation({ collapsed = false, onToggleCollapsed }) {
               )}
             </div>
           </div>
-          {NAVIGATION_SECTIONS.map(section => (
-            <div key={section.id}>
-              {section.showDivider ? <hr className='h-5 border-0' /> : null}
-              <div className='space-y-1.5'>
-                {section.items.map(item => {
-                  return (
-                    <MenuItem
-                      key={item.link}
-                      collapsed={collapsed}
-                      isUnread={item.link === '/settings' && update.value}
-                      {...item}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+          <ModeRail collapsed={collapsed} />
+          <div className='mt-4 space-y-1.5'>
+            {NAVIGATION_ITEMS.map(item => (
+              <MenuItem
+                key={item.link}
+                collapsed={collapsed}
+                isUnread={item.link === '/settings' && update.value}
+                {...item}
+              />
+            ))}
+          </div>
 
           <div className='flex-grow'>&nbsp;</div>
 
-          {!collapsed && (
-            <>
-              <div className='flex flex-row items-center justify-center gap-2'>
-                <div className='relative inline-block'>
-                  <a
-                    aria-label='github'
-                    rel='noopener noreferrer'
-                    href='https://github.com/jniebuhr/gaggimate'
-                    target='_blank'
-                    className='btn btn-sm btn-circle text-base-content hover:text-base-content hover:bg-base-content/10 border-none bg-transparent'
-                  >
-                    <Icon name={'monitor'} className='text-lg' />
-                  </a>
-                </div>
-
-                <div className='relative inline-block'>
-                  <a
-                    aria-label='discord'
-                    rel='noopener noreferrer'
-                    href='https://discord.gaggimate.eu/'
-                    target='_blank'
-                    className='btn btn-sm btn-circle text-base-content hover:text-base-content hover:bg-base-content/10 border-none bg-transparent'
-                  >
-                    <Icon name={'info'} className='text-lg' />
-                  </a>
-                </div>
-              </div>
-              <p className='my-5 text-center text-xs text-[var(--ink-muted)]'>
-                BetterMate · based on{' '}
+          <div className='flex items-center justify-between gap-2'>
+            {!collapsed && (
+              <p className='min-w-0 pl-2 text-xs text-[var(--ink-muted)]'>
+                Based on{' '}
                 <a
                   href='https://gaggimate.eu'
                   target='_blank'
@@ -273,27 +145,15 @@ export function Navigation({ collapsed = false, onToggleCollapsed }) {
                   GaggiMate
                 </a>
               </p>
-            </>
-          )}
-
-          <div>
+            )}
             <button
               type='button'
               onClick={onToggleCollapsed}
-              className={
-                collapsed
-                  ? 'btn btn-square btn-md text-base-content hover:bg-base-content/10 hover:text-base-content h-11 min-h-0 w-12 min-w-0 rounded-xl border-none bg-transparent px-0'
-                  : 'btn btn-md text-base-content hover:text-base-content hover:bg-base-content/10 h-11 w-full justify-start gap-3 border-none bg-transparent px-2'
-              }
+              className='btn btn-square btn-md text-base-content hover:bg-base-content/10 hover:text-base-content h-11 min-h-0 w-12 min-w-0 shrink-0 rounded-xl border-none bg-transparent px-0'
               aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
               title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
             >
               <Icon name={collapsed ? 'chevron-right' : 'chevron-left'} />
-              {!collapsed ? (
-                <div className='indicator'>
-                  <span>Collapse</span>
-                </div>
-              ) : null}
             </button>
           </div>
         </div>

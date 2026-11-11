@@ -1,4 +1,3 @@
-import { Icon } from './components/Icon.jsx';
 import './style.css';
 import { initializeTheme } from './utils/themeManager.js';
 
@@ -13,6 +12,8 @@ import { LocationProvider, Router, Route, ErrorBoundary, useLocation } from 'pre
 import lazy from 'preact-iso/lazy';
 
 import ApiService, { ApiServiceContext } from './services/ApiService.js';
+import { AppBar } from './components/AppBar.jsx';
+import { ModeBar, ModeDock, ModeDockSpacer } from './components/ModeNav.jsx';
 import { Navigation } from './components/Navigation.jsx';
 import { Spinner } from './components/Spinner.jsx';
 
@@ -29,6 +30,7 @@ const ShotAnalyzer = lazy(() => import('./pages/ShotAnalyzer/index.jsx').then(m 
 const StatisticsPage = lazy(() =>
   import('./pages/Statistics/index.jsx').then(m => m.StatisticsPage),
 );
+const Setup = lazy(() => import('./pages/Setup/index.jsx').then(m => m.Setup));
 const DashboardSettings = lazy(() =>
   import('./pages/DashboardSettings/index.jsx').then(m => m.DashboardSettings),
 );
@@ -36,9 +38,13 @@ const DashboardSettings = lazy(() =>
 const apiService = new ApiService();
 const DESKTOP_NAV_COLLAPSED_STORAGE_KEY = 'gaggimate.desktopNavCollapsed';
 
+// Phones (either orientation) open on the page, never on the navigation.
+const isPhoneViewport = () =>
+  !!globalThis.window?.matchMedia('(max-width: 767px), (max-height: 500px)').matches;
+
 function readInitialDesktopNavCollapsed() {
   const storage = globalThis.window?.localStorage;
-  if (!storage) return true;
+  if (!storage || isPhoneViewport()) return true;
 
   try {
     return storage.getItem(DESKTOP_NAV_COLLAPSED_STORAGE_KEY) === 'true';
@@ -69,7 +75,7 @@ export function App() {
 
   useEffect(() => {
     const storage = globalThis.window?.localStorage;
-    if (!storage) return;
+    if (!storage || isPhoneViewport()) return;
 
     try {
       storage.setItem(DESKTOP_NAV_COLLAPSED_STORAGE_KEY, String(navCollapsed));
@@ -87,53 +93,59 @@ export function App() {
   return (
     <LocationProvider>
       <ApiServiceContext.Provider value={apiService}>
-        <div className='flex h-screen overflow-hidden bg-[var(--surface-0)]'>
+        <a
+          href='#main'
+          className='btn btn-primary sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[10001]'
+        >
+          Skip to content
+        </a>
+        <div className='flex h-dvh overflow-hidden bg-[var(--surface-0)]'>
           <Navigation
             collapsed={navCollapsed}
             onToggleCollapsed={() => setNavCollapsed(collapsed => !collapsed)}
           />
-          <div className='flex flex-1 flex-col overflow-x-hidden overflow-y-auto'>
-            <div className='flex min-h-0 w-full flex-1 flex-col p-4'>
-              <div className='grid min-h-0 flex-1 grid-cols-1'>
-                <div className='min-h-0'>
-                  <ErrorBoundary>
-                    <Router>
-                      <Route path='/' component={Home} />
-                      <Route path='/dashboard-settings' component={DashboardSettings} />
-                      <Route path='/profiles' component={ProfileList} />
-                      <Route path='/profiles/:id' component={ProfileEdit} />
-                      <Route path='/settings/:tab?' component={Settings} />
-                      {/* Legacy routes now live in settings tabs */}
-                      <Route path='/ota' component={RedirectTo('/settings/system')} />
-                      <Route path='/scales' component={RedirectTo('/settings/bluetooth')} />
-                      <Route path='/pidtune' component={RedirectTo('/settings/calibration')} />
-                      <Route path='/history' component={ShotHistory} />
-                      <Route path='/analyzer' component={ShotAnalyzer} />
-                      <Route path='/statistics' component={StatisticsPage} />
-                      <Route
-                        path='/statistics/:sourceAlias/:profileName'
-                        component={StatisticsPage}
-                      />
-                      <Route path='/analyzer/:source/:id' component={ShotAnalyzer} />{' '}
-                      {/*deep-link route (sorce & ID)*/}
-                      <Route default component={NotFound} />
-                    </Router>
-                  </ErrorBoundary>
+          <div className='relative flex min-w-0 flex-1 flex-col'>
+            <AppBar onOpenNav={() => setNavCollapsed(false)} />
+            <main
+              id='main'
+              tabIndex={-1}
+              className='flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto outline-none'
+            >
+              <div className='flex w-full flex-1 flex-col p-2 pr-[max(0.5rem,env(safe-area-inset-right))]'>
+                <div className='grid flex-1 grid-cols-1'>
+                  <div className='min-w-0'>
+                    <ErrorBoundary>
+                      <Router>
+                        <Route path='/' component={Home} />
+                        <Route path='/setup' component={Setup} />
+                        <Route path='/dashboard-settings' component={DashboardSettings} />
+                        <Route path='/profiles' component={ProfileList} />
+                        <Route path='/profiles/:id' component={ProfileEdit} />
+                        <Route path='/settings/:tab?' component={Settings} />
+                        {/* Legacy routes now live in settings tabs */}
+                        <Route path='/ota' component={RedirectTo('/settings/system')} />
+                        <Route path='/scales' component={RedirectTo('/settings/bluetooth')} />
+                        <Route path='/pidtune' component={RedirectTo('/settings/calibration')} />
+                        <Route path='/history' component={ShotHistory} />
+                        <Route path='/analyzer' component={ShotAnalyzer} />
+                        <Route path='/statistics' component={StatisticsPage} />
+                        <Route
+                          path='/statistics/:sourceAlias/:profileName'
+                          component={StatisticsPage}
+                        />
+                        <Route path='/analyzer/:source/:id' component={ShotAnalyzer} />{' '}
+                        {/*deep-link route (sorce & ID)*/}
+                        <Route default component={NotFound} />
+                      </Router>
+                    </ErrorBoundary>
+                  </div>
                 </div>
+                <ModeDockSpacer />
               </div>
-            </div>
+            </main>
+            <ModeBar />
+            <ModeDock />
           </div>
-          {navCollapsed && (
-            <div className='fab end-auto left-4 md:hidden landscape:hidden'>
-              <button
-                aria-label='Open navigation'
-                className='btn btn-lg btn-circle btn-primary'
-                onClick={() => setNavCollapsed(false)}
-              >
-                <Icon name={'menu'} />
-              </button>
-            </div>
-          )}
         </div>
       </ApiServiceContext.Provider>
     </LocationProvider>

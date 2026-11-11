@@ -4,7 +4,7 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import { applyChartTheme } from '../utils/chartTheme.js';
 
 Chart.register(annotationPlugin);
-Chart.defaults.font.family = '"JetBrains Mono", ui-monospace, monospace';
+Chart.defaults.font.family = '"Jost", system-ui, sans-serif';
 
 export function ChartComponent({ data, className, chartClassName, style }) {
   const [chart, setChart] = useState(null);

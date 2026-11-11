@@ -1,0 +1,21 @@
+[I] Auto-wakeup plugin initialized
+[I] STA connected: ssid= bssid=00:00:00:00:00:00 ch=0 authmode=0
+[I] STA got IP: 0.0.0.0 gw=0.0.0.0
+[I] Connected to GaggiMate-Sim with IP address 192.168.1.123
+[I] System info: GaggiMate Sim sim-3.0 (proto=3 local=3 dm=1 ps=0 led=1 tof=1)
+[sim-web] WebUI server on http://localhost:22465/
+[I] Started webserver
+[I] System info: GaggiMate Sim sim-3.0 (proto=3 local=3 dm=1 ps=0 led=1 tof=1)
+[I] Saving changed settings
+[sim-script] verified screen 4
+[sim-script] verified hidden label 'PRESSURE'
+[sim-script] verified hidden label 'Grind'
+[sim-script] verified screen 4
+[sim-script] verified active 0
+[sim-script] verified visible label 'Hot water'
+[sim-script] verified screen 6
+[sim-script] verified mode 3
+[sim-script] verified screen 4
+[sim-script] verified screen 1
+[sim-script] verified mode 0
+

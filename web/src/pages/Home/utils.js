@@ -24,13 +24,13 @@ export const getPhaseLabel = (p, grind) => {
 };
 
 export const getPrimaryIcon = (active, finished) => {
-  if (active) return 'pause';
+  if (active) return 'stop';
   if (finished) return 'check';
   return 'play';
 };
 
 export const getPrimaryLabel = (active, finished) => {
-  if (active) return 'Pause';
-  if (finished) return 'Finish';
+  if (active) return 'Stop';
+  if (finished) return 'Done';
   return 'Start';
 };

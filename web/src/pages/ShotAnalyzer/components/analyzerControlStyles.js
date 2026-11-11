@@ -7,7 +7,7 @@
 const joinClasses = (...classes) => classes.filter(Boolean).join(' ');
 
 const baseInteractiveClasses =
-  'cursor-pointer transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-30';
+  'analyzer-touch-control cursor-pointer transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-30';
 const hoverShellClasses = 'hover:bg-base-content/5';
 
 export const ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS = 'h-5 min-h-0';
@@ -55,7 +55,7 @@ export function getAnalyzerTextButtonClasses({ tone = 'neutral', className = '' 
 
 export function getAnalyzerSurfaceTriggerClasses({ tone = 'neutral', className = '' } = {}) {
   return joinClasses(
-    'cursor-pointer rounded-md transition-colors duration-150',
+    'analyzer-touch-control cursor-pointer rounded-md transition-colors duration-150',
     hoverShellClasses,
     textToneClasses[tone] || textToneClasses.neutral,
     className,

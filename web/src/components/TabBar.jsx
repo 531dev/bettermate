@@ -14,8 +14,8 @@ export default function TabBar({ tabs, activeTab, onTabChange, basePath, classNa
   };
 
   return (
-    <div className={`scrollbar-none w-full overflow-x-auto ${className}`}>
-      <div role='tablist' className='tabs tabs-border min-w-full flex-nowrap px-1'>
+    <div className={`scrollbar-none -mx-2 overflow-x-auto px-2 ${className}`}>
+      <div role='tablist' className='flex min-w-full flex-nowrap gap-1.5'>
         {tabs.map(tab => {
           const isActive = tab.id === activeTab;
           const href = basePath ? `${basePath}/${tab.id}` : '#';
@@ -31,13 +31,17 @@ export default function TabBar({ tabs, activeTab, onTabChange, basePath, classNa
               aria-selected={isActive}
               aria-controls={`panel-${tab.id}`}
               id={`tab-${tab.id}`}
-              className={`tab flex h-11 flex-row items-center justify-center gap-2 text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
+              className={`flex h-11 shrink-0 flex-row flex-nowrap items-center justify-center gap-2 rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
                 isActive
-                  ? 'tab-active text-primary'
-                  : 'hover:text-base-content/85 text-[var(--ink-muted)]'
+                  ? 'bg-primary text-primary-content'
+                  : 'hover:text-base-content bg-[var(--surface-1)] text-[var(--ink-muted)]'
               }`}
             >
-              {tab.icon && <Icon name={tab.icon} className='h-4 w-4 shrink-0' />}
+              {tab.icon && (
+                <span className='hidden md:inline-flex'>
+                  <Icon name={tab.icon} />
+                </span>
+              )}
               {tab.label}
             </a>
           );

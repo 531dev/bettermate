@@ -193,29 +193,36 @@ export function ShotHistory() {
   }
 
   return (
-    <>
-      <div className='mb-6'>
-        <div className='mb-4 flex flex-row items-center gap-2'>
-          <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
-            Shot History
-          </h2>
-          <span className='text-sm text-[var(--ink-muted)]'>
-            {totalFilteredItems} of {history.length} shots{' '}
-            {totalPages > 1 && `(Page ${currentPage} of ${totalPages})`}
-          </span>
+    <div className='mx-auto w-full max-w-4xl'>
+      <div className='mb-2'>
+        <div className='mb-3 flex flex-row items-center gap-3'>
+          <div className='min-w-0 flex-grow'>
+            <h2 className='bm-page-title'>Shot History</h2>
+            <p className='bm-page-sub'>
+              {totalFilteredItems} of {history.length} shots
+              {totalPages > 1 && `, page ${currentPage} of ${totalPages}`}
+            </p>
+          </div>
+          <a href='/analyzer' className='bm-link'>
+            Analyzer
+          </a>
+          <a href='/statistics' className='bm-link pr-2'>
+            Statistics
+          </a>
         </div>
 
         {/* Controls Row */}
-        <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
+        <div className='grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center'>
           {/* Search */}
-          <div className='relative max-w-md flex-grow'>
+          <div className='relative col-span-2 max-w-md flex-grow max-sm:max-w-none'>
             <Icon
               name={'search'}
-              className='absolute top-1/2 left-3 -translate-y-1/2 transform text-sm text-[var(--ink-muted)]'
+              className='absolute top-1/2 left-3 z-10 -translate-y-1/2 transform text-sm text-[var(--ink-muted)]'
             />
             <input
               type='text'
               placeholder='Search...'
+              aria-label='Search shots'
               value={searchTerm}
               onChange={e => {
                 setSearchTerm(e.target.value);
@@ -226,9 +233,9 @@ export function ShotHistory() {
           </div>
 
           {/* Sort */}
-          <div className='flex items-center gap-2'>
-            <Icon name={'list'} className='text-[var(--ink-muted)]' />
+          <div className='min-w-0'>
             <select
+              aria-label='Sort shots'
               value={`${sortBy}-${sortOrder}`}
               onChange={e => {
                 const [newSortBy, newSortOrder] = e.target.value.split('-');
@@ -236,7 +243,7 @@ export function ShotHistory() {
                 setSortOrder(newSortOrder);
                 setCurrentPage(1); // Reset to page 1 when sorting
               }}
-              className='select select-bordered text-sm'
+              className='select select-bordered w-full text-sm'
             >
               <option value='date-desc'>Newest First</option>
               <option value='date-asc'>Oldest First</option>
@@ -254,15 +261,15 @@ export function ShotHistory() {
           </div>
 
           {/* Filter */}
-          <div className='flex items-center gap-2'>
-            <Icon name={'sliders-horizontal'} className='text-[var(--ink-muted)]' />
+          <div className='min-w-0'>
             <select
+              aria-label='Filter shots'
               value={filterBy}
               onChange={e => {
                 setFilterBy(e.target.value);
                 setCurrentPage(1); // Reset to page 1 when filtering
               }}
-              className='select select-bordered text-sm'
+              className='select select-bordered w-full text-sm'
             >
               <option value='all'>All Shots</option>
               <option value='rated'>Rated Only</option>
@@ -272,7 +279,7 @@ export function ShotHistory() {
         </div>
       </div>
 
-      <div className='grid grid-cols-1 gap-3 lg:grid-cols-12'>
+      <div className='grid grid-cols-1 gap-2 lg:grid-cols-12'>
         {paginatedHistory.map((item, idx) => (
           <HistoryCard
             key={item.id}
@@ -370,6 +377,6 @@ export function ShotHistory() {
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 }

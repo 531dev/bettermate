@@ -464,7 +464,7 @@ export function Settings() {
               aria-label='More options'
               aria-expanded={dropdownOpen}
             >
-              <Icon name={'menu'} />
+              <Icon name={'more-horizontal'} />
             </button>
             <ul className='menu action-dropdown-menu bg-base-100 rounded-box border-base-content/10 right-0 z-50 mt-1 w-52 border p-2'>
               <li>

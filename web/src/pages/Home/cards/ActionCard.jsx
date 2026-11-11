@@ -93,12 +93,13 @@ export function ActionCard({
       {showPrimary && (
         <button
           type='button'
-          className='btn btn-circle btn-lg btn-primary'
+          className='btn btn-primary min-h-12 gap-2 px-6'
           onClick={handlePrimary}
           aria-label={primaryLabel}
           title={primaryLabel}
         >
           <Icon name={getPrimaryIcon(isActive, isFinished)} className='text-2xl' />
+          {primaryLabel}
         </button>
       )}
       {showStandby && (

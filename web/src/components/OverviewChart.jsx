@@ -2,6 +2,7 @@ import { machine } from '../services/ApiService.js';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { Chart } from 'chart.js';
 import { ChartComponent } from './Chart.jsx';
+import { niceAxis, phaseMarkerColors } from '../utils/chartTheme.js';
 
 // Global state to track phase transitions during brewing
 let phaseTransitions = [];
@@ -80,12 +81,14 @@ function getChartData(data) {
   pressureFlowValues = pressureFlowValues.concat(filteredData.map(i => i.currentFlow));
 
   // Calculate ranges with some padding and round to integers for clean scales
-  const tempMin = tempValues.length > 0 ? Math.max(0, Math.floor(Math.min(...tempValues) - 5)) : 0;
-  const tempMax = tempValues.length > 0 ? Math.ceil(Math.max(...tempValues) + 10) : 160;
-
-  const pressureFlowMin = 0; // Always start at 0 for pressure/flow
-  const pressureFlowMax =
-    pressureFlowValues.length > 0 ? Math.ceil(Math.max(...pressureFlowValues) + 2) : 16;
+  const tempAxis =
+    tempValues.length > 0
+      ? niceAxis(Math.max(0, Math.min(...tempValues) - 5), Math.max(...tempValues) + 5)
+      : niceAxis(0, 160);
+  const pressureFlowAxis =
+    pressureFlowValues.length > 0
+      ? niceAxis(0, Math.max(...pressureFlowValues) + 2)
+      : niceAxis(0, 16);
 
   // Create a state key to detect when a new brew starts
   const processState = currentProcess
@@ -134,6 +137,7 @@ function getChartData(data) {
   // Create phase annotations for Chart.js
   const phaseAnnotations = {};
   const isSmall = window.innerWidth < 640;
+  const marker = phaseMarkerColors();
   // Add phase transition lines
   phaseTransitions.forEach((transition, index) => {
     const transitionTime = transition.timestamp.getTime();
@@ -146,7 +150,7 @@ function getChartData(data) {
         type: 'line',
         xMin: transition.timestamp.toISOString(),
         xMax: transition.timestamp.toISOString(),
-        borderColor: '#22C55E', // Light green for all phase transitions
+        borderColor: marker.line,
         borderWidth: 1, // Thinner line
         label: {
           display: true,
@@ -156,8 +160,8 @@ function getChartData(data) {
           xAdjust: -10, // tweak first label inward to compensate for y-axis padding
           yAdjust: 0,
           padding: { x: 6, y: 0 },
-          color: 'rgb(255,255,255)',
-          backgroundColor: 'rgba(22,33,50,0.75)',
+          color: marker.text,
+          backgroundColor: marker.background,
           textAlign: 'start',
           font: {
             size: isSmall ? 9 : 11,
@@ -180,8 +184,8 @@ function getChartData(data) {
         type: 'line',
         xMin: brewStartTime.toISOString(),
         xMax: brewStartTime.toISOString(),
-        borderColor: '#10B981', // Keep the darker green for brew start
-        borderWidth: 2, // Slightly thicker for brew start
+        borderColor: marker.line,
+        borderWidth: 1,
         label: {
           display: true,
           content: initialPhaseName || 'Start',
@@ -190,8 +194,8 @@ function getChartData(data) {
           xAdjust: -10, // tweak first label inward to compensate for y-axis padding
           yAdjust: 0,
           padding: { x: 6, y: 0 },
-          color: 'rgb(255,255,255)',
-          backgroundColor: 'rgba(22,33,50,0.75)',
+          color: marker.text,
+          backgroundColor: marker.background,
           textAlign: 'start',
           font: {
             size: isSmall ? 9 : 11,
@@ -214,7 +218,6 @@ function getChartData(data) {
     },
     {
       label: 'Target Temperature',
-      fill: true,
       borderColor: '#731F00',
       borderDash: [6, 6],
       pointStyle: false,
@@ -229,7 +232,6 @@ function getChartData(data) {
     },
     {
       label: 'Target Pressure',
-      fill: true,
       borderColor: '#003366',
       borderDash: [6, 6],
       pointStyle: false,
@@ -254,7 +256,6 @@ function getChartData(data) {
     });
     datasets.push({
       label: 'Target Weight',
-      fill: true,
       borderColor: '#4C1D95',
       borderDash: [6, 6],
       pointStyle: false,
@@ -285,29 +286,16 @@ function getChartData(data) {
             },
             generateLabels: function (chart) {
               const original = Chart.defaults.plugins.legend.labels.generateLabels;
-              const labels = original.call(this, chart);
-
-              labels.forEach((label, index) => {
-                const dataset = chart.data.datasets[index];
-                label.lineWidth = 3;
-                if (dataset.borderDash && dataset.borderDash.length > 0) {
-                  label.lineDash = dataset.borderDash;
-                }
-              });
-
-              return labels;
+              // Targets are the dashed line in the same color, so the legend names each series once.
+              return original
+                .call(this, chart)
+                .filter(label => !label.text.startsWith('Target'))
+                .map(label => ({
+                  ...label,
+                  text: label.text.replace('Current ', ''),
+                  lineWidth: 3,
+                }));
             },
-          },
-        },
-        title: {
-          display: true,
-          text: isBrewActive
-            ? `Brew Progress - ${Math.round(timeWindowMs / 1000)}s View`
-            : phaseTransitions.length > 0
-              ? 'Metrics - Recent Brew'
-              : 'Live Metrics',
-          font: {
-            size: window.innerWidth < 640 ? 14 : 16,
           },
         },
         annotation: {
@@ -318,26 +306,28 @@ function getChartData(data) {
       scales: {
         y: {
           type: 'linear',
-          min: tempMin,
-          max: tempMax,
+          min: tempAxis.min,
+          max: tempAxis.max,
           ticks: {
-            stepSize: 5, // Force 5-degree increments for clean scale
+            stepSize: tempAxis.step,
             font: {
               size: window.innerWidth < 640 ? 10 : 12,
             },
             callback: value => {
-              return `${Math.round(value)} °C`; // Round displayed values to integers
+              return `${Math.round(value)}°`; // Round displayed values to integers
             },
           },
         },
         y1: {
           type: 'linear',
-          min: pressureFlowMin,
-          max: pressureFlowMax,
+          min: pressureFlowAxis.min,
+          max: pressureFlowAxis.max,
           position: 'right',
-          title: { display: true, text: 'bar / g/s' },
+          title: { display: true, text: 'bar, ml/s' },
+          // One set of grid lines: the two axes' ticks rarely line up.
+          grid: { drawOnChartArea: false },
           ticks: {
-            stepSize: pressureFlowMax <= 10 ? 1 : 2, // Use smaller steps for smaller ranges
+            stepSize: pressureFlowAxis.step,
             font: {
               size: window.innerWidth < 640 ? 10 : 12,
             },
@@ -349,26 +339,16 @@ function getChartData(data) {
         ...(showWeights && {
           y2: {
             type: 'linear',
+            display: false,
             min: 0,
             max: 100,
-            position: 'right',
-            grid: {
-              drawOnChartArea: false,
-            },
-            ticks: {
-              font: {
-                size: window.innerWidth < 640 ? 10 : 12,
-              },
-              callback: value => {
-                return `${value}g`;
-              },
-            },
           },
         }),
         x: {
           type: 'time',
           min: start,
           max: end,
+          grid: { display: false },
           time: {
             unit: timeUnit,
             stepSize: 1, // Force consistent step size
@@ -415,7 +395,7 @@ export function OverviewChart() {
 
   return (
     <ChartComponent
-      className='h-full min-h-[200px] w-full flex-1 lg:min-h-[350px] landscape:max-lg:min-h-0'
+      className='h-full min-h-0 w-full flex-1'
       chartClassName='h-full w-full'
       data={chartData}
     />

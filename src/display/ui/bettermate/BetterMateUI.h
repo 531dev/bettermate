@@ -31,10 +31,12 @@ class BetterMateUI : public DefaultUI, private bm::Host {
   private:
     void wake() override;
     void act(bm::Intent intent) override;
+    void focusProfile(unsigned index) override;
     void gather();
     void applyBetterMateTheme();
 
     bm::UiState state;
+    bool openWarnings = false;
     bm::Screen *active = nullptr;
     bm::StandbyScreen standby{*this};
     bm::BrewScreen brew{*this};

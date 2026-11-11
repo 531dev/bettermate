@@ -6,6 +6,8 @@ import { ApiServiceContext, machine } from '../../services/ApiService.js';
 const status = computed(() => machine.value.status);
 const capabilities = computed(() => machine.value.capabilities);
 const connected = computed(() => machine.value.connected);
+// Slow state arrives a tick before telemetry, and only telemetry frames extend the history.
+const hasReading = computed(() => machine.value.history.length > 0);
 
 export function useDashboardState() {
   const apiService = useContext(ApiServiceContext);
@@ -129,6 +131,7 @@ export function useDashboardState() {
     currentPuckResistance: s.currentPuckResistance ?? 0,
     currentPuckFlow: s.currentPuckFlow ?? 0,
     currentCoffeeVolume: s.currentCoffeeVolume ?? 0,
+    currentWaterPumped: s.currentWaterPumped ?? 0,
     targetWeight: s.targetWeight,
     volumetricAvailable: s.volumetricAvailable,
     brewTarget: !!s.brewTarget,
@@ -147,6 +150,10 @@ export function useDashboardState() {
     isGrinding,
     isGrindAvailable,
     showGrindTab,
+    hasPressure: !!caps?.pressure,
+    hasReading: hasReading.value,
+    history: machine.value.history,
+    settings,
     // water level
     ledControl,
     albaCalibrated,

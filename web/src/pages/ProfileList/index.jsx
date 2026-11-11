@@ -20,7 +20,6 @@ import {
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
 import { ExtendedProfileChart } from '../../components/ExtendedProfileChart.jsx';
 import { useConfirmAction } from '../../hooks/useConfirmAction.js';
-import { ProfileAddCard } from './ProfileAddCard.jsx';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { computed } from '@preact/signals';
@@ -28,7 +27,6 @@ import { Spinner } from '../../components/Spinner.jsx';
 import Card from '../../components/Card.jsx';
 import { parseProfile } from './utils.js';
 import { downloadJson } from '../../utils/download.js';
-import { ConfirmButton } from '../../components/ConfirmButton.jsx';
 import { Tooltip } from '../../components/Tooltip.jsx';
 import { buildStatisticsProfileHref } from '../Statistics/utils/statisticsRoute.js';
 
@@ -81,9 +79,6 @@ function ProfileCard({
     setTimeout(() => setTooltipsDisabled(false), 500);
   }, [onMoveBottom, data.id]);
 
-  const bookmarkClass = data.favorite ? 'text-[var(--warning)]' : 'text-[var(--ink-muted)]';
-  const typeText = data.type === 'pro' ? 'Pro' : 'Simple';
-  const typeClass = data.type === 'pro' ? 'badge badge-primary' : 'badge badge-neutral';
   const favoriteToggleDisabled = data.favorite ? unfavoriteDisabled : favoriteDisabled;
   const favoriteToggleClass = favoriteToggleDisabled ? 'opacity-50 cursor-not-allowed' : '';
 
@@ -107,7 +102,6 @@ function ProfileCard({
   // Toggle profile details
   const [detailsCollapsed, setDetailsCollapsed] = useState(true);
   const onToggleDetails = useCallback(() => setDetailsCollapsed(v => !v), []);
-  const chevronRotation = detailsCollapsed ? '' : 'rotate-90';
   const detailsSectionId = `profile-${data.id}-summary`;
 
   const phases = Array.isArray(data?.phases) ? data.phases : [];
@@ -117,6 +111,19 @@ function ProfileCard({
     (sum, p) => sum + (Number.isFinite(p?.duration) ? p.duration : 0),
     0,
   );
+  const weightOut = phases
+    .flatMap(p => p.targets || [])
+    .filter(t => t.type === 'volumetric')
+    .at(-1)?.value;
+  const facts = [
+    `${data.temperature}°C`,
+    data.dose && `${data.dose} g in`,
+    weightOut && `${weightOut} g out`,
+    `${totalDurationSeconds} s`,
+    phases.length > 1 && `${phases.length} phases`,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   // Mobile actions menu — state-driven (was using the Popover API which isn't
   // supported in Safari <17 / Firefox <125, leaving the menu broken on most
@@ -188,292 +195,186 @@ function ProfileCard({
     <Card
       sm={12}
       role='listitem'
-      className={`profile-card-container mb-2 border-2 ${data.selected ? 'border-primary' : 'border-transparent'}`}
+      className={`profile-card-container border-2 [&>.card-body]:p-3 ${data.selected ? 'border-primary' : 'border-transparent'}`}
     >
       <div
         className='flex flex-row items-center'
         role='group'
         aria-labelledby={`profile-${data.id}-title`}
       >
-        <div className='flex flex-grow flex-col overflow-hidden'>
-          <div className='mx-2 flex flex-row items-center gap-2 align-middle'>
-            <div className='flex min-w-0 flex-grow flex-row items-center gap-4'>
-              {/* CheckBox */}
-              <div>
-                <label className='cursor-pointer'>
-                  <input
-                    checked={data.selected}
-                    type='checkbox'
-                    onClick={() => onSelect(data.id)}
-                    className='checkbox checkbox-success checkbox-sm'
-                    aria-label={`Select ${data.label} profile`}
-                  />
-                </label>
-              </div>
-              {/* Label and Type */}
-              <div className='flex flex-row flex-wrap items-center gap-4'>
-                <span
-                  id={`profile-${data.id}-title`}
-                  className='min-w-0 flex-1 truncate text-sm leading-tight font-bold lg:text-xl'
-                >
-                  {data.label}
-                </span>
-                <span
-                  className={`${typeClass} badge-sm lg:badge-md font-medium`}
-                  aria-label={`Profile type: ${typeText}`}
-                >
-                  {typeText}
-                </span>
-                <button
-                  onClick={onToggleDetails}
-                  className='btn btn-xs btn-ghost self-start'
-                  aria-label={`${detailsCollapsed ? 'Show' : 'Hide'} details for ${data.label}`}
-                  aria-expanded={!detailsCollapsed}
-                  aria-controls={detailsSectionId}
-                  title={detailsCollapsed ? 'Show details' : 'Hide details'}
-                >
-                  <Icon
-                    name={'chevron-right'}
-                    className={`transition-transform ${chevronRotation}`}
-                  />
-                </button>
-              </div>
-              {/*- Actions -*/}
-              <div
-                className='flex flex-1 flex-row justify-end gap-2'
-                role='group'
-                aria-label={`Actions for ${data.label} profile`}
-              >
-                {/* Mobile: Popover actions menu */}
-                <div>
-                  <button
-                    ref={kebabRef}
-                    onClick={toggleMenu}
-                    className='btn btn-sm btn-ghost sm:hidden'
-                    aria-label={`Open actions menu for ${data.label} profile`}
-                    aria-haspopup='menu'
-                    aria-expanded={menuOpen}
-                    aria-controls={`profile-${data.id}-menu`}
-                  >
-                    <Icon name={'menu'} />
-                  </button>
-                  {menuOpen && (
-                    <div
-                      id={`profile-${data.id}-menu`}
-                      ref={popoverRef}
-                      role='menu'
-                      className='bg-base-100 rounded-box z-50 w-56 p-2'
-                      onKeyDown={e => {
-                        if (e.key === 'Escape') closeMenu();
-                      }}
-                    >
-                      <ul className='menu' role='none'>
-                        <li role='none'>
-                          <button
-                            role='menuitem'
-                            onClick={() => {
-                              onFavoriteToggle();
-                              closeMenu();
-                            }}
-                            disabled={favoriteToggleDisabled}
-                            className={`justify-start ${favoriteToggleClass}`}
-                            aria-label={
-                              data.favorite
-                                ? `Remove ${data.label} from favorites`
-                                : `Add ${data.label} to favorites`
-                            }
-                            aria-pressed={data.favorite}
-                          >
-                            <Icon name={'check'} className={bookmarkClass} />
-                            <span>{data.favorite ? 'Unfavorite' : 'Favorite'}</span>
-                          </button>
-                        </li>
-                        <li role='none'>
-                          <a
-                            role='menuitem'
-                            href={`/profiles/${data.id}`}
-                            onClick={closeMenu}
-                            aria-label={`Edit ${data.label} profile`}
-                          >
-                            <Icon name={'pencil'} />
-                            <span>Edit</span>
-                          </a>
-                        </li>
-                        <li role='none'>
-                          <a
-                            role='menuitem'
-                            href={statsHref}
-                            onClick={closeMenu}
-                            className='justify-start text-[var(--success)]'
-                            aria-label={`View statistics for ${data.label} profile`}
-                          >
-                            <Icon name={'chart-column'} />
-                            <span>Statistics</span>
-                          </a>
-                        </li>
-                        <li role='none'>
-                          <button
-                            role='menuitem'
-                            onClick={() => {
-                              onDownload();
-                              closeMenu();
-                            }}
-                            className='text-primary justify-start'
-                            aria-label={`Export ${data.label} profile`}
-                          >
-                            <Icon name={'save'} />
-                            <span>Export</span>
-                          </button>
-                        </li>
-                        <li role='none'>
-                          <button
-                            role='menuitem'
-                            onClick={() => {
-                              onDuplicate(data.id);
-                              closeMenu();
-                            }}
-                            className='justify-start text-[var(--success)]'
-                            aria-label={`Duplicate ${data.label} profile`}
-                          >
-                            <Icon name={'list'} />
-                            <span>Duplicate</span>
-                          </button>
-                        </li>
-                        <li role='none'>
-                          <button
-                            role='menuitem'
-                            onClick={() => {
-                              confirmOrDelete(() => {
-                                onDelete(data.id);
-                                closeMenu();
-                              });
-                            }}
-                            className={`justify-start ${confirmDelete ? 'bg-error text-error-content rounded font-semibold' : 'text-[var(--danger)]'}`}
-                            aria-label={
-                              confirmDelete
-                                ? `Confirm deletion of ${data.label} profile`
-                                : `Delete ${data.label} profile`
-                            }
-                            title={confirmDelete ? 'Click to confirm delete' : 'Delete profile'}
-                          >
-                            <Icon name={'trash-2'} />
-                            <span>{confirmDelete ? 'Confirm' : 'Delete'}</span>
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
+        <div className='flex min-w-0 flex-grow flex-col'>
+          <div className='flex flex-row items-center gap-1'>
+            <button
+              type='button'
+              onClick={() => onSelect(data.id)}
+              className='flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3 text-left'
+              aria-label={`Select ${data.label} profile`}
+              aria-pressed={data.selected}
+            >
+              <span className={`bm-pick ${data.selected ? 'bm-pick--on' : ''}`}>
+                {data.selected && <Icon name='check' />}
+              </span>
+              <span className='min-w-0 flex-1'>
+                <span className='flex min-w-0 items-center gap-2'>
+                  <span id={`profile-${data.id}-title`} className='bm-row__title'>
+                    {data.label}
+                  </span>
+                  {data.type === 'pro' && (
+                    <span className='shrink-0 text-xs text-[var(--ink-muted)]'>Pro</span>
                   )}
-                </div>
-
-                {/* Desktop: inline actions */}
-                <div
-                  className='hidden flex-row justify-end gap-2 sm:flex'
-                  role='group'
-                  aria-label={`Actions for ${data.label} profile`}
+                </span>
+                <span className='bm-row__sub'>{facts}</span>
+              </span>
+            </button>
+            <div
+              className='flex shrink-0 flex-row'
+              role='group'
+              aria-label={`Actions for ${data.label} profile`}
+            >
+              <a
+                href={`/profiles/${data.id}`}
+                className='btn btn-ghost btn-circle'
+                aria-label={`Edit ${data.label} profile`}
+                title='Edit'
+              >
+                <Icon name='pencil' />
+              </a>
+              {/* Secondary actions share a labeled menu on every viewport. */}
+              <div>
+                <button
+                  ref={kebabRef}
+                  onClick={toggleMenu}
+                  className='btn btn-ghost btn-circle'
+                  aria-label={`Open actions menu for ${data.label} profile`}
+                  aria-haspopup='menu'
+                  aria-expanded={menuOpen}
+                  aria-controls={`profile-${data.id}-menu`}
                 >
-                  <Tooltip content={data.favorite ? 'Remove from favorites' : 'Add to favorites'}>
-                    <button
-                      onClick={onFavoriteToggle}
-                      disabled={favoriteToggleDisabled}
-                      className={`btn btn-sm btn-ghost ${favoriteToggleClass}`}
-                      aria-label={
-                        data.favorite
-                          ? `Remove ${data.label} from favorites`
-                          : `Add ${data.label} to favorites`
-                      }
-                      aria-pressed={data.favorite}
-                    >
-                      <Icon name={'check'} className={bookmarkClass} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content='Edit profile'>
-                    <a
-                      href={`/profiles/${data.id}`}
-                      className='btn btn-sm btn-ghost'
-                      aria-label={`Edit ${data.label} profile`}
-                    >
-                      <Icon name={'pencil'} />
-                    </a>
-                  </Tooltip>
-                  <Tooltip content='View statistics for this profile'>
-                    <a
-                      href={statsHref}
-                      className='btn btn-sm btn-ghost text-[var(--success)]'
-                      aria-label={`View statistics for ${data.label} profile`}
-                    >
-                      <Icon name={'chart-column'} />
-                    </a>
-                  </Tooltip>
-                  <Tooltip content='Export profile'>
-                    <button
-                      onClick={onDownload}
-                      className='btn btn-sm btn-ghost text-primary'
-                      aria-label={`Export ${data.label} profile`}
-                    >
-                      <Icon name={'save'} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content='Duplicate profile'>
-                    <button
-                      onClick={() => onDuplicate(data.id)}
-                      className='btn btn-sm btn-ghost text-[var(--success)]'
-                      aria-label={`Duplicate ${data.label} profile`}
-                    >
-                      <Icon name={'list'} />
-                    </button>
-                  </Tooltip>
-                  <Tooltip content={confirmDelete ? 'Click to confirm' : 'Delete profile'}>
-                    <button
-                      onClick={() => {
-                        confirmOrDelete(() => onDelete(data.id));
-                      }}
-                      className={`btn btn-sm btn-ghost ${confirmDelete ? 'bg-error text-error-content' : 'text-[var(--danger)]'}`}
-                      aria-label={
-                        confirmDelete
-                          ? `Confirm deletion of ${data.label} profile`
-                          : `Delete ${data.label} profile`
-                      }
-                    >
-                      <Icon name={'trash-2'} />
-                      {confirmDelete && <span className='ml-2 font-semibold'>Confirm</span>}
-                    </button>
-                  </Tooltip>
-                </div>
+                  <Icon name='more-horizontal' />
+                  <span className='sr-only'>More</span>
+                </button>
+                {menuOpen && (
+                  <div
+                    id={`profile-${data.id}-menu`}
+                    ref={popoverRef}
+                    role='menu'
+                    className='bg-base-100 rounded-box z-50 w-56 p-2'
+                    onKeyDown={e => {
+                      if (e.key === 'Escape') closeMenu();
+                    }}
+                  >
+                    <ul className='menu' role='none'>
+                      <li role='none'>
+                        <button
+                          role='menuitem'
+                          onClick={() => {
+                            onToggleDetails();
+                            closeMenu();
+                          }}
+                          className='justify-start'
+                          aria-label={`${detailsCollapsed ? 'Show' : 'Hide'} details for ${data.label}`}
+                          aria-expanded={!detailsCollapsed}
+                          aria-controls={detailsSectionId}
+                        >
+                          <Icon name={detailsCollapsed ? 'chevron-down' : 'chevron-up'} />
+                          <span>{detailsCollapsed ? 'Show details' : 'Hide details'}</span>
+                        </button>
+                      </li>
+                      <li role='none'>
+                        <button
+                          role='menuitem'
+                          onClick={() => {
+                            onFavoriteToggle();
+                            closeMenu();
+                          }}
+                          disabled={favoriteToggleDisabled}
+                          className={`justify-start ${favoriteToggleClass}`}
+                          aria-label={
+                            data.favorite
+                              ? `Remove ${data.label} from favorites`
+                              : `Add ${data.label} to favorites`
+                          }
+                          aria-pressed={data.favorite}
+                        >
+                          <Icon name={'check'} />
+                          <span>{data.favorite ? 'Unfavorite' : 'Favorite'}</span>
+                        </button>
+                      </li>
+                      <li role='none'>
+                        <a
+                          role='menuitem'
+                          href={statsHref}
+                          onClick={closeMenu}
+                          className='justify-start'
+                          aria-label={`View statistics for ${data.label} profile`}
+                        >
+                          <Icon name={'chart-column'} />
+                          <span>Statistics</span>
+                        </a>
+                      </li>
+                      <li role='none'>
+                        <button
+                          role='menuitem'
+                          onClick={() => {
+                            onDownload();
+                            closeMenu();
+                          }}
+                          className='justify-start'
+                          aria-label={`Export ${data.label} profile`}
+                        >
+                          <Icon name={'save'} />
+                          <span>Export</span>
+                        </button>
+                      </li>
+                      <li role='none'>
+                        <button
+                          role='menuitem'
+                          onClick={() => {
+                            onDuplicate(data.id);
+                            closeMenu();
+                          }}
+                          className='justify-start'
+                          aria-label={`Duplicate ${data.label} profile`}
+                        >
+                          <Icon name={'list'} />
+                          <span>Duplicate</span>
+                        </button>
+                      </li>
+                      <li role='none'>
+                        <button
+                          role='menuitem'
+                          onClick={() => {
+                            confirmOrDelete(() => {
+                              onDelete(data.id);
+                              closeMenu();
+                            });
+                          }}
+                          className={`justify-start ${confirmDelete ? 'bg-error text-error-content rounded font-semibold' : 'text-[var(--danger)]'}`}
+                          aria-label={
+                            confirmDelete
+                              ? `Confirm deletion of ${data.label} profile`
+                              : `Delete ${data.label} profile`
+                          }
+                          title={confirmDelete ? 'Click to confirm delete' : 'Delete profile'}
+                        >
+                          <Icon name={'trash-2'} />
+                          <span>{confirmDelete ? 'Confirm' : 'Delete'}</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>
           <div className={`${isDragging ? 'hidden' : ''}`}>
             {!detailsCollapsed && (
-              <div id={detailsSectionId} className='mx-2 mt-2 flex flex-col items-start gap-2'>
-                <span className='text-xs text-[var(--ink-muted)] md:text-sm'>
-                  {data.description}
-                </span>
-                <div className='flex flex-row flex-wrap gap-2'>
-                  <span className='badge badge-xs md:badge-sm gap-1 border-0 bg-[var(--heat-soft)] text-[var(--heat-text)]'>
-                    <Icon name={'thermometer'} />
-                    {data.temperature}°C
-                  </span>
-                  <span className='badge badge-xs md:badge-sm badge-outline text-[var(--ink-muted)]'>
-                    <Icon name={'clock'} />
-                    {totalDurationSeconds}s
-                  </span>
-                  {phases.length > 0 &&
-                    phases[phases.length - 1]?.targets?.some(t => t.type === 'volumetric') && (
-                      <span className='badge badge-xs md:badge-sm gap-1 border-0 bg-[var(--weight-soft)] text-[var(--weight)]'>
-                        <Icon name={'scale'} />
-                        {`${phases[phases.length - 1].targets.find(t => t.type === 'volumetric').value}g`}
-                      </span>
-                    )}
-                  {phases.length > 0 && (
-                    <span className='badge badge-xs md:badge-sm badge-outline text-[var(--ink-muted)]'>
-                      {phases.length} phase{phases.length === 1 ? '' : 's'}
-                    </span>
-                  )}
-                </div>
-              </div>
+              <p id={detailsSectionId} className='mt-2 pl-11 text-sm text-[var(--ink-muted)]'>
+                {data.description}
+              </p>
             )}
             <div
-              className='flex flex-row gap-2 py-2'
+              className={`flex flex-row gap-2 py-2 ${detailsCollapsed ? 'hidden' : ''}`}
               aria-label={`Profile details for ${data.label}`}
             >
               <div className='flex flex-col justify-evenly pr-1'>
@@ -522,6 +423,55 @@ function ProfileCard({
         </div>
       </div>
     </Card>
+  );
+}
+
+// Whole-list actions are rare, so they wait behind one menu beside the search.
+function ProfilesMenu({ onExport, onClear }) {
+  const { armed: confirmClear, armOrRun: confirmOrClear } = useConfirmAction(4000);
+  const menuRef = useRef(null);
+  const closeMenu = () => {
+    if (menuRef.current) menuRef.current.open = false;
+  };
+
+  return (
+    <details ref={menuRef} className='relative shrink-0'>
+      <summary className='btn btn-ghost btn-circle list-none' aria-label='More profile actions'>
+        <Icon name='more-horizontal' />
+      </summary>
+      <div className='absolute top-full right-0 z-50 mt-2 flex w-56 flex-col rounded-xl border border-[var(--line-strong)] bg-[var(--surface-1)] p-2'>
+        <button
+          type='button'
+          id='export-profiles'
+          className='btn btn-ghost justify-start'
+          onClick={() => {
+            onExport();
+            closeMenu();
+          }}
+        >
+          Export all
+        </button>
+        <label
+          htmlFor='profileImport'
+          className='btn btn-ghost cursor-pointer justify-start'
+          onClick={closeMenu}
+        >
+          Import
+        </label>
+        <button
+          type='button'
+          className={`btn justify-start ${confirmClear ? 'btn-error' : 'btn-ghost text-[var(--danger)]'}`}
+          onClick={() =>
+            confirmOrClear(() => {
+              onClear();
+              closeMenu();
+            })
+          }
+        >
+          {confirmClear ? 'Confirm delete all' : 'Delete all'}
+        </button>
+      </div>
+    </details>
   );
 }
 
@@ -924,66 +874,38 @@ export function ProfileList() {
   }
 
   return (
-    <>
-      <div className='mb-4 flex flex-row items-center gap-2'>
-        <h1 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>Profiles</h1>
+    <div className='mx-auto w-full max-w-4xl'>
+      <div className='mb-3 flex items-center justify-between gap-3'>
+        <h1 className='bm-page-title'>Profiles</h1>
+        <a href='/profiles/new' className='btn btn-outline gap-1'>
+          <Icon name='plus' />
+          New profile
+        </a>
       </div>
 
-      <div className='mb-4 flex flex-col items-center gap-2 sm:flex-row'>
-        {/* Controls Row */}
-        <div className='flex flex-col items-start gap-3 sm:flex-row sm:items-center'>
-          {/* Search */}
-          <label className='input w-full'>
-            <Icon name={'search'} />
-            <input
-              type='text'
-              placeholder='Search...'
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value);
-              }}
-              className='grow'
-            />
-          </label>
-        </div>
-        <div className='flex flex-grow items-center justify-end gap-2'>
-          <Tooltip content='Export all profiles'>
-            <button
-              id='export-profiles'
-              onClick={onExport}
-              className='btn btn-ghost btn-sm'
-              aria-label='Export all profiles'
-            >
-              <Icon name={'save'} />
-            </button>
-          </Tooltip>
-          <Tooltip content='Import profiles'>
-            <label
-              htmlFor='profileImport'
-              className='btn btn-ghost btn-sm cursor-pointer'
-              aria-label='Import profiles'
-            >
-              <Icon name={'plus'} />
-            </label>
-          </Tooltip>
+      <div className='mb-2 flex items-center gap-1'>
+        <label className='input min-w-0 flex-1'>
+          <Icon name={'search'} />
           <input
-            onChange={onUpload}
-            className='hidden'
-            id='profileImport'
-            type='file'
-            accept='.json,application/json,.tcl'
-            aria-label='Select a JSON file containing profile data to import'
+            type='text'
+            placeholder='Search...'
+            aria-label='Search profiles'
+            value={searchTerm}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+            }}
+            className='grow'
           />
-          <ConfirmButton
-            onAction={onClear}
-            icon={'trash-2'}
-            tooltip='Delete all profiles'
-            confirmTooltip='Confirm deletion'
-          />
-        </div>
-      </div>
-      <div className='mb-4' aria-label='Add profile'>
-        <ProfileAddCard />
+        </label>
+        <ProfilesMenu onExport={onExport} onClear={onClear} />
+        <input
+          onChange={onUpload}
+          className='hidden'
+          id='profileImport'
+          type='file'
+          accept='.json,application/json,.tcl'
+          aria-label='Select a JSON file containing profile data to import'
+        />
       </div>
       {hasUtilityProfiles && (
         <div role='tablist' className='tabs tabs-border mb-4'>
@@ -1006,7 +928,7 @@ export function ProfileList() {
         </div>
       )}
       <div
-        className='grid grid-cols-1 gap-4 lg:grid-cols-12'
+        className='grid grid-cols-1 gap-2 lg:grid-cols-12'
         role='list'
         aria-label='Profile list'
         ref={containerRef}
@@ -1033,6 +955,6 @@ export function ProfileList() {
             />
           ))}
       </div>
-    </>
+    </div>
   );
 }

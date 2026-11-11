@@ -60,6 +60,9 @@ export function StandardProfileForm(props) {
           data={data}
           onChangeLabel={e => onFieldChange('label', e.target.value)}
           onChangeDescription={e => onFieldChange('description', e.target.value)}
+          onChangeDose={e =>
+            onFieldChange('dose', e.target.value === '' ? undefined : Number(e.target.value))
+          }
           onChangeTemperature={e => onFieldChange('temperature', e.target.value)}
           onChangeUtility={e => onFieldChange('utility', !!e.target.checked)}
         />
@@ -97,14 +100,14 @@ export function StandardProfileForm(props) {
         </Card>
       </div>
 
-      <div className='pt-4 lg:col-span-10'>
-        <div className='flex flex-col gap-2 sm:flex-row'>
-          <a href='/profiles' className='btn btn-outline'>
+      <div className='bm-actions mt-2 lg:col-span-10'>
+        <div className='flex w-full gap-2 sm:w-auto'>
+          <a href='/profiles' className='btn btn-outline flex-1 sm:flex-none'>
             Back
           </a>
           <button
             type='submit'
-            className='btn btn-primary gap-2'
+            className='btn btn-primary flex-[2] gap-2 sm:flex-none sm:px-10'
             disabled={saving}
             aria-label={saving ? 'Saving profile...' : 'Save profile'}
           >
@@ -155,7 +158,7 @@ function Phase({ phase, index, onChange, onRemove, pressureAvailable }) {
 
   return (
     <div
-      className='border-base-300 space-y-4 rounded-lg border bg-[var(--surface-2)] p-4'
+      className='space-y-4 rounded-[18px] border border-[var(--line)] p-3'
       role='group'
       aria-label={`Phase ${index + 1} configuration`}
     >

@@ -217,7 +217,7 @@ function drawLegend(ctx, legendItems, bounds, colors) {
   if (!legendItems.length) return;
 
   ctx.save();
-  ctx.font = '500 14px "JetBrains Mono", ui-monospace, monospace';
+  ctx.font = '500 14px "Jost", system-ui, sans-serif';
   ctx.textBaseline = 'middle';
   const rows = measureLegendRows(ctx, legendItems, bounds.width);
 
@@ -304,7 +304,7 @@ function resolveCompositionLayout({ config, mainCanvas, tempCanvas, legendItems 
     const measurementCanvas = createExportCanvas();
     const measurementCtx = measurementCanvas.getContext('2d');
     if (measurementCtx) {
-      measurementCtx.font = '500 14px "JetBrains Mono", ui-monospace, monospace';
+      measurementCtx.font = '500 14px "Jost", system-ui, sans-serif';
       const maxLegendWidth = baseCanvasSize.width - EXPORT_PADDING * 2 - EXPORT_CARD_PADDING * 2;
       const legendRows = measureLegendRows(measurementCtx, legendItems, maxLegendWidth);
       legendSectionHeight =

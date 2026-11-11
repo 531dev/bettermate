@@ -9,15 +9,19 @@ namespace bm {
 
 enum class Intent : uint8_t {
     Refresh,
+    WakeMenu,
     Menu,
     Profile,
     Adjust,
+    CancelAdjust,
     Start,
     Flush,
     Tare,
     ToggleTarget,
     TempDown,
     TempUp,
+    PressureDown,
+    PressureUp,
     TargetDown,
     TargetUp,
     DeleteWeight,
@@ -39,7 +43,8 @@ enum class Intent : uint8_t {
     GrindUp,
     PreviousProfile,
     NextProfile,
-    SelectProfile
+    SelectProfile,
+    Warnings
 };
 
 // What a screen may ask of the UI that owns it. A screen never reaches into the controller or another screen:
@@ -49,6 +54,8 @@ class Host {
     // Leave standby and switch the machine on in brew mode.
     virtual void wake() = 0;
     virtual void act(Intent intent) = 0;
+    // Browse a profile without changing the machine's selected recipe.
+    virtual void focusProfile(unsigned index) = 0;
 
   protected:
     ~Host() = default;
@@ -71,6 +78,8 @@ class Screen {
 
     // The screen has just become the visible one.
     virtual void onShow(const UiState &state) { (void)state; }
+    // The container whose parts fade in and rise when the screen is shown, if any.
+    virtual lv_obj_t *body() { return nullptr; }
     // Bring the screen in line with the snapshot.
     virtual void update(const UiState &state) = 0;
 

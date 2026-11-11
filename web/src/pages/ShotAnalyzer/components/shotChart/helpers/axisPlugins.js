@@ -20,7 +20,7 @@ const PHASE_LABEL_TOP_INSET = 4;
 
 const PHASE_NUMBER_TOP_OFFSET = 12;
 
-const PHASE_LABEL_FONT = '11px "JetBrains Mono", ui-monospace, monospace';
+const PHASE_LABEL_FONT = '11px "Jost", system-ui, sans-serif';
 
 const BREW_LABEL_ICONS = ['⏱', '⚖'];
 

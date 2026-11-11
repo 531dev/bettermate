@@ -1,0 +1,742 @@
+/* The user's palette: cobalt, orange, white and three greys, on #212121 in dark mode.
+   Fills, marks and surfaces use those exact values. Small text needs its own tint where they
+   fall short of 4.5:1: cobalt on dark and orange on either theme. */
+html[data-theme='light'] {
+  --surface-0: #d9d9d9;
+  --surface-1: #e4e4e4;
+  --surface-2: #ffffff;
+  --line: #b8b8b8;
+  --line-strong: #6e6e6e;
+  --ink: #111111;
+  --ink-muted: #555555;
+  --ink-faint: #555555;
+  --primary: #0f20ec;
+  --primary-text: #0f20ec;
+  --primary-hover: #0c19bd;
+  --primary-soft: #d3d6f7;
+  --on-primary: #ffffff;
+  --heat: #e95b2a;
+  --heat-text: #a0380e;
+  --heat-soft: #f7d9cd;
+  --on-heat: #111111;
+  --warning: #a0380e;
+  --warning-soft: #f7d9cd;
+  --flow: #23804c;
+  --flow-soft: #d3e6da;
+  --weight: #6e6e6e;
+  --weight-soft: #d9d9d9;
+  --series-pressure: #0f20ec;
+  --series-temperature: #e95b2a;
+  --series-flow: #23804c;
+  --series-weight: #6e6e6e;
+}
+html[data-theme='dark'] {
+  --surface-0: #212121;
+  --surface-1: #2c2c2c;
+  --surface-2: #3a3a3a;
+  --line: #4a4a4a;
+  --line-strong: #b8b8b8;
+  --ink: #ffffff;
+  --ink-muted: #b8b8b8;
+  --ink-faint: #b8b8b8;
+  --primary: #0f20ec;
+  --primary-text: #b4b9ff;
+  --primary-hover: #2b3bff;
+  --primary-soft: #2f3358;
+  --on-primary: #ffffff;
+  --heat: #e95b2a;
+  --heat-text: #ff9a70;
+  --heat-soft: #4a2e22;
+  --on-heat: #111111;
+  --warning: #ff9a70;
+  --warning-soft: #4a2e22;
+  --danger: #ff8a80;
+  --flow: #86d9a2;
+  --flow-soft: #24392c;
+  --weight: #b8b8b8;
+  --weight-soft: #3a3a3a;
+  --series-pressure: #b4b9ff;
+  --series-temperature: #e95b2a;
+  --series-flow: #86d9a2;
+  --series-weight: #b8b8b8;
+}
+html[data-theme] {
+  --color-secondary: var(--primary);
+  --color-secondary-content: var(--on-primary);
+  --color-accent: var(--primary);
+  --color-accent-content: var(--on-primary);
+  --color-info-content: var(--primary-text);
+  --focus: var(--primary-text);
+  /* The action disc reads the same on the cobalt banner in both themes. */
+  --disc: #111111;
+  --on-disc: #ffffff;
+}
+/* Cobalt fills stay cobalt on dark; anything drawn as a thin line or as text takes the readable tint. */
+html[data-theme='dark'] .text-primary,
+html[data-theme='dark'] .hover\:text-primary:hover {
+  color: var(--primary-text);
+}
+html[data-theme='dark'] .border-primary {
+  border-color: var(--primary-text);
+}
+html[data-theme='dark'] .toggle-primary:checked {
+  --input-color: var(--primary-text);
+}
+
+/* Grouped surfaces: page, then a large rounded group, then tiles inside it. */
+.card {
+  border-radius: 24px;
+}
+
+@layer components {
+  .bm-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-radius: 24px;
+    background: var(--surface-1);
+    padding: 16px;
+    min-width: 0;
+  }
+  .bm-group__title {
+    font-size: 17px;
+    line-height: 22px;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+  }
+  /* A title with one link beside it. The link's touch target may overhang the row. */
+  .bm-group__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 22px;
+    margin-block: -11px;
+  }
+  .bm-link {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    min-height: 44px;
+    color: var(--primary-text);
+    font-size: 14px;
+    line-height: 20px;
+  }
+  .bm-link:hover {
+    color: var(--primary-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Page heading: gentle title, one line of context, inset to line up with card text. */
+  .bm-page-title {
+    padding-inline: 8px;
+    font-size: 26px;
+    line-height: 32px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .bm-page-sub {
+    padding-inline: 8px;
+    color: var(--ink-muted);
+    font-size: 15px;
+    line-height: 22px;
+  }
+
+  /* Stack of groups: one column on phones, balanced columns on wide screens. */
+  .bm-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  @media (min-width: 1024px) {
+    .bm-groups {
+      display: block;
+      columns: 2;
+      column-gap: 8px;
+    }
+    .bm-groups > * {
+      margin-bottom: 8px;
+      break-inside: avoid;
+    }
+  }
+
+  /* Pinned page actions, in the same spot the mode bar uses. */
+  .bm-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    gap: 8px;
+    margin-inline: -8px;
+    border-radius: 24px 24px 0 0;
+    background: var(--surface-1);
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+  }
+
+  /* Banner action: the one thing to do next on this screen. */
+  .bm-cta {
+    position: relative;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    min-height: 76px;
+    overflow: hidden;
+    border-radius: 24px;
+    background: var(--primary);
+    color: var(--on-primary);
+    padding: 12px 16px;
+    text-align: left;
+    transition: background-color 150ms ease;
+  }
+  button.bm-cta {
+    cursor: pointer;
+  }
+  button.bm-cta:hover {
+    background: var(--primary-hover);
+  }
+  .bm-cta--running,
+  button.bm-cta--running:hover {
+    background: var(--ink);
+    color: var(--surface-1);
+  }
+  .bm-cta--status {
+    min-height: 60px;
+    background: var(--surface-1);
+    color: var(--ink);
+  }
+  .bm-cta__title {
+    display: block;
+    font-size: 19px;
+    line-height: 24px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+  }
+  .bm-cta--status .bm-cta__title {
+    font-size: 16px;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .bm-cta__sub {
+    display: block;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.88;
+  }
+  .bm-cta__progress {
+    position: absolute;
+    inset: auto 0 0;
+    height: 4px;
+    background: currentColor;
+    transition: width 300ms ease-out;
+  }
+  .bm-disc {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    background: var(--disc);
+    color: var(--on-disc);
+  }
+
+  /* Selectable tile, as in the option groups: pressed tiles fill with the accent. */
+  .bm-tile {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    min-height: 64px;
+    border-radius: 18px;
+    background: var(--surface-2);
+    color: var(--ink);
+    padding: 8px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 18px;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .bm-tile:hover {
+    background: var(--primary-soft);
+  }
+  .bm-tile[aria-pressed='true'],
+  .bm-tile.btn-active {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+  .bm-tile:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  /* Corner action on the machine card: present, but never competing with the banner. */
+  .bm-flush {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    color: var(--ink);
+    font-size: 12px;
+    line-height: 16px;
+    cursor: pointer;
+    touch-action: none;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .bm-flush:hover {
+    background: var(--primary-soft);
+  }
+  .bm-flush.btn-active {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+
+  /* Two-way choice that fits on one row beside its label. */
+  .bm-choice {
+    display: flex;
+    flex-shrink: 0;
+    gap: 2px;
+    border-radius: 9999px;
+    background: var(--surface-2);
+    padding: 2px;
+  }
+  .bm-choice__item {
+    min-width: 68px;
+    min-height: 40px;
+    border-radius: 9999px;
+    padding-inline: 12px;
+    color: var(--ink-muted);
+    font-size: 14px;
+    line-height: 18px;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .bm-choice__item[aria-pressed='true'] {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+
+  /* List row: icon disc, two lines of text, trailing value and arrow. */
+  .bm-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    border-radius: 16px;
+    padding: 6px 0;
+    color: var(--ink);
+  }
+  a.bm-row:hover .bm-row__arrow,
+  a:hover > .bm-row__arrow {
+    background: var(--ink);
+    color: var(--surface-1);
+  }
+  /* Choose-one marker on a list row: a ring, filled once chosen. */
+  .bm-pick {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line-strong);
+    border-radius: 9999px;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+  .bm-pick--on {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+  .bm-row__icon,
+  .bm-row__arrow {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+  .bm-row__icon {
+    width: 44px;
+    height: 44px;
+    background: var(--surface-2);
+  }
+  .bm-row__arrow {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line-strong);
+  }
+  .bm-row__title {
+    display: block;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 22px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bm-row__sub {
+    display: block;
+    overflow: hidden;
+    color: var(--ink-muted);
+    font-size: 13px;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Vertical gauge beside a reading: the whole scale as a soft gradient, a mark for the
+     current value and a notch for the target. Low values sit at the bottom. */
+  .bm-gauge {
+    position: relative;
+    flex-shrink: 0;
+    width: 6px;
+    height: 56px;
+    border-radius: 9999px;
+  }
+  .bm-gauge--neutral {
+    background: linear-gradient(to top, var(--line), var(--line-strong));
+  }
+  .bm-gauge__mark {
+    position: absolute;
+    left: -4px;
+    width: 14px;
+    height: 2px;
+    margin-bottom: -1px;
+    background: var(--ink);
+    transition: bottom 300ms ease-out;
+  }
+  .bm-gauge__target {
+    position: absolute;
+    left: 8px;
+    width: 5px;
+    height: 2px;
+    margin-bottom: -1px;
+    background: var(--ink-muted);
+  }
+
+  /* Phone top bar and bottom mode bar. */
+  .bm-appbar {
+    display: grid;
+    flex-shrink: 0;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    padding: max(4px, env(safe-area-inset-top)) 8px 4px;
+    background: var(--surface-0);
+  }
+  .bm-modebar {
+    display: flex;
+    flex-shrink: 0;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+    padding: 6px 4px max(6px, env(safe-area-inset-bottom));
+  }
+  .bm-modebar__item {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    min-height: 52px;
+    color: var(--ink-muted);
+    font-size: 12px;
+    line-height: 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bm-modebar__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 30px;
+    border-radius: 9999px;
+    transition: background-color 150ms ease;
+  }
+  .bm-modebar__item[aria-pressed='true'] {
+    color: var(--primary-text);
+    font-weight: 500;
+  }
+  .bm-modebar__item:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  /* Desktop: the phone's mode bar, floating over the content. Hidden on phones. */
+  .bm-dock {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    z-index: 50;
+    display: none;
+    gap: 2px;
+    max-width: calc(100% - 16px);
+    transform: translateX(-50%);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--surface-2);
+    padding: 6px;
+    box-shadow: 0 8px 28px rgb(0 0 0 / 0.16);
+  }
+  .bm-dock .bm-modebar__item {
+    flex: 0 1 76px;
+    width: 76px;
+    justify-content: center;
+  }
+  @media (hover: hover) {
+    .bm-dock .bm-modebar__item:not(:disabled, [aria-pressed='true']):hover {
+      color: var(--ink);
+    }
+    .bm-dock .bm-modebar__item:not(:disabled, [aria-pressed='true']):hover .bm-modebar__icon {
+      background: color-mix(in srgb, var(--ink) 8%, transparent);
+    }
+  }
+  .bm-dock-spacer {
+    display: none;
+    height: 88px;
+    flex-shrink: 0;
+  }
+  @media (min-width: 768px) and (min-height: 501px),
+    (orientation: landscape) and (min-height: 501px) {
+    .bm-dock {
+      display: flex;
+    }
+    .bm-dock-spacer {
+      display: block;
+    }
+    /* A page's pinned actions float directly above the bar instead of under it. */
+    .bm-actions--above-dock {
+      bottom: 88px;
+      margin-inline: 0;
+      border-radius: 24px;
+      box-shadow: 0 8px 28px rgb(0 0 0 / 0.1);
+    }
+  }
+  .bm-mode-rail {
+    display: none;
+  }
+  @media (max-height: 500px) and (min-width: 768px),
+    (max-height: 500px) and (orientation: landscape) {
+    .bm-mode-rail {
+      display: flex;
+    }
+  }
+
+  /* The machine's round display in miniature: scales on the rim, one reading in the middle.
+     Type scales with the dial, so it also fits short phone landscape windows. */
+  .bm-dial {
+    position: relative;
+    flex-shrink: 0;
+    container-type: inline-size;
+    width: min(100%, 248px);
+    aspect-ratio: 1;
+  }
+  .bm-dial__rim {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .bm-dial__track {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 8;
+    stroke-linecap: round;
+  }
+  .bm-dial__segment {
+    fill: none;
+    stroke-width: 8;
+  }
+  .bm-dial__mark {
+    stroke: var(--ink);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transform-origin: 120px 120px;
+    transition: transform 300ms ease-out;
+  }
+  .bm-dial__notch {
+    stroke: var(--ink-muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .bm-dial__scale-name {
+    fill: var(--ink-muted);
+    font-size: 11px;
+  }
+  .bm-dial__center {
+    position: absolute;
+    inset: 14%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2cqw;
+    text-align: center;
+  }
+  .bm-dial__center--stepper {
+    inset: 13%;
+  }
+  .bm-dial__reading {
+    font-size: 25cqw;
+    line-height: 1;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .bm-dial__unit {
+    margin-left: 0.12em;
+    font-size: 0.4em;
+    font-weight: 400;
+  }
+  .bm-dial__stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4px;
+  }
+  .bm-dial__stepper .bm-dial__reading {
+    font-size: 15cqw;
+  }
+  .bm-dial__label {
+    color: var(--ink-muted);
+    font-size: max(12px, 5.8cqw);
+    line-height: 1.25;
+  }
+  .bm-dial__readings {
+    display: flex;
+    gap: 6cqw;
+    font-size: max(13px, 6.6cqw);
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .bm-dial__detail {
+    margin-top: 1cqw;
+    font-size: max(12px, 5.8cqw);
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+  .bm-dial--asleep .bm-dial__rim {
+    opacity: 0.5;
+    filter: grayscale(1);
+  }
+  .bm-dial--asleep .bm-dial__reading {
+    color: var(--ink-muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bm-cta,
+  .bm-tile,
+  .bm-cta__progress,
+  .bm-gauge__mark,
+  .bm-dial__mark {
+    transition: none;
+  }
+}
+
+/* Segmented choices read as a row of tiles and never outgrow their card. */
+.join[role='group'] {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+.join[role='group'] > .join-item.btn {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 0;
+  border-radius: 14px;
+  padding-inline: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* A PRO mark sits under its label, like the two-line size tiles. */
+.join[role='group'] > .join-item.btn:has(sup) {
+  flex-direction: column;
+  gap: 0;
+  line-height: 16px;
+}
+.join[role='group'] > .join-item.btn sup {
+  position: static;
+  font-size: 10px;
+  line-height: 12px;
+}
+.join[role='group'] > .btn-outline,
+.join[role='group'] > .btn-neutral {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+/* Its dots are the whole glyph, so they need more weight than the line icons. */
+.bm-icon[data-icon='more-horizontal'] {
+  stroke-width: 3;
+}
+
+/* Touch targets retain their size in dense toolbars and on phones. */
+.btn {
+  min-height: 44px;
+  height: auto;
+  border-radius: 9999px;
+}
+.sidebar .btn {
+  border-radius: 14px;
+}
+.btn-circle,
+.btn-square {
+  min-width: 44px;
+}
+.btn-outline,
+.input,
+.select,
+.textarea {
+  border-color: var(--line-strong);
+}
+.menu :where(li > button, li > a) {
+  min-height: 44px;
+}
+.card:has(details[open]) {
+  position: relative;
+  overflow: visible;
+  z-index: 50;
+}
+
+@media (pointer: coarse) {
+  .analyzer-touch-control {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

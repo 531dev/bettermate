@@ -134,8 +134,8 @@ export function ProfileEdit() {
 
   return (
     <>
-      <div className='mb-4 flex flex-row items-center gap-2'>
-        <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
+      <div className='mb-3 flex flex-row items-center gap-2'>
+        <h2 className='bm-page-title flex-grow'>
           {params.id === 'new' ? 'Create Profile' : `Edit ${data.label}`}
         </h2>
         {data?.type === 'standard' && pressureAvailable.value && (

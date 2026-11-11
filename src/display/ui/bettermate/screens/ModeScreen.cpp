@@ -1,80 +1,152 @@
 #include "ModeScreen.h"
 
+#include <cmath>
 #include <cstdio>
 
 namespace bm {
 
 void ModeScreen::build(lv_obj_t *root) {
     buildFrame(root);
-    lv_obj_set_y(pairs, 265);
     const bool grind = kind == Kind::Grind;
-    caption = text(root, 0, 161, Type::Label, Fg::Muted, "TEMPERATURE");
-    hero = text(root, 0, 182, Type::Metric, Fg::Ink, "", 300);
-    lv_obj_set_height(hero, 78);
-    lv_obj_add_flag(hero, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_GESTURE_BUBBLE);
-    bind(hero, Intent::Menu);
-    hint = text(root, 0, 247, Type::Label, Fg::Muted);
-    button(root, 142, 374, 56, &bm_icon_minus_24, grind ? Intent::GrindDown : Intent::TempDown);
-    button(root, 338, 374, 56, &bm_icon_plus_24, grind ? Intent::GrindUp : Intent::TempUp);
-    if (kind == Kind::Steam) {
-        action = ui::fill(root, Bg::Heat, LV_RADIUS_CIRCLE);
-        lv_obj_set_size(action, 72, 72);
-        lv_obj_set_pos(action, 204, 346);
-        actionIcon = ui::icon(action, &bm_icon_wind_48, Fg::OnHeat);
-        lv_obj_center(actionIcon);
+    ui::setVisible(title, false);
+    if (grind) {
+        progressRim.build(content, luxury::Rim::Shape::Dial);
+        ui::setVisible(progressRim.arcObj(), false);
     } else {
-        action = button(root, 240, 382, 72, &bm_icon_play_48, grind ? Intent::ToggleGrind : Intent::ToggleWater, Bg::Primary,
-                        Fg::OnPrimary);
-        actionIcon = lv_obj_get_child(action, 0);
+        temperatureRim.build(content, luxury::Rim::Shape::Left);
+        pressureRim.build(content, luxury::Rim::Shape::Right);
+    }
+    indicators.build(content);
+    lv_obj_add_flag(indicators.warning, LV_OBJ_FLAG_CLICKABLE);
+    bind(indicators.warning, Intent::Warnings);
+
+    // The mode name alone; Steam and Water carry the live temperature under it.
+    lv_obj_set_width(modeLabel, LV_SIZE_CONTENT);
+    lv_obj_set_style_text_letter_space(modeLabel, 1, 0);
+    lv_obj_align(modeLabel, LV_ALIGN_TOP_MID, 0, 60);
+    ui::setText(modeLabel, kind == Kind::Steam ? "STEAM" : kind == Kind::Water ? "WATER" : "GRIND");
+    if (!grind) {
+        current = luxury::label(content, 0, 88, &bm_luxury_mode, "", 200);
+        currentReading.attach(current, 0, "°");
+    }
+
+    // The target between its −/+ on the panel's centre line; the smaller weight face centres there too.
+    auto *heroBox = ui::box(content);
+    lv_obj_set_size(heroBox, 250, 124);
+    lv_obj_set_pos(heroBox, 240 - 125, CENTER_Y - 62);
+    hero = luxury::label(heroBox, 0, 0, &bm_luxury_clock, "", 250);
+    lv_obj_align(hero, LV_ALIGN_CENTER, 0, 0);
+    reading.attach(hero, 0);
+    unit = luxury::label(content, 0, CENTER_Y + 64, &bm_luxury_detail, "", 200, 1);
+    nudge[0] = stepper(content, 76, CENTER_Y, "–", grind ? Intent::GrindDown : Intent::TempDown);
+    nudge[1] = stepper(content, 404, CENTER_Y, "+", grind ? Intent::GrindUp : Intent::TempUp);
+
+    if (kind != Kind::Steam) {
+        action = luxury::pill(content, 240, 392, 152, 56, "START");
+        bind(action, grind ? Intent::ToggleGrind : Intent::ToggleWater);
     }
     if (grind) {
-        scale = ui::row(root, 8);
-        lv_obj_set_size(scale, 190, 56);
-        lv_obj_set_style_radius(scale, LV_RADIUS_CIRCLE, 0);
-        lv_obj_set_flex_align(scale, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-        lv_obj_set_pos(scale, 145, 105);
-        lv_obj_add_flag(scale, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_GESTURE_BUBBLE);
-        ui::icon(scale, &bm_icon_scale_24, Fg::Ink);
-        weight = ui::label(scale, Type::MetricSm, Fg::Ink);
-        bind(scale, Intent::ToggleTarget);
-        bind(scale, Intent::Tare, LV_EVENT_LONG_PRESSED);
+        // Time or weight, as one quiet switch above the reading it selects.
+        targetSwitch = luxury::control(content, 240, 132, 200, 56);
+        auto *row = ui::row(targetSwitch, 10);
+        lv_obj_center(row);
+        switchTime = luxury::label(row, 0, 0, &bm_luxury_detail, "TIME", 0, 2);
+        switchDot = luxury::label(row, 0, 0, &bm_luxury_detail, "·");
+        switchWeight = luxury::label(row, 0, 0, &bm_luxury_detail, "WEIGHT", 0, 2);
+        bind(targetSwitch, Intent::ToggleTarget);
+        scale = luxury::control(content, 126, 392, 72, 56);
+        weight = luxury::label(scale, 0, 4, &bm_luxury_detail, "", 70);
+        luxury::label(scale, 0, 30, &bm_luxury_detail, "TARE", 0, 1);
+        bind(scale, Intent::Tare);
     }
 }
 
-void ModeScreen::update(const UiState &state) {
-    updateFrame(state);
-    char buf[48];
-    if (kind == Kind::Grind) {
-        ui::setText(modeLabel, "GRIND");
-        ui::setText(title, state.grindActive ? "Grinding" : "Set your dose");
-        ui::setText(caption, state.grindVolumetric ? "WEIGHT TARGET" : "TIME TARGET");
-        if (state.grindVolumetric)
-            snprintf(buf, sizeof(buf), "%.1f", state.grindWeight);
+void ModeScreen::onShow(const UiState &state) {
+    luxury::Instant now;
+    wasStable = state.temperatureStable;
+    update(state);
+}
+
+void ModeScreen::update(const UiState &s) {
+    const auto p = luxury::palette();
+    const bool grind = kind == Kind::Grind;
+    const bool steam = kind == Kind::Steam;
+    const bool active = grind ? s.grindActive : s.active;
+    updateFrame(s, true, steam);
+    indicators.update(s, false, false, active);
+    char buf[64];
+
+    // −/+ are offered only while a change can take effect.
+    const bool canAdjust = s.canWake && !(grind && active);
+    const bool ready = s.temperatureStable;
+
+    // The live temperature, which the rim also shows against its target notch
+    luxury::color(modeLabel, p.faint);
+    if (!grind) {
+        currentReading.set(s.currentTemp, luxury::MOTION_STATE);
+        luxury::color(current, p.ink);
+    }
+
+    // The target and its unit
+    lv_obj_set_style_text_font(hero, &bm_luxury_clock, 0);
+    if (grind) {
+        const bool volume = active ? s.activeGrindVolumetric : s.grindVolumetric;
+        if (volume)
+            snprintf(buf, sizeof(buf), "%.1f", active ? s.grindOutput : s.grindWeight);
         else
-            formatTime(state.grindDuration, buf, sizeof(buf));
+            formatTime(active ? (s.grindElapsed >= s.activeGrindDuration ? 0 : s.activeGrindDuration - s.grindElapsed)
+                              : s.grindDuration, buf, sizeof(buf));
+        // Weight targets reach 250 g; the 72 px face keeps them clear of the side controls.
+        if (volume)
+            lv_obj_set_style_text_font(hero, &bm_luxury_reading, 0);
         ui::setText(hero, buf);
-        ui::setText(hint, state.grindVolumetric ? "GRAMS · ADJUST BELOW" : "MIN:SEC · ADJUST BELOW");
-        ui::setVisible(scale, state.bluetoothScale);
-        snprintf(buf, sizeof(buf), "%.1f g", state.weight);
-        ui::setText(weight, buf);
-        ui::setBg(scale, state.grindVolumetric ? Bg::PrimarySoft : Bg::Surface2);
-        ui::setIcon(actionIcon, state.grindActive ? &bm_icon_stop_48 : &bm_icon_play_48);
-        enable(action, state.canWake);
+        ui::setText(unit, volume ? "g" : "");
+        luxury::fade(unit, volume);
+        const float progress = volume ? (s.activeGrindWeight > 0 ? s.grindOutput / s.activeGrindWeight : 0)
+                                      : (s.activeGrindDuration > 0 ? static_cast<float>(s.grindElapsed) / s.activeGrindDuration : 0);
+        progressRim.colors(p.line, p.accent, p.ink);
+        progressRim.set(active ? progress : 0, -1, active);
+        progressRim.show(active);
     } else {
-        const bool steam = kind == Kind::Steam;
-        ui::setText(modeLabel, steam ? "STEAM" : "WATER");
-        ui::setText(title,
-                    steam ? (state.active ? "Steaming" : "Heating automatically") : (state.active ? "Dispensing" : "Hot water"));
-        snprintf(buf, sizeof(buf), "%.1f", state.currentTemp);
-        ui::setText(hero, buf);
-        snprintf(buf, sizeof(buf), "%.0f °C TARGET · ADJUST BELOW", state.targetTemp);
-        ui::setText(hint, buf);
-        if (steam)
-            ui::setVisible(action, state.active);
-        else {
-            ui::setIcon(actionIcon, state.active ? &bm_icon_stop_48 : &bm_icon_play_48);
-            enable(action, state.canWake);
-        }
+        reading.set(s.targetTemp, luxury::MOTION_STATE);
+        ui::setText(unit, "TARGET °C");
+        temperatureRim.reshape(s.pressureAvailable ? luxury::Rim::Shape::Left : luxury::Rim::Shape::Dial);
+        temperatureRim.colors(p.line, p.accent, p.ink);
+        temperatureRim.set(luxury::rimFraction(s.currentTemp, luxury::RIM_MAX_TEMPERATURE),
+                           luxury::rimFraction(s.targetTemp, luxury::RIM_MAX_TEMPERATURE));
+        pressureRim.colors(p.line, p.accent, p.ink);
+        pressureRim.set(luxury::rimFraction(s.pressure, luxury::RIM_MAX_PRESSURE),
+                        active && s.targetPressure > 0.05f ? luxury::rimFraction(s.targetPressure, luxury::RIM_MAX_PRESSURE) : -1);
+        pressureRim.show(s.pressureAvailable);
+        if (ready && !wasStable)
+            temperatureRim.swell();
+    }
+    wasStable = ready;
+    luxury::color(hero, p.ink);
+    luxury::color(unit, p.muted);
+    for (auto *obj : nudge) {
+        luxury::border(obj, p.muted);
+        luxury::color(lv_obj_get_child(obj, 0), p.ink);
+        luxury::enabled(obj, canAdjust);
+    }
+
+    if (grind) {
+        const bool switchable = s.volumetricAvailable && !active;
+        luxury::fade(targetSwitch, switchable);
+        luxury::color(switchTime, s.grindVolumetric ? p.faint : p.ink);
+        luxury::color(switchWeight, s.grindVolumetric ? p.ink : p.faint);
+        luxury::color(switchDot, p.faint);
+        luxury::fade(scale, s.bluetoothScale && !active);
+        snprintf(buf, sizeof(buf), "%.1f g", s.weight);
+        ui::setText(weight, buf);
+        luxury::color(weight, p.ink);
+        luxury::color(lv_obj_get_child(scale, 1), p.accent);
+    }
+    if (action) {
+        ui::setText(lv_obj_get_child(action, 0), active ? "STOP" : "START");
+        luxury::border(action, p.accent);
+        luxury::color(lv_obj_get_child(action, 0), p.accent);
+        luxury::enabled(action, s.canWake);
     }
 }
 

@@ -61,9 +61,9 @@ export function MachineTab({ formData, onChange, setField }) {
   const [steamPumpDraft, setSteamPumpDraft] = useState(null);
 
   return (
-    <div className='space-y-4 sm:space-y-6 lg:grid lg:grid-cols-2 lg:gap-4'>
+    <div className='bm-groups'>
       {/* Machine Hardware Settings */}
-      <Section title='Machine Settings' className='h-full'>
+      <Section title='Machine Settings'>
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
           <InputGroupField
             label='PID Values'

@@ -320,7 +320,7 @@ export function SystemTab() {
   }
 
   return (
-    <div className='space-y-4 sm:space-y-6 lg:grid lg:grid-cols-2 lg:gap-4'>
+    <div className='bm-groups'>
       {/* Firmware updates channel */}
       <Section title='System Version & Updates' className='h-full'>
         <form ref={formRef} onSubmit={onSubmit} className='space-y-4'>
@@ -421,6 +421,27 @@ export function SystemTab() {
         rebuilt={rebuilt}
         rebuildProgress={rebuildProgress}
       />
+
+      <p className='px-2 pb-2 text-sm text-[var(--ink-muted)]'>
+        GaggiMate project:{' '}
+        <a
+          href='https://github.com/jniebuhr/gaggimate'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-primary'
+        >
+          GitHub
+        </a>
+        ,{' '}
+        <a
+          href='https://discord.gaggimate.eu/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='text-primary'
+        >
+          Discord
+        </a>
+      </p>
     </div>
   );
 }

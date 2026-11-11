@@ -42,6 +42,8 @@ IDE (CLion/VSCode) it shows up under the `display-sim` environment as the
 - **Interact** with the mouse (it acts as the touchscreen). Keys `1` and `2` press
   and release the brew and steam inputs of the controller board (hold both for
   the combined third button, hold one for a long press).
+  Hold the left mouse button and drag to swipe. After rebuilding, close and relaunch
+  the simulator: an already running window continues using the previous build.
 - **WebUI**: open <http://localhost:8080/> while it runs (port 80 is remapped to
   8080 so it needs no root). Live status streams over the WebSocket just like on
   the device. If 8080 is taken, set `SIM_HTTP_PORT=8090` for both the simulator
@@ -62,6 +64,12 @@ return navigation, and controller wake guards in isolated scratch directories:
 
 ```shell
 python3 scripts/verify_display_standby.py
+```
+
+Profile checks cover horizontal paging, momentum, list boundaries, tap selection, and the animated return to Brew across themes:
+
+```shell
+SDL_VIDEODRIVER=dummy python3 scripts/verify_display_profiles.py
 ```
 
 The scripted input verbs are documented in `sim/SimScript.h`. `expect screen`, `expect mode` and `expect active`
