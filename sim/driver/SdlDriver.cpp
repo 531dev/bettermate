@@ -8,9 +8,10 @@
 
 SdlDriver *SdlDriver::instance = nullptr;
 
-// The LilyGo T-RGB panel the default UI targets is 480x480.
-static constexpr int DISP_W = 480;
-static constexpr int DISP_H = 480;
+// The LilyGo T-RGB and Waveshare panels are 480 x 480. SIM_PANEL_SIZE=466 pretends to be one of the AMOLED
+// panels, to see how the 480 px design sits on it.
+static int DISP_W = 480;
+static int DISP_H = 480;
 
 static SDL_Window *s_window = nullptr;
 static SDL_Renderer *s_renderer = nullptr;
@@ -46,6 +47,8 @@ static void mouse_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
 }
 
 void SdlDriver::init() {
+    if (const char *size = getenv("SIM_PANEL_SIZE"); size != nullptr && atoi(size) >= 240 && atoi(size) <= 480)
+        DISP_W = DISP_H = atoi(size);
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         exit(1);

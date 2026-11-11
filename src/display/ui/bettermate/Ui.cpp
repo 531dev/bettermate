@@ -244,12 +244,22 @@ void reset() {
 // ---- parts --------------------------------------------------------------------------------------------------
 
 lv_obj_t *root() {
+    static lv_obj_t *stage = nullptr;
+    if (stage == nullptr) {
+        lv_obj_t *screen = lv_scr_act();
+        stage = bare(lv_obj_create(screen));
+        lv_obj_set_size(stage, tokens::DISPLAY_SIZE, tokens::DISPLAY_SIZE);
+        lv_obj_set_pos(stage, (lv_obj_get_width(screen) - tokens::DISPLAY_SIZE) / 2, (lv_obj_get_height(screen) - tokens::DISPLAY_SIZE) / 2);
+    }
+    return stage;
+}
+
+void paintFace() {
     lv_obj_t *screen = lv_scr_act();
     lv_obj_remove_style_all(screen);
     lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(screen, tone(Tone::Surface0), 0);
-    return screen;
 }
 
 lv_obj_t *text(lv_obj_t *parent, int cx, int baseline, Type type, Tone fg, const char *str, int width) {

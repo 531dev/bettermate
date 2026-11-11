@@ -26,6 +26,7 @@ class StandbyScreen : public Screen {
     lv_obj_t *wake = nullptr;
     unsigned long enteredAt = 0;
     int restStep = -2;
+    bool wasResting = false;
 };
 
 } // namespace bm

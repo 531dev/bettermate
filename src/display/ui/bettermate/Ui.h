@@ -10,10 +10,12 @@
 // recolouring it repaints its own box and nothing else.
 namespace bm::ui {
 
-// The one LVGL screen. Every screen puts its parts straight on it, so changing screen never repaints the panel:
-// only the parts that come and go are redrawn. (A full-panel container per screen would repaint all of it each
-// time it was shown or hidden.)
+// The stage every screen puts its parts on: the design's 480 px box, centred on the one LVGL screen (the AMOLED
+// panels are 466 px, so there it overhangs by 7 px a side). It is never shown, hidden or restyled, so changing
+// screen never repaints the panel: only the parts that come and go are redrawn.
 lv_obj_t *root();
+// Paints the LVGL screen itself in the theme's face color.
+void paintFace();
 
 // Text centred on cx with its baseline at y. Give a changing label a width sized for its longest value, so
 // a new digit redraws the same box every time; 0 sizes the box to the text.

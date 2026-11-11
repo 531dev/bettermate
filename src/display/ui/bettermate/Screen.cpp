@@ -6,7 +6,7 @@ namespace bm {
 
 void Screen::enter(const UiState &state) {
     if (root == nullptr) {
-        root = lv_scr_act();
+        root = ui::root();
         partCount = 0;
         bindingCount = 0;
         warningSlot = updateSlot = nullptr;

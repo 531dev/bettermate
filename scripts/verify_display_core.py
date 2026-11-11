@@ -61,4 +61,15 @@ light = sim.layout("light.json")
 checks.color(light.objects[0]["fill"], "#e9e9e9", "the Light theme paints the face in surface-0")
 sim.save("light.bmp", "docs/display/v2/core/brew-light.png")
 
+# An AMOLED panel rests after 30 s on Standby: only the clock stays, in ink-faint, and warnings with it.
+sim = Sim("core-rest")
+sim.run("wait 3500; panel amoled; redraw boot.json; wait 31500; redraw to-rest.json; layout rest.json; shot rest.bmp; tap 240 240; wait 700; expect screen menu; quit")
+checks.count(sim)
+rest = sim.layout("rest.json")
+checks.equal(rest.ring["layout"], "none", "the ring is dark at rest")
+checks.true(not rest.has("WAKE") and not any("Boiler" in t for t in rest.texts()), "only the clock stays lit at rest")
+checks.equal(len([o for o in rest.objects if o["kind"] == "reading"]), 1, "the clock is still there at rest")
+checks.at_most(max(sim.redraw("to-rest.json")), 25.0, "going to rest repaints at most a quarter of the panel in a frame")
+sim.save("rest.bmp", "docs/display/v2/core/standby-rest.png")
+
 checks.finish()

@@ -77,10 +77,11 @@ BetterMateUI::BetterMateUI(Controller *controller, Driver *driver, PluginManager
     }
 
     applyTheme();
-    lv_obj_t *root = bm::ui::root();
+    bm::ui::paintFace();
     // A tap that hits no control and a swipe anywhere go to the screen on the glass.
+    lv_obj_t *face = lv_scr_act();
     lv_obj_add_event_cb(
-        root,
+        face,
         [](lv_event_t *e) {
             auto *ui = static_cast<BetterMateUI *>(lv_event_get_user_data(e));
             if (ui->active != nullptr && ui->settle >= 3)
@@ -88,7 +89,7 @@ BetterMateUI::BetterMateUI(Controller *controller, Driver *driver, PluginManager
         },
         LV_EVENT_SHORT_CLICKED, this);
     lv_obj_add_event_cb(
-        root,
+        face,
         [](lv_event_t *e) {
             auto *ui = static_cast<BetterMateUI *>(lv_event_get_user_data(e));
             lv_indev_t *input = lv_indev_get_act();
@@ -100,7 +101,7 @@ BetterMateUI::BetterMateUI(Controller *controller, Driver *driver, PluginManager
                 ui->active->swiped(lv_indev_get_gesture_dir(input));
         },
         LV_EVENT_GESTURE, this);
-    tickRing.build(root);
+    tickRing.build(bm::ui::root());
 
     // Draw Standby before the backlight comes up, then start the task: everything it touches exists now.
     loop();
@@ -272,7 +273,7 @@ void BetterMateUI::applyTheme() {
     bm::ui::fx::reset();
     for (bm::Screen *screen : screens)
         screen->destroy();
-    bm::ui::root();
+    bm::ui::paintFace();
     leaving = nullptr;
     active->enter(state);
     for (unsigned rank = 0; rank < 3; ++rank)

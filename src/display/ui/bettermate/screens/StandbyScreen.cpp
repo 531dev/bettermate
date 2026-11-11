@@ -83,6 +83,7 @@ void StandbyScreen::build(lv_obj_t *root) {
 void StandbyScreen::onEnter(const UiState &state) {
     enteredAt = state.now;
     restStep = -2;
+    wasResting = false;
 }
 
 void StandbyScreen::update(const UiState &s) {
@@ -137,7 +138,10 @@ void StandbyScreen::update(const UiState &s) {
     show(wake, s.canWake && !status.busy && !resting);
     // Warnings stay visible through rest.
     updateException(s, true);
-    place(s, resting);
+    // The clock moves to the centre one snapshot after the rest of the screen has left: two small repaints
+    // instead of one over the budget.
+    place(s, resting && wasResting);
+    wasResting = resting;
 }
 
 void StandbyScreen::place(const UiState &s, bool resting) {
