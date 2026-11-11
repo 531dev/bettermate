@@ -59,22 +59,34 @@ IDE (CLion/VSCode) it shows up under the `display-sim` environment as the
 - **State** (settings, profiles, shot history) persists under `sim_data/`
   (git-ignored). Delete it to start fresh.
 
-BetterMate's Standby checks capture all three themes, 12-hour time, a scheduled wake, AMOLED rest and drift,
-return navigation, and controller wake guards in isolated scratch directories:
+### Scripted runs and checks
+
+`--script "<verbs>"` drives the simulator without a person at the mouse; the verbs are listed in `sim/SimScript.h`.
+Besides input (`tap`, `press`/`release`, `hold`, `swipe`, `key`) they change the machine (`mode`, `scale`, `weight`,
+`pressure-sensor`, `controller`, `error`, `protocol`, `autotune`, `update`, `wifi`, `panel`, `theme`), check it
+(`expect screen|mode|active|text|hidden|...`, which exit with status 3 when they fail) and record what is on the
+glass:
+
+- `shot <path>` writes a BMP of the frame;
+- `layout <path>` writes the screen, the ring (layout, lit ticks, notch, tone) and every visible object with its
+  text and colors, as JSON lines;
+- `redraw <path>` writes every repaint since the last `redraw` step with the pixels it redrew. The simulator renders
+  a frame in a millisecond or two, so time proves nothing here, but the redrawn share is exactly what the panel pays
+  for: `design/reference/motion.md` allows 25% of the panel in one step of a transition and 8% in continuous motion.
+
+Two environment variables help: `SIM_TRACE_FLUSH=1` prints every repainted rectangle, and `SIM_PANEL_SIZE=466` runs
+the 480 px design on a panel the size of the AMOLED boards.
+
+The display checks are Python scripts on `scripts/display_sim.py`, which runs each case headless in its own scratch
+directory:
 
 ```shell
-python3 scripts/verify_display_standby.py
+pio run -e display-sim
+for check in scripts/verify_display_*.py; do python3 "$check" || break; done
 ```
 
-Profile checks cover horizontal paging, momentum, list boundaries, tap selection, and the animated return to Brew across themes:
-
-```shell
-SDL_VIDEODRIVER=dummy python3 scripts/verify_display_profiles.py
-```
-
-The scripted input verbs are documented in `sim/SimScript.h`. `expect screen`, `expect mode` and `expect active`
-exit with status 3 if a navigation or process assertion fails. Fault injection affects the simulated controller only;
-its protocol version is 3, independent of the real controller protocol. Inspect the captured BMPs for visual checks.
+Fault injection affects the simulated controller only; its protocol version is 3, independent of the real
+controller protocol.
 
 ## 3. How it works
 
