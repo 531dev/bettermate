@@ -196,8 +196,9 @@ TickRing::Shown TickRing::shown() const {
             if (c & NOTCH)
                 s.notch[slot] = static_cast<int>(i);
             else if (lit(c)) {
-                ++s.lit[slot];
-                s.tone[slot] = static_cast<Tone>((c & 0x7f) - 1);
+                // The first lit tick carries the arc's tone; the last may be mid-pulse.
+                if (s.lit[slot]++ == 0)
+                    s.tone[slot] = static_cast<Tone>((c & 0x7f) - 1);
             }
         }
     }
