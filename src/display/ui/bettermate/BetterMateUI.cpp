@@ -464,6 +464,7 @@ void BetterMateUI::gatherProcess() {
     shot.active = process->isActive();
     shot.complete = process->isComplete();
     shot.volumetric = bp->target == ProcessTarget::VOLUMETRIC;
+    shot.utility = bp->isUtility();
     shot.profileName = bp->profile.label.c_str();
     shot.phaseType = bp->currentPhase.phase == PhaseType::PHASE_TYPE_BREW ? "BREW" : "INFUSION";
     shot.phaseName = shot.active                                                     ? bp->currentPhase.name.c_str()

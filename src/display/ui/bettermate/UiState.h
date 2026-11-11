@@ -98,6 +98,7 @@ struct UiState {
         bool complete = false;
         bool volumetric = false;
         bool phaseWeight = false;
+        bool utility = false; // a flush: it is not weighed, and it leaves the screen by itself
         std::string profileName;
         std::string phaseType;
         std::string phaseName;
