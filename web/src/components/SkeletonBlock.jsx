@@ -1,16 +1,7 @@
-import PropTypes from 'prop-types';
+import { cx } from './cx.js';
 
-export function SkeletonBlock({ className = '', style }) {
-  return (
-    <div
-      aria-hidden='true'
-      className={`shimmer${className ? ` ${className}` : ''}`}
-      style={style}
-    />
-  );
+// A still placeholder for content that has not arrived: size it with `className`. Nothing in the
+// design shimmers, and a reading that is merely late shows a dash instead of a block.
+export function SkeletonBlock({ className, style }) {
+  return <div aria-hidden='true' className={cx('bm-skeleton', className)} style={style} />;
 }
-
-SkeletonBlock.propTypes = {
-  className: PropTypes.string,
-  style: PropTypes.object,
-};

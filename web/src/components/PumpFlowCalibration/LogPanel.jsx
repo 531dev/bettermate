@@ -1,22 +1,22 @@
-// Intentionally themed as a terminal: neutral content stays readable on a
-// dark panel across all DaisyUI themes (light/dark/coffee/nord).
+import { Cell } from '../Tile.jsx';
 
-const LOG_TONE_CLASS = {
-  err: 'text-[var(--danger)]',
-  ok: 'text-[var(--success)]',
-  warn: 'text-[var(--warning)]',
+// The calibration's running log, in mono. Each tone has its word mark as well as its color.
+const LOG_TONE_COLOR = {
+  err: 'var(--danger)',
+  ok: 'var(--success)',
+  warn: 'var(--warning)',
 };
 
 const LOG_TONE_PREFIX = { err: '✗', ok: '✓', warn: '!' };
 
 export default function LogPanel({ logs }) {
   return (
-    <div className='bg-neutral text-neutral-content mt-4 max-h-48 overflow-auto rounded-md p-3 font-mono text-xs'>
+    <Cell className='bm-data max-h-48 gap-0 overflow-auto'>
       {logs.map(l => (
-        <div key={l.key} className={LOG_TONE_CLASS[l.tone] || ''}>
+        <div key={l.key} style={{ color: LOG_TONE_COLOR[l.tone] }}>
           {LOG_TONE_PREFIX[l.tone] || '›'} {l.msg}
         </div>
       ))}
-    </div>
+    </Cell>
   );
 }

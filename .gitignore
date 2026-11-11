@@ -16,3 +16,6 @@ src/display/webassets/
 sim_data/
 *.bmp
 .DS_Store
+# Agent worktrees and design-hook cache
+.claude/
+.impeccable/hook.cache.json

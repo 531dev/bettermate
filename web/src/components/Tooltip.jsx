@@ -3,13 +3,11 @@ import { createPortal } from 'preact/compat';
 import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom';
 
 /**
- * Tooltip component that renders in a portal with automatic positioning.
- * Uses Floating UI for edge detection and repositioning.
- *
- * @param {Object} props
- * @param {string} props.content - Tooltip text content
- * @param {preact.ComponentChildren} props.children - Trigger element
- * @param {'top'|'bottom'|'left'|'right'} [props.placement='top'] - Preferred placement
+ * A short ink label for a control, shown on hover and focus. It renders in a portal and flips or
+ * shifts to stay on screen.
+ *   content    the label's text
+ *   placement  'top' (default), 'bottom', 'left' or 'right'
+ *   disabled   never show it
  */
 export function Tooltip({ content, children, placement = 'top', disabled = false }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -28,6 +26,8 @@ export function Tooltip({ content, children, placement = 'top', disabled = false
     if (!isVisible || !triggerRef.current || !tooltipRef.current || disabled) return;
 
     const cleanup = autoUpdate(triggerRef.current, tooltipRef.current, () => {
+      // The observers can fire once more as the tooltip is removed.
+      if (!triggerRef.current || !tooltipRef.current) return;
       computePosition(triggerRef.current, tooltipRef.current, {
         placement,
         strategy: 'fixed',
@@ -60,7 +60,7 @@ export function Tooltip({ content, children, placement = 'top', disabled = false
       <div
         ref={tooltipRef}
         role='tooltip'
-        className='tooltip-portal'
+        className='bm-tooltip'
         data-placement={actualPlacement}
         style={{
           position: 'fixed',

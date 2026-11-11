@@ -1,30 +1,31 @@
+import { useConfirmAction } from '../hooks/useConfirmAction.js';
+import { Button } from './Button.jsx';
 import { Icon } from './Icon.jsx';
-import { useCallback, useState } from 'preact/hooks';
 import { Tooltip } from './Tooltip.jsx';
 
+/**
+ * A destructive icon button that asks once. The first press arms it and it says CONFIRM; the
+ * second runs `onAction`. Left alone, it disarms after four seconds.
+ *   icon                     the glyph, such as 'trash-2'
+ *   tooltip, confirmTooltip  its name before and after it is armed
+ *   btnSize                  'sm' (default) or 'md'
+ */
 export function ConfirmButton({ onAction, icon, tooltip, confirmTooltip, btnSize = 'sm' }) {
-  const [confirm, setConfirm] = useState(false);
-  const confirmOrAction = useCallback(() => {
-    if (confirm) {
-      onAction();
-      setConfirm(false);
-    } else {
-      setConfirm(true);
-    }
-  }, [confirm, setConfirm, onAction]);
+  const { armed, armOrRun } = useConfirmAction(4000);
+  const name = armed ? confirmTooltip : tooltip;
 
   return (
-    <Tooltip content={confirm ? confirmTooltip : tooltip}>
-      <button
-        onClick={() => {
-          confirmOrAction();
-        }}
-        className={`btn btn-ghost btn-${btnSize} cursor-pointer text-[var(--danger)] transition-colors ${confirm ? 'bg-error text-error-content font-semibold' : 'hover:bg-error/10 hover:text-[var(--danger)]'}`}
-        aria-label={confirm ? confirmTooltip : tooltip}
+    <Tooltip content={name}>
+      <Button
+        variant={armed ? 'danger' : undefined}
+        size={btnSize === 'sm' ? 'sm' : undefined}
+        iconOnly={!armed}
+        aria-label={name}
+        onClick={() => armOrRun(onAction)}
       >
-        <Icon name={icon} />
-        {confirm && <span className='ml-2 hidden sm:inline'>Confirm</span>}
-      </button>
+        <Icon name={icon} size={18} />
+        {armed && 'Confirm'}
+      </Button>
     </Tooltip>
   );
 }

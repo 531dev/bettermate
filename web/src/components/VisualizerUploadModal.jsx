@@ -1,5 +1,10 @@
-import { Icon } from './Icon.jsx';
 import { useState, useEffect } from 'preact/hooks';
+import { Button } from './Button.jsx';
+import { Checkbox, Field, Input } from './Field.jsx';
+import { Icon } from './Icon.jsx';
+import { Sheet } from './Sheet.jsx';
+import { Spinner } from './Spinner.jsx';
+import { Cell } from './Tile.jsx';
 
 export default function VisualizerUploadModal({
   isOpen,
@@ -69,132 +74,98 @@ export default function VisualizerUploadModal({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  const shotFacts = shotInfo && [
+    new Date(shotInfo.timestamp * 1000).toLocaleString(),
+    `${(shotInfo.duration / 1000).toFixed(1)} s`,
+    shotInfo.volume > 0 && `${shotInfo.volume} g`,
+  ];
 
   return (
-    <div className='bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4'>
-      <div className='max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white dark:bg-gray-800'>
-        <div className='p-6'>
-          <div className='mb-4 flex items-center justify-between'>
-            <h3 className='text-lg font-semibold'>Upload to Visualizer.coffee</h3>
-            {!isUploading && (
-              <button
-                onClick={handleClose}
-                className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-              >
-                ✕
-              </button>
-            )}
+    <Sheet
+      open={isOpen}
+      onClose={handleClose}
+      title='Upload to Visualizer'
+      dismissable={!isUploading}
+    >
+      {shotInfo && (
+        <Cell>
+          <span className='bm-field__label'>{shotInfo.profile}</span>
+          <span className='bm-data'>{shotFacts.filter(Boolean).join(' · ')}</span>
+        </Cell>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        className='flex flex-col gap-3'
+        name='visualizer-login'
+        method='post'
+      >
+        <Field label='Visualizer.coffee username'>
+          <Input
+            id='username'
+            name='username'
+            type='text'
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            disabled={isUploading}
+            autoComplete='username'
+            required
+            data-autofocus
+          />
+        </Field>
+
+        <Field label='Password' htmlFor='password'>
+          <div className='flex gap-2'>
+            <Input
+              id='password'
+              name='password'
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              disabled={isUploading}
+              autoComplete='current-password'
+              required
+              className='min-w-0 flex-1'
+            />
+            <Button
+              iconOnly
+              className='shrink-0'
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword(!showPassword)}
+              disabled={isUploading}
+            >
+              <Icon name={showPassword ? 'eye-off' : 'eye'} />
+            </Button>
           </div>
+        </Field>
 
-          {shotInfo && (
-            <div className='mb-4 rounded-md bg-gray-100 p-3 dark:bg-gray-700'>
-              <p className='text-sm text-gray-600 dark:text-gray-300'>
-                <strong>Shot:</strong> {shotInfo.profile}
-              </p>
-              <p className='text-sm text-gray-600 dark:text-gray-300'>
-                <strong>Date:</strong> {new Date(shotInfo.timestamp * 1000).toLocaleString()}
-              </p>
-              <p className='text-sm text-gray-600 dark:text-gray-300'>
-                <strong>Duration:</strong> {(shotInfo.duration / 1000).toFixed(1)}s
-              </p>
-              {shotInfo.volume > 0 && (
-                <p className='text-sm text-gray-600 dark:text-gray-300'>
-                  <strong>Yield:</strong> {shotInfo.volume}g
-                </p>
-              )}
-            </div>
-          )}
+        <Checkbox
+          id='remember'
+          checked={rememberCredentials}
+          onChange={e => setRememberCredentials(e.target.checked)}
+          disabled={isUploading}
+          label='Remember on this device'
+        />
+        <p className='bm-help'>
+          Your username and password are sent only for this upload. They stay in this browser if you
+          choose to remember them.
+        </p>
 
-          <form onSubmit={handleSubmit} className='space-y-4' name='visualizer-login' method='post'>
-            <div>
-              <label htmlFor='username' className='mb-1 block text-sm font-medium'>
-                Visualizer.coffee Username
-              </label>
-              <input
-                id='username'
-                name='username'
-                type='text'
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                disabled={isUploading}
-                className='w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-                placeholder='Enter your username'
-                autoComplete='username'
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor='password' className='mb-1 block text-sm font-medium'>
-                Password
-              </label>
-              <div className='relative'>
-                <input
-                  id='password'
-                  name='password'
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  disabled={isUploading}
-                  className='w-full rounded-md border border-gray-300 px-3 py-2 pr-10 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white'
-                  placeholder='Enter your password'
-                  autoComplete='current-password'
-                  required
-                />
-                <button
-                  type='button'
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isUploading}
-                  className='absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 disabled:opacity-50'
-                >
-                  <Icon name={showPassword ? 'search' : 'search'} />
-                </button>
-              </div>
-            </div>
-
-            <div className='flex items-center'>
-              <input
-                id='remember'
-                type='checkbox'
-                checked={rememberCredentials}
-                onChange={e => setRememberCredentials(e.target.checked)}
-                disabled={isUploading}
-                className='h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50'
-              />
-              <label htmlFor='remember' className='ml-2 text-sm text-gray-600 dark:text-gray-300'>
-                Remember credentials
-              </label>
-            </div>
-
-            <div className='flex justify-end space-x-3 pt-4'>
-              <button
-                type='button'
-                onClick={handleClose}
-                disabled={isUploading}
-                className='rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300 disabled:opacity-50 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500'
-              >
-                Cancel
-              </button>
-              <button
-                type='submit'
-                disabled={isUploading || !username.trim() || !password.trim()}
-                className='flex items-center space-x-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50'
-              >
-                {isUploading && <Icon name={'refresh-cw'} spin />}
-                <span>{isUploading ? 'Uploading...' : 'Upload Shot'}</span>
-              </button>
-            </div>
-          </form>
-
-          <div className='mt-4 text-xs text-gray-500 dark:text-gray-400'>
-            <p>
-              Your credentials are only used for this upload and will be stored locally only if you
-              choose to remember your username.
-            </p>
-          </div>
+        <div className='flex justify-end gap-2 pt-2'>
+          <Button onClick={handleClose} disabled={isUploading}>
+            Cancel
+          </Button>
+          <Button
+            type='submit'
+            variant='primary'
+            disabled={isUploading || !username.trim() || !password.trim()}
+          >
+            {isUploading && <Spinner size={4} />}
+            {isUploading ? 'Uploading' : 'Upload'}
+          </Button>
         </div>
-      </div>
-    </div>
+      </form>
+    </Sheet>
   );
 }

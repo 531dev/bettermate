@@ -13,12 +13,12 @@ function Wordmark({ className }) {
   return (
     <>
       <img
-        className={`bm-wordmark-light w-auto ${className}`}
+        className={`bm-wm bm-wm--light ${className}`}
         src='/bettermate-wordmark.svg'
         alt='BetterMate'
       />
       <img
-        className={`bm-wordmark-dark w-auto ${className}`}
+        className={`bm-wm bm-wm--dark ${className}`}
         src='/bettermate-wordmark-inverse.svg'
         alt='BetterMate'
       />

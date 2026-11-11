@@ -1,69 +1,63 @@
-import { Icon } from './Icon.jsx';
 import { useRef, useState } from 'preact/hooks';
+import { Button } from './Button.jsx';
+import { cx } from './cx.js';
+import { Field, Setting, Switch } from './Field.jsx';
+import { Icon } from './Icon.jsx';
 
-export function SettingsFormField({
-  label,
-  htmlFor,
-  helpText,
-  children,
-  className = '',
-  noMargin = false,
-}) {
+/**
+ * The earlier settings field API on the Field recipe: a label, the control passed as children
+ * (an Input, a Select), and help below. Spacing comes from the parent's gap, so `noMargin` is
+ * accepted and has nothing left to do.
+ */
+export function SettingsFormField({ label, htmlFor, helpText, children, className }) {
   return (
-    <div className={`form-control ${noMargin ? '' : 'mb-3'} ${className}`}>
-      <label htmlFor={htmlFor} className='mb-1 block text-sm font-medium'>
-        {label}
-      </label>
+    <Field label={label} htmlFor={htmlFor} help={helpText} as='div' className={className}>
       {children}
-      {helpText && <div className='mt-1 text-xs opacity-70'>{helpText}</div>}
-    </div>
+    </Field>
   );
 }
 
-export function InputGroupField({
-  label,
-  htmlFor,
-  unit,
-  unitAriaLabel,
-  helpText,
-  children,
-  noMargin = false,
-}) {
+/** A settings field whose bare `<input>` child shares one field with its unit. */
+export function InputGroupField({ label, htmlFor, unit, unitAriaLabel, helpText, children }) {
   return (
-    <div className={`form-control ${noMargin ? '' : 'mb-3'}`}>
-      <label htmlFor={htmlFor} className='mb-1 block text-sm font-medium'>
-        {label}
+    <Field label={label} htmlFor={htmlFor} help={helpText} as='div'>
+      <label htmlFor={htmlFor} className='bm-input bm-input--group'>
+        {children}
+        <span className='bm-data' aria-label={unitAriaLabel}>
+          {unit}
+        </span>
       </label>
-      <div className='input-group'>
-        <label htmlFor={htmlFor} className='input w-full'>
-          {children}
-          <span aria-label={unitAriaLabel}>{unit}</span>
-        </label>
-      </div>
-      {helpText && <div className='mt-1 text-xs opacity-70'>{helpText}</div>}
-    </div>
+    </Field>
   );
 }
 
+/**
+ * A setting that is on or off, as a Switch beside its label. `onChange` receives what a checkbox
+ * would send (`event.target.checked`), which is what the pages read.
+ */
 export function ToggleField({ label, htmlFor, checked, onChange, helpText }) {
+  const report = next => {
+    const target = { id: htmlFor, name: htmlFor, checked: next, value: 'on' };
+    onChange?.({ target, currentTarget: target });
+  };
+
   return (
-    <div className='form-control'>
-      <label htmlFor={htmlFor} className='label cursor-pointer'>
-        <span className='label-text text-sm font-medium'>{label}</span>
-        <input
-          id={htmlFor}
-          name={htmlFor}
-          type='checkbox'
-          className='toggle toggle-primary'
-          checked={checked}
-          onChange={onChange}
-        />
-      </label>
-      {helpText && <div className='mt-1 text-xs opacity-70'>{helpText}</div>}
-    </div>
+    <Setting label={label} help={helpText} htmlFor={htmlFor}>
+      <Switch id={htmlFor} name={htmlFor} checked={!!checked} onChange={report} />
+    </Setting>
   );
 }
 
+/**
+ * Two lists, shown and hidden, for choosing and ordering dashboard panels and readings: drag a
+ * row, or use its buttons.
+ *   order          ids of the visible items, in order
+ *   definitions    [{ id, label, required? }]: a required item cannot be removed
+ *   hidden         definitions that are not in `order`
+ *   onOrderChange(ids)
+ *   emptyMessage   shown when nothing is hidden
+ *   extraControls(definition)  more controls for a visible row
+ */
 export function SortableConfigurator({
   order,
   definitions,
@@ -124,14 +118,20 @@ export function SortableConfigurator({
     onOrderChange([...order, id]);
   };
 
+  // The line that shows where a dragged row will land.
+  const dropLine = 'var(--outline) solid var(--focus)';
+  const row = 'bm-cell min-h-14 flex-row items-center gap-2 py-2 pr-2 pl-3';
+
   return (
-    <div className='grid grid-cols-2 gap-3'>
-      <div>
-        <div className='mb-2 text-xs font-semibold tracking-wider uppercase opacity-50'>
-          Visible
-        </div>
+    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+      <div className='flex flex-col gap-2'>
+        <span className='bm-eyebrow'>Visible</span>
         <div
-          className={`flex flex-col gap-1 rounded-lg transition-all duration-200${draggingSource === 'available' ? 'bg-primary/5 ring-primary/40 ring-1' : ''}`}
+          className='flex flex-col gap-1'
+          style={{
+            borderRadius: 'var(--radius-lg)',
+            outline: draggingSource === 'available' ? dropLine : undefined,
+          }}
           onDragOver={e => e.preventDefault()}
           onDrop={e => {
             e.preventDefault();
@@ -180,48 +180,45 @@ export function SortableConfigurator({
                   onOrderChange(next);
                 }}
                 onDragEnd={endDrag}
-                className={[
-                  'border-base-content/10 bg-base-100 @container flex min-h-14 items-center gap-2 rounded-lg border px-2 py-1.5 transition-all duration-100',
-                  overPos === 'before' && 'border-t-primary border-t-2',
-                  overPos === 'after' && 'border-b-primary border-b-2',
-                  isDragging && 'opacity-40',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
+                className={cx(row, '@container', isDragging && 'opacity-(--disabled)')}
+                style={{
+                  borderTop: overPos === 'before' ? dropLine : undefined,
+                  borderBottom: overPos === 'after' ? dropLine : undefined,
+                }}
               >
-                <span className='text-base-content/20 cursor-grab select-none'>⠿</span>
-                <span className='flex-1 text-sm'>{def.label}</span>
+                <Icon name='menu' size={18} className='cursor-grab text-(--ink-faint)' />
+                <span className='min-w-0 flex-1'>{def.label}</span>
                 {extraControls?.(def)}
-                <div className='flex flex-col gap-px'>
-                  <button
-                    type='button'
-                    disabled={idx === 0}
-                    onClick={() => move(id, 'up')}
-                    className='btn btn-ghost btn-xs flex h-5 w-5 items-center justify-center rounded p-0'
-                  >
-                    <Icon name={'chevron-up'} className='h-2.5 w-2.5' />
-                  </button>
-                  <button
-                    type='button'
-                    disabled={idx === order.length - 1}
-                    onClick={() => move(id, 'down')}
-                    className='btn btn-ghost btn-xs flex h-5 w-5 items-center justify-center rounded p-0'
-                  >
-                    <Icon name={'chevron-down'} className='h-2.5 w-2.5' />
-                  </button>
-                </div>
-                {def.required ? (
-                  <div className='flex h-6 w-6 items-center justify-center'>
-                    <Icon name={'power'} className='text-base-content/20 h-3 w-3' />
-                  </div>
-                ) : (
-                  <button
-                    type='button'
+                <Button
+                  iconOnly
+                  size='sm'
+                  variant='outline'
+                  aria-label={`Move ${def.label} up`}
+                  disabled={idx === 0}
+                  onClick={() => move(id, 'up')}
+                >
+                  <Icon name='chevron-up' size={18} />
+                </Button>
+                <Button
+                  iconOnly
+                  size='sm'
+                  variant='outline'
+                  aria-label={`Move ${def.label} down`}
+                  disabled={idx === order.length - 1}
+                  onClick={() => move(id, 'down')}
+                >
+                  <Icon name='chevron-down' size={18} />
+                </Button>
+                {!def.required && (
+                  <Button
+                    iconOnly
+                    size='sm'
+                    variant='outline'
+                    aria-label={`Hide ${def.label}`}
                     onClick={() => remove(id)}
-                    className='btn btn-ghost btn-xs flex h-6 w-6 items-center justify-center rounded p-0 text-[var(--danger)]'
                   >
-                    <Icon name={'x'} className='h-3.5 w-3.5' />
-                  </button>
+                    <Icon name='x' size={18} />
+                  </Button>
                 )}
               </div>
             );
@@ -229,10 +226,8 @@ export function SortableConfigurator({
         </div>
       </div>
 
-      <div>
-        <div className='mb-2 text-xs font-semibold tracking-wider uppercase opacity-50'>
-          Hidden / Available
-        </div>
+      <div className='flex flex-col gap-2'>
+        <span className='bm-eyebrow'>Hidden</span>
         <div className='flex flex-col gap-1'>
           {hidden.map(def => (
             <div
@@ -240,20 +235,17 @@ export function SortableConfigurator({
               draggable
               onDragStart={e => startDrag(e, def.id, 'available')}
               onDragEnd={endDrag}
-              className={`border-base-content/10 bg-base-100 flex min-h-14 cursor-grab items-center gap-2 rounded-lg border px-2 py-1.5 transition-all duration-150${draggingId === def.id ? 'opacity-40' : ''}`}
+              className={cx(row, 'cursor-grab', draggingId === def.id && 'opacity-(--disabled)')}
             >
-              <span className='text-base-content/20 select-none'>⠿</span>
-              <span className='flex-1 text-sm'>{def.label}</span>
-              <button
-                type='button'
-                onClick={() => add(def.id)}
-                className='btn btn-ghost btn-xs border-base-content/20 border text-xs'
-              >
-                + Add
-              </button>
+              <Icon name='menu' size={18} className='text-(--ink-faint)' />
+              <span className='min-w-0 flex-1'>{def.label}</span>
+              <Button size='sm' variant='outline' onClick={() => add(def.id)}>
+                <Icon name='plus' size={18} />
+                Add
+              </Button>
             </div>
           ))}
-          {hidden.length === 0 && <p className='text-xs opacity-40'>{emptyMessage}</p>}
+          {hidden.length === 0 && <p className='bm-help'>{emptyMessage}</p>}
         </div>
       </div>
     </div>

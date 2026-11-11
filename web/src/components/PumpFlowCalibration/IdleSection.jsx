@@ -1,20 +1,22 @@
+import { Cell } from '../Tile.jsx';
+
 export default function IdleSection({ currentCoeffs }) {
   return (
-    <div className='space-y-3'>
-      <p className='text-sm text-[var(--ink-muted)]'>
-        Place a scale with a cup under the steam wand. Close the steam valve just enough so the
-        machine can reach the target pressure during each <em>Build</em> phase.
+    <>
+      <p className='bm-help'>
+        Place a scale with a cup under the steam wand. Close the steam valve just enough for the
+        machine to reach the target pressure during each <em>Build</em> phase.
       </p>
-      <div role='alert' className='alert alert-warning text-sm'>
+      <p role='alert' className='bm-notice bm-notice--warning'>
         <span>
-          During the shot, adjust the valve so pressure reaches 1 bar, then 9 bar. Keep it stable
-          during the <em>Measure</em> phases (10 s each).
+          During the shot, adjust the valve so the pressure reaches 1 bar, then 9 bar. Keep it
+          steady during the <em>Measure</em> phases (10 s each).
         </span>
-      </div>
-      <div className='rounded-md bg-[var(--surface-2)] p-3 text-sm'>
-        <strong>Current coefficients:</strong>{' '}
-        <span className='font-mono'>{currentCoeffs || '—'}</span>
-      </div>
-    </div>
+      </p>
+      <Cell>
+        <span className='bm-eyebrow'>Current coefficients</span>
+        <span className='bm-data text-(--ink)'>{currentCoeffs || '—'}</span>
+      </Cell>
+    </>
   );
 }

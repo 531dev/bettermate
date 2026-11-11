@@ -1,15 +1,13 @@
-export function PrimaryButton({ children, className = '', ...rest }) {
+import { Button } from '../Button.jsx';
+
+export function PrimaryButton({ children, ...rest }) {
   return (
-    <button type='button' className={`btn btn-primary ${className}`} {...rest}>
+    <Button variant='primary' {...rest}>
       {children}
-    </button>
+    </Button>
   );
 }
 
-export function SecondaryButton({ children, className = '', ...rest }) {
-  return (
-    <button type='button' className={`btn btn-ghost ${className}`} {...rest}>
-      {children}
-    </button>
-  );
+export function SecondaryButton({ children, ...rest }) {
+  return <Button {...rest}>{children}</Button>;
 }

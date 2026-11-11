@@ -1,9 +1,6 @@
-export function CardTitle({ children, className = '' }) {
-  return (
-    <h3
-      className={`font-mono text-[11px] leading-tight font-medium tracking-[0.1em] text-[var(--ink-muted)] uppercase ${className}`.trim()}
-    >
-      {children}
-    </h3>
-  );
+import { cx } from './cx.js';
+
+/** A mono label that heads a group inside a tile. */
+export function CardTitle({ children, className }) {
+  return <h3 className={cx('bm-eyebrow', className)}>{children}</h3>;
 }

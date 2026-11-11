@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "geist mono",
+        "createdAt": "2026-11-11T20:19:22.577Z",
+        "reason": "design system: the user's BetterMate v2 design system (design/tokens.json type.families.mono, design/reference/README.md Typography) sets Geist Mono for labels, units and data; this redesign implements that system as asked"
+      }
+    ]
+  }
+}

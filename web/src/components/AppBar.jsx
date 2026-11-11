@@ -1,14 +1,25 @@
-import PropTypes from 'prop-types';
 import { computed } from '@preact/signals';
 import { useLocation } from 'preact-iso';
-import { Icon } from './Icon.jsx';
 import { machine } from '../services/ApiService.js';
-import { urgentWarnings } from '../utils/warnings.js';
+import { activeWarnings } from '../utils/warnings.js';
+import { Icon } from './Icon.jsx';
+import { Wordmark } from './Wordmark.jsx';
 
-const warningCount = computed(() => {
-  const s = machine.value.status;
-  return s.mode === 0 ? 0 : urgentWarnings(s.warnings).length;
-});
+const BREW_MODE = 1;
+
+/**
+ * The warnings worth a mark on the page for the machine's mode: none in standby, the flush
+ * reminder only in Brew, and never the temperature reminder, which is active through every warm-up
+ * and is what the dial's ring and its HEATING Chip already say.
+ */
+export function shownWarnings(status) {
+  if (status.mode === 0) return [];
+  return activeWarnings(status.warnings).filter(
+    w => w.key !== 'temperature' && (w.key !== 'flush' || status.mode === BREW_MODE),
+  );
+}
+
+const warningCount = computed(() => shownWarnings(machine.value.status).length);
 
 // Detail pages step back to their list instead of opening the menu.
 const backTarget = path => {
@@ -18,59 +29,45 @@ const backTarget = path => {
   return null;
 };
 
-const iconButton =
-  'btn btn-ghost btn-circle text-base-content hover:bg-base-content/10 border-none';
-
-// Portrait phones only: menu or back on the left, the wordmark centered, exceptions on the right.
-export function AppBar({ onOpenNav }) {
+/**
+ * The top bar under 1024px: menu (or back, on a detail page), the wordmark, and a warning glyph
+ * only when a warning exists. It leads to the dashboard, which names the warning.
+ */
+export function AppBar({ onOpenNav, navOpen = false }) {
   const { path } = useLocation();
   const back = backTarget(path);
-  // The dashboard lists its warnings on the machine card, so the icon only points back from elsewhere.
-  const warnings = path === '/' ? 0 : warningCount.value;
+  const warnings = warningCount.value;
 
   return (
-    <header className='bm-appbar md:hidden landscape:hidden'>
+    <header className='bm-topbar'>
       {back ? (
-        <a href={back} aria-label='Back' className={iconButton}>
+        <a href={back} aria-label='Back' className='bm-topbar__btn'>
           <Icon name='arrow-left' />
         </a>
       ) : (
         <button
           type='button'
           aria-label='Open navigation'
-          className={iconButton}
+          aria-expanded={navOpen}
+          aria-controls='navigation'
+          className='bm-topbar__btn'
           onClick={onOpenNav}
         >
           <Icon name='menu' />
         </button>
       )}
       <a href='/' aria-label='BetterMate dashboard' className='justify-self-center'>
-        <img
-          className='bm-wordmark-light h-5 w-auto'
-          src='/bettermate-wordmark.svg'
-          alt='BetterMate'
-        />
-        <img
-          className='bm-wordmark-dark h-5 w-auto'
-          src='/bettermate-wordmark-inverse.svg'
-          alt='BetterMate'
-        />
+        <Wordmark />
       </a>
-      {warnings > 0 ? (
+      {warnings > 0 && (
         <a
           href='/'
           aria-label={`${warnings} active ${warnings === 1 ? 'warning' : 'warnings'}`}
-          className={`${iconButton} text-[var(--warning)]`}
+          className='bm-topbar__btn text-(--warning)'
         >
           <Icon name='triangle-alert' />
         </a>
-      ) : (
-        <span />
       )}
     </header>
   );
 }
-
-AppBar.propTypes = {
-  onOpenNav: PropTypes.func.isRequired,
-};

@@ -1,10 +1,10 @@
-import { Icon } from '../Icon.jsx';
+import { Spinner } from '../Spinner.jsx';
 import { PrimaryButton, SecondaryButton } from './Buttons.jsx';
 import { PHASE } from './constants.js';
 
 export default function Footer({ phase, saving, saved, connected, onClose, onStart, onApply }) {
   return (
-    <div className='mt-5 flex justify-end gap-3'>
+    <div className='flex flex-wrap justify-end gap-2'>
       {phase === PHASE.IDLE && (
         <>
           <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
@@ -19,16 +19,16 @@ export default function Footer({ phase, saving, saved, connected, onClose, onSta
       )}
       {(phase === PHASE.RUNNING || phase === PHASE.ANALYZING) && (
         <PrimaryButton disabled>
-          <Icon name={'refresh-cw'} spin />
-          {phase === PHASE.RUNNING ? 'Running shot...' : 'Analyzing...'}
+          <Spinner size={4} />
+          {phase === PHASE.RUNNING ? 'Running shot' : 'Analyzing'}
         </PrimaryButton>
       )}
       {phase === PHASE.DONE && !saved && (
         <>
           <SecondaryButton onClick={onClose}>Discard</SecondaryButton>
           <PrimaryButton onClick={onApply} disabled={saving}>
-            {saving && <Icon name={'refresh-cw'} spin />}
-            {saving ? 'Saving...' : 'Save to machine'}
+            {saving && <Spinner size={4} />}
+            {saving ? 'Saving' : 'Save to machine'}
           </PrimaryButton>
         </>
       )}

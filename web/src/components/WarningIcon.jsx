@@ -1,13 +1,6 @@
-import PropTypes from 'prop-types';
 import { Icon } from './Icon.jsx';
 
-// Warning keys resolve to the same pixel glyphs as the round display.
-export function WarningIcon({ icon, title, className = '' }) {
-  return <Icon name={icon} title={title} className={className} />;
+// A warning's glyph by its key in utils/warnings.js: the same glyphs the round display uses.
+export function WarningIcon({ icon, title, className, size }) {
+  return <Icon name={icon} title={title} className={className} size={size} />;
 }
-
-WarningIcon.propTypes = {
-  icon: PropTypes.string.isRequired,
-  title: PropTypes.string,
-  className: PropTypes.string,
-};

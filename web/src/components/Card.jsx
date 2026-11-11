@@ -1,3 +1,12 @@
+import { cx } from './cx.js';
+import { Tile } from './Tile.jsx';
+
+const BREAKPOINTS = ['', 'sm:', 'md:', 'lg:', 'xl:'];
+
+/**
+ * The earlier Card API on the Tile recipe: a tile with an optional title that spans grid columns
+ * per breakpoint (`xs`, `sm`, `md`, `lg`, `xl`, each 1 to 12). New code uses Tile.
+ */
 export default function Card({
   xs,
   sm,
@@ -6,42 +15,21 @@ export default function Card({
   xl,
   title,
   children,
-  className = '',
+  className,
   role,
   fullHeight = false,
 }) {
-  const getGridClasses = () => {
-    const breakpoints = [
-      { value: xs, prefix: '' },
-      { value: sm, prefix: 'sm:' },
-      { value: md, prefix: 'md:' },
-      { value: lg, prefix: 'lg:' },
-      { value: xl, prefix: 'xl:' },
-    ];
-
-    return breakpoints
-      .filter(bp => bp.value && bp.value >= 1 && bp.value <= 12)
-      .map(bp => `${bp.prefix}col-span-${bp.value}`)
-      .join(' ');
-  };
-
-  const gridClasses = getGridClasses();
+  const spans = [xs, sm, md, lg, xl].map(
+    (span, i) => span >= 1 && span <= 12 && `${BREAKPOINTS[i]}col-span-${span}`,
+  );
 
   return (
-    <div
-      className={`card bg-base-100 min-h-0 min-w-0 rounded-2xl ${gridClasses} ${fullHeight ? 'h-full' : ''} ${className}`}
+    <Tile
+      title={title}
       role={role}
+      className={cx('min-h-0', ...spans, fullHeight && 'h-full', className)}
     >
-      {title && (
-        <div className='card-header flex shrink-0 px-5 pt-4 max-sm:px-4'>
-          <h2 className='bm-group__title'>{title}</h2>
-        </div>
-      )}
-      <div
-        className={`card-body flex min-h-0 flex-col gap-3 p-5 max-sm:p-4 ${title ? 'pt-3 max-sm:pt-3' : ''} ${fullHeight ? 'flex-1' : ''}`}
-      >
-        {children}
-      </div>
-    </div>
+      {fullHeight ? <div className='flex min-h-0 flex-1 flex-col gap-3'>{children}</div> : children}
+    </Tile>
   );
 }

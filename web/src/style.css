@@ -1,22 +1,54 @@
 @import 'tailwindcss';
-@import './design/themes.css';
-@import './design/luxury.css';
-@plugin 'daisyui' {
-  themes: false;
-}
+@import './design/tokens.css';
+@import './design/bm.css' layer(components);
 
 @font-face {
-  font-family: 'Jost';
-  src: url('/fonts/Jost-Variable.woff2') format('woff2');
+  font-family: 'Funnel Display';
+  src: url('/fonts/FunnelDisplay-Variable.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono-Variable.woff2') format('woff2');
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
 }
+
+/* Tailwind lays the page out; the bm-* recipes and the tokens draw it. Its color, shadow and blur
+   scales are off, so a fill can only come from a recipe or a token: `text-(--ink-muted)`. Its
+   radius, easing and font keys read the tokens of the same name, and `sm` is the 600px step at
+   which tiles go to two columns (`lg`, 1024px, brings the sidebar and the twelve-column grid). */
 @theme {
-  --font-sans: 'Jost', system-ui, sans-serif;
-  /* Existing numeric utilities share Jost's tabular figures. */
-  --font-mono: 'Jost', system-ui, sans-serif;
+  --breakpoint-sm: 37.5rem;
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-out);
 }
+@theme inline reference {
+  --color-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --blur-*: initial;
+  --radius-*: initial;
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+  --ease-*: initial;
+  --ease-in: var(--ease-in);
+  --ease-out: var(--ease-out);
+  --font-*: initial;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* Card.jsx builds its grid spans from props, where the scanner cannot see them. */
+@source inline("{,sm:,md:,lg:,xl:}col-span-{1..12}");
 
 /* Analyzer/statistics keep their existing API and read the shared color tokens. */
 :root {
@@ -83,126 +115,34 @@
 }
 
 @layer base {
+  /* Native scrollbars, pickers and any control without a recipe follow the theme and the ink. */
+  [data-theme='light'] {
+    color-scheme: light;
+  }
+  [data-theme='dark'] {
+    color-scheme: dark;
+  }
+  :root {
+    accent-color: var(--ink);
+  }
   body {
     background: var(--surface-0);
     color: var(--ink);
+    font-family: var(--font-sans);
     font-size: 15px;
     line-height: 22px;
-    font-kerning: normal;
-    font-variant-numeric: lining-nums tabular-nums;
-  }
-  :focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-}
-@layer components {
-  h1,
-  h2,
-  h3 {
-    font-weight: 400;
-    letter-spacing: -0.015em;
-  }
-  .btn {
-    border-radius: 9999px;
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .sidebar .btn {
-    text-transform: none;
-    letter-spacing: 0;
-    font-size: 15px;
-    font-weight: 500;
-  }
-  .input,
-  .select,
-  .textarea {
-    background: var(--surface-2);
-    border-color: var(--line);
-  }
-  .input:focus-within,
-  .select:focus,
-  .textarea:focus {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-  .badge {
-    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  .badge:has(.bm-icon) {
-    min-height: 28px;
-    height: auto;
+  /* A 2px focus ring, 2px outside the control, on every surface. */
+  :focus-visible {
+    outline: var(--outline) solid var(--focus);
+    outline-offset: 2px;
   }
-  .text-success {
-    color: var(--success);
-  }
-  .text-warning {
-    color: var(--warning);
-  }
-  .text-error {
-    color: var(--danger);
-  }
-  .text-info {
-    color: var(--primary-text);
-  }
-  .bm-wordmark-dark {
-    display: none;
-  }
-  html[data-theme='dark'] .bm-wordmark-light {
-    display: none;
-  }
-  html[data-theme='dark'] .bm-wordmark-dark {
-    display: block;
-  }
-}
 
-/* Form utilities can otherwise override DaisyUI's component backgrounds. */
-.input,
-.select,
-.textarea {
-  background: var(--surface-2);
-  border-color: var(--line);
-}
-input[type='number'],
-input[type='range'] {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-@keyframes shimmer {
-  from {
-    background-position: -600px 0;
-  }
-  to {
-    background-position: 600px 0;
-  }
-}
-.shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--surface-1) 25%,
-    var(--surface-2) 50%,
-    var(--surface-1) 75%
-  );
-  background-size: 1200px 100%;
-  background-repeat: no-repeat;
-  animation: shimmer 1.8s linear infinite;
-  border-radius: 12px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .shimmer,
-  .bm-icon {
-    animation: none;
-  }
-}
-
-@source inline("{,sm:,md:,lg:,xl:}col-span-{1..12}");
-
-/* iOS Safari zooms focused text controls below 16px. Keep page zoom enabled
-   and raise only editable controls on touch-based iOS devices. */
-@layer base {
+  /* iOS Safari zooms focused text controls below 16px. Keep page zoom enabled
+     and raise only editable controls on touch-based iOS devices. */
   @supports (-webkit-touch-callout: none) {
     @media (hover: none) and (pointer: coarse) {
       input:not(
@@ -229,107 +169,23 @@ input[type='range'] {
   }
 }
 
-/* Portal-based tooltip styles (used by Tooltip.jsx) */
-.tooltip-portal {
-  @apply bg-neutral text-neutral-content rounded-md px-2 py-1 text-sm;
-  @apply pointer-events-none z-[9999];
-  @apply animate-[fadeIn_150ms_ease-out_forwards] opacity-0;
+/* Profiles: SortableJS and the drag handlers name these classes for the dragged rows and the
+   drop target. */
+.profile-list-drag-selected-item {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: -2px;
+}
+.profile-card-container.drop-highlight {
+  background: var(--surface-2);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@layer utilities {
-  .app-card-surface {
-    border: 0 solid transparent;
-    background: var(--color-base-100);
-  }
-
-  .profile-list-drag-selected-item {
-    @apply ring-primary/50 bg-primary/10 ring-2;
-  }
-  .profile-card-container.drop-highlight {
-    @apply bg-primary/10;
-  }
-  .scrollbar-none {
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-}
-
-/* Let a card host an open action dropdown without clipping it */
-.card:has(.action-dropdown-open) {
-  position: relative !important;
-  z-index: 50 !important;
-  overflow: visible !important;
-}
-
-/* ── Action dropdown transitions (fully decoupled from DaisyUI) ── */
-.action-dropdown {
-  display: inline-block;
-  position: relative;
-}
-
-/* Menu panel: always in the DOM, hidden via opacity+visibility+transform.
-   No display:none — that kills CSS transitions. */
-.action-dropdown .action-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 999;
-
-  /* Closed state */
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-4px);
-  pointer-events: none;
-
-  /* Exit: 120ms (~20% faster than entrance) */
-  transition:
-    transform 120ms cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 120ms cubic-bezier(0.23, 1, 0.32, 1),
-    visibility 120ms step-end;
-  transform-origin: top right;
-  will-change: transform, opacity;
-}
-
-/* Open state */
-.action-dropdown.action-dropdown-open .action-dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  pointer-events: auto;
-
-  /* Enter: 150ms */
-  transition:
-    transform 150ms cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 150ms cubic-bezier(0.23, 1, 0.32, 1),
-    visibility 150ms step-start;
-}
-
+/* Reduced motion removes every transition and animation, whatever declared it. */
 @media (prefers-reduced-motion: reduce) {
-  .action-dropdown .action-dropdown-menu {
-    transition: none;
+  *,
+  ::before,
+  ::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
   }
-}
-
-@custom-variant hmd {
-  @media (min-height: 429px) {
-    @slot;
-  }
-}
-
-/* Menus preserve the icons' pixel grid throughout their opacity transition. */
-.dropdown-content {
-  scale: 1;
 }

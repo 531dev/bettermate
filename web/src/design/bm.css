@@ -1,0 +1,1402 @@
+/* BetterMate v2 recipes for the web UI.
+
+   Part 1 is the product classes of design/reference/components/bundle.css, unchanged in name and
+   value: only the preview scaffolding and the round display's drawing classes are left out, and the
+   tick classes stay for the web dial's ring. Re-import the design before changing anything there.
+   Parts 2 and 3 are what the app needs beyond the reference. Every value is a token of tokens.css.
+
+   style.css imports this file into Tailwind's `components` layer, so a layout utility on the same
+   element wins over a recipe. */
+
+/* ==========================================================================
+   Part 1. Reference recipes
+   ========================================================================== */
+
+.bm-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Text helpers */
+.bm-eyebrow {
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.bm-title {
+  margin: 0;
+  font: 600 28px/32px var(--font-sans);
+  letter-spacing: -0.02em;
+}
+.bm-heading {
+  margin: 0;
+  font: 600 20px/26px var(--font-sans);
+  letter-spacing: -0.01em;
+}
+.bm-sub {
+  margin: 0;
+  font: 600 16px/22px var(--font-sans);
+}
+.bm-help {
+  margin: 0;
+  font: 400 13px/18px var(--font-sans);
+  color: var(--ink-muted);
+}
+.bm-data {
+  font: 400 13px/18px var(--font-mono);
+  color: var(--ink-muted);
+}
+.bm-link {
+  color: var(--primary-text);
+  font: 500 14px/20px var(--font-sans);
+  text-decoration: none;
+}
+.bm-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Button */
+.bm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--control-md);
+  padding: 0 20px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 600 13px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+.bm-btn:active {
+  transform: scale(0.97);
+}
+.bm-btn:focus-visible,
+.bm-seg__item:focus-visible,
+.bm-modebar__item:focus-visible,
+.bm-stepper__btn:focus-visible,
+.bm-switch:focus-visible,
+.bm-cta:focus-visible {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: 2px;
+}
+.bm-btn--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.bm-btn--primary:hover {
+  background: var(--primary-hover);
+}
+.bm-btn--ink {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.bm-btn--outline {
+  background: none;
+  border: var(--hairline) solid var(--line-strong);
+}
+.bm-btn--ghost {
+  background: none;
+  padding: 0 8px;
+  color: var(--primary-text);
+}
+.bm-btn--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.bm-btn--sm {
+  height: var(--control-sm);
+  padding: 0 14px;
+  font-size: 12px;
+}
+.bm-btn--lg {
+  height: var(--control-lg);
+  padding: 0 28px;
+  font-size: 15px;
+}
+.bm-btn--icon {
+  width: var(--control-md);
+  padding: 0;
+}
+.bm-btn--block {
+  display: flex;
+  width: 100%;
+}
+.bm-btn[disabled] {
+  opacity: var(--disabled);
+  cursor: default;
+  transform: none;
+}
+
+/* Action banner: the one cobalt thing on a view */
+.bm-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: var(--banner);
+  padding: 14px 14px 14px 22px;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--primary);
+  color: var(--on-primary);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+.bm-cta:hover {
+  background: var(--primary-hover);
+}
+.bm-cta:active {
+  transform: scale(0.985);
+}
+.bm-cta__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bm-cta__label {
+  font: 600 16px/20px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.bm-cta__sub {
+  font: 400 13px/18px var(--font-sans);
+  opacity: 0.86;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bm-cta__disc {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.bm-cta--stop,
+.bm-cta--stop:hover {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.bm-cta--stop .bm-cta__disc {
+  background: var(--on-ink);
+  color: var(--ink);
+}
+.bm-cta .bm-segbar {
+  height: 6px;
+  margin-top: 8px;
+  color: currentColor;
+}
+.bm-cta .bm-segbar i {
+  max-width: none;
+  background: currentColor;
+  opacity: 0.28;
+}
+.bm-cta .bm-segbar i.on {
+  opacity: 1;
+}
+
+/* Tile, cell, stat */
+.bm-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--surface-1);
+}
+.bm-tile--heat {
+  background: var(--heat-soft);
+}
+.bm-tile--primary {
+  background: var(--primary-soft);
+}
+.bm-tile__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+}
+.bm-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.bm-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.bm-stat__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.bm-stat__value {
+  font: 500 40px/44px var(--font-sans);
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum';
+}
+.bm-stat__unit {
+  align-self: flex-start;
+  margin-top: 5px;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.bm-stat__target {
+  margin-bottom: 6px;
+  font: 500 15px/20px var(--font-mono);
+  color: var(--ink-muted);
+}
+.bm-stat--sm .bm-stat__value {
+  font-size: 24px;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+}
+.bm-stat--sm .bm-stat__unit {
+  margin-top: 2px;
+}
+.bm-stat--sm .bm-stat__target {
+  margin-bottom: 3px;
+  font-size: 13px;
+}
+
+/* Chip */
+.bm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 600 11px/14px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.bm-chip--ink {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.bm-chip--heat {
+  background: var(--heat-soft);
+  color: var(--heat-text);
+}
+.bm-chip--primary {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+.bm-chip--success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.bm-chip--warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.bm-chip--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.bm-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Segment bar and dot matrix: every quantity is drawn in discrete marks */
+.bm-segbar {
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  height: 20px;
+  color: var(--ink);
+}
+.bm-segbar i {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 6px;
+  border-radius: 2px;
+  background: var(--track);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.bm-segbar i.on {
+  background: currentColor;
+}
+.bm-segbar i.target::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -6px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+.bm-segbar--heat {
+  color: var(--heat);
+}
+.bm-segbar--primary {
+  color: var(--primary);
+}
+.bm-segbar--flow {
+  color: var(--flow);
+}
+.bm-segbar--weight {
+  color: var(--weight);
+}
+.bm-segbar--fill i {
+  max-width: none;
+}
+.bm-dots {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 20), 1fr);
+  gap: 3px;
+  color: var(--ink);
+}
+.bm-dots i {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--track);
+}
+.bm-dots i.on {
+  background: currentColor;
+}
+
+/* Segmented control: selection is ink, never cobalt */
+.bm-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.bm-seg--on-tile {
+  background: var(--surface-0);
+}
+.bm-seg--block {
+  display: flex;
+}
+.bm-seg--block .bm-seg__item {
+  flex: 1;
+}
+.bm-seg__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink-muted);
+  font: 500 14px/20px var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+.bm-seg__item[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* Mode bar: the machine's modes, floating over the page */
+.bm-modebar {
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+}
+.bm-modebar__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 60px;
+  height: 52px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink-muted);
+  font: 500 11px/14px var(--font-sans);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+.bm-modebar__item[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.bm-modebar__item[disabled] {
+  opacity: var(--disabled);
+}
+
+/* Stepper */
+.bm-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.bm-stepper__btn {
+  display: grid;
+  place-items: center;
+  width: var(--control-md);
+  height: var(--control-md);
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.bm-stepper__btn:active {
+  transform: scale(0.92);
+}
+.bm-stepper__value {
+  min-width: 60px;
+  text-align: center;
+  font: 500 24px/28px var(--font-sans);
+  letter-spacing: -0.01em;
+  font-feature-settings: 'tnum';
+}
+.bm-stepper--on-cell .bm-stepper__btn {
+  background: var(--surface-1);
+}
+
+/* List row */
+.bm-list {
+  display: flex;
+  flex-direction: column;
+}
+.bm-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 0;
+  border-top: var(--hairline) solid var(--line);
+  color: inherit;
+  text-decoration: none;
+}
+.bm-item:first-child {
+  border-top: 0;
+}
+.bm-item__icon {
+  display: grid;
+  place-items: center;
+  width: var(--space-10);
+  height: var(--space-10);
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+}
+.bm-item__body {
+  flex: 1;
+  min-width: 0;
+}
+.bm-item__title {
+  font: 500 15px/20px var(--font-sans);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bm-item__meta {
+  font: 400 13px/18px var(--font-mono);
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bm-item__end {
+  flex-shrink: 0;
+  text-align: right;
+  font: 400 13px/18px var(--font-mono);
+  color: var(--ink-muted);
+}
+.bm-item[aria-current='true'] .bm-item__icon {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* Field, input, switch */
+.bm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.bm-field__label {
+  font: 500 13px/18px var(--font-sans);
+}
+.bm-input {
+  width: 100%;
+  height: var(--control-md);
+  padding: 0 14px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 400 15px/22px var(--font-sans);
+}
+.bm-input::placeholder {
+  color: var(--ink-faint);
+}
+.bm-input:focus {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: 1px;
+}
+.bm-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--line-strong);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.bm-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+.bm-switch[aria-checked='true'] {
+  background: var(--ink);
+}
+.bm-switch[aria-checked='true']::after {
+  background: var(--on-ink);
+  transform: translateX(20px);
+}
+.bm-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+}
+
+/* Sidebar nav */
+.bm-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bm-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--control-md);
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+  font: 500 15px/22px var(--font-sans);
+  text-decoration: none;
+}
+.bm-nav__item[aria-current='page'] {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/* Stage track: the phases of a shot */
+.bm-stages {
+  display: flex;
+  gap: 6px;
+}
+.bm-stages__step {
+  flex: var(--w, 1) 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.bm-stages__bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--track);
+  overflow: hidden;
+}
+.bm-stages__bar i {
+  display: block;
+  width: var(--p, 0%);
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ink);
+}
+.bm-stages__name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 500 11px/14px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bm-stages__step.is-now .bm-stages__name {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Web dial: the display's ring, scaled, with HTML in the middle */
+.bm-dial {
+  position: relative;
+  width: min(100%, 264px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+.bm-dial > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.bm-dial__center {
+  position: absolute;
+  inset: 13%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
+}
+.bm-dial__value {
+  font: 500 64px/64px var(--font-sans);
+  letter-spacing: -0.03em;
+  font-feature-settings: 'tnum';
+}
+.bm-dial__plan {
+  margin-top: 6px;
+  font: 400 13px/18px var(--font-sans);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* Wordmark: two files, one per ground */
+.bm-wm {
+  display: block;
+  height: 20px;
+  width: auto;
+}
+.bm-wm--dark {
+  display: none;
+}
+[data-theme='dark'] .bm-wm--light,
+[data-theme='amoled'] .bm-wm--light {
+  display: none;
+}
+[data-theme='dark'] .bm-wm--dark,
+[data-theme='amoled'] .bm-wm--dark {
+  display: block;
+}
+
+/* Tick ring: the display's ring, drawn as SVG lines in a 480 box */
+.bmf-tick {
+  stroke: var(--track);
+  stroke-width: 6;
+  stroke-linecap: round;
+  fill: none;
+}
+.bmf-tick.heat {
+  stroke: var(--heat);
+}
+.bmf-tick.heat-soft {
+  stroke: var(--heat-soft);
+}
+.bmf-tick.primary {
+  stroke: var(--primary);
+}
+.bmf-tick.ink {
+  stroke: var(--ink);
+}
+.bmf-tick.faint {
+  stroke: var(--ink-faint);
+}
+.bmf-tick.notch {
+  stroke: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bm-btn,
+  .bm-cta,
+  .bm-seg__item,
+  .bm-modebar__item,
+  .bm-stepper__btn,
+  .bm-switch,
+  .bm-switch::after,
+  .bm-segbar i {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Part 2. What the app needs beyond the reference: states and recipes the
+   design text names without drawing. Tokens only; no shadow, gradient or blur.
+   ========================================================================== */
+
+/* Disabled: the whole control takes `disabled` opacity, and neither hovers nor presses. */
+.bm-cta[disabled],
+.bm-seg__item[disabled],
+.bm-stepper__btn[disabled],
+.bm-switch[disabled],
+.bm-input:disabled,
+.bm-textarea:disabled,
+.bm-select > select:disabled {
+  opacity: var(--disabled);
+  cursor: default;
+}
+.bm-cta[disabled],
+.bm-stepper__btn[disabled] {
+  transform: none;
+}
+.bm-btn--primary[disabled],
+.bm-cta[disabled] {
+  background: var(--primary);
+}
+.bm-cta--stop[disabled] {
+  background: var(--ink);
+}
+.bm-modebar__item[disabled] {
+  cursor: default;
+}
+
+/* An icon button stays round at each size. */
+.bm-btn--icon.bm-btn--sm {
+  width: var(--control-sm);
+}
+.bm-btn--icon.bm-btn--lg {
+  width: var(--control-lg);
+}
+
+/* Segmented control as tabs or links: they mark the selection with their own state. */
+.bm-seg__item[aria-selected='true'],
+.bm-seg__item[aria-current='page'] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+/* More items than the row holds: the track scrolls sideways instead of wrapping. */
+.bm-seg--scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.bm-seg--scroll::-webkit-scrollbar {
+  display: none;
+}
+.bm-seg--scroll .bm-seg__item {
+  flex-shrink: 0;
+}
+
+/* Dial: ticks recolour in duration-fast. The reading snaps. */
+.bm-dial .bmf-tick {
+  transition: stroke var(--duration-fast) var(--ease-out);
+}
+
+/* Action banner on the desktop grid: it fills its row and sets its label at the bottom left. */
+@media (min-width: 1024px) {
+  .bm-cta--stretch {
+    align-items: flex-end;
+    height: 100%;
+    padding: 20px;
+  }
+  .bm-cta--stretch .bm-cta__label {
+    font-size: 20px;
+    line-height: 24px;
+  }
+}
+
+/* List row as a button, and a row that ends in its own control (a menu), which a link cannot hold:
+   the target becomes `.bm-item__main` and the control follows it. */
+button.bm-item {
+  width: 100%;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.bm-item__main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  align-self: stretch;
+  gap: 12px;
+  min-width: 0;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Select: the input recipe on a native select, with the chevron glyph as its arrow. */
+.bm-select {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+.bm-select > select {
+  appearance: none;
+  width: 100%;
+  height: var(--control-md);
+  padding: 0 40px 0 14px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 400 15px/22px var(--font-sans);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.bm-select > select:focus {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: 1px;
+}
+.bm-select > .bm-icon {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  margin-top: -9px;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+/* Textarea: the input recipe at several lines. */
+.bm-textarea {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 14px;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 400 15px/22px var(--font-sans);
+  resize: vertical;
+}
+.bm-textarea::placeholder {
+  color: var(--ink-faint);
+}
+.bm-textarea:focus {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* An input with its unit in one field: `label.bm-input.bm-input--group > input + span.bm-data`. */
+.bm-input--group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bm-input--group:focus-within {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: 1px;
+}
+.bm-input--group > input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  outline: 0;
+}
+.bm-input--group > input::placeholder {
+  color: var(--ink-faint);
+}
+
+/* Checkbox and radio: a native input over a drawn box. Checked is an ink fill with on-ink. */
+.bm-checkbox,
+.bm-radio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch-min);
+  font: 400 15px/22px var(--font-sans);
+  cursor: pointer;
+}
+.bm-checkbox > input,
+.bm-radio > input {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.bm-checkbox__box,
+.bm-radio__box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: var(--hairline) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+.bm-radio__box {
+  border-radius: 50%;
+}
+.bm-radio__box::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+input:checked + .bm-checkbox__box,
+input:checked + .bm-radio__box {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+input:focus-visible + .bm-checkbox__box,
+input:focus-visible + .bm-radio__box {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: 2px;
+}
+input:disabled + .bm-checkbox__box,
+input:disabled + .bm-radio__box {
+  opacity: var(--disabled);
+}
+
+/* Table: facts in mono rows, divided by hairlines like a list. Headers are eyebrows. */
+.bm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 13px/18px var(--font-mono);
+  font-feature-settings: 'tnum';
+  text-align: left;
+}
+.bm-table th {
+  padding: 8px 12px;
+  font: 500 12px/16px var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  text-align: inherit;
+  white-space: nowrap;
+}
+.bm-table td {
+  padding: 10px 12px;
+  border-top: var(--hairline) solid var(--line);
+}
+.bm-table th:first-child,
+.bm-table td:first-child {
+  padding-left: 0;
+}
+.bm-table th:last-child,
+.bm-table td:last-child {
+  padding-right: 0;
+}
+
+/* Notice: a status row inside a tile. The words carry the meaning; the soft ground supports them. */
+.bm-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 400 13px/18px var(--font-sans);
+}
+.bm-notice--warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.bm-notice--danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.bm-notice--success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+/* Tooltip: an ink label that fades in. */
+.bm-tooltip {
+  z-index: 80;
+  max-width: min(280px, calc(100vw - 16px));
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 400 13px/18px var(--font-sans);
+  pointer-events: none;
+  animation: bm-fade var(--duration-base) var(--ease-out);
+}
+@keyframes bm-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Busy: the display's comet. Three lit ticks step round a small ring, one tick at a time. */
+.bm-spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.bm-spinner path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  opacity: 0.28;
+}
+.bm-spinner .bm-spinner__comet {
+  opacity: 1;
+  transform-origin: 12px 12px;
+  animation: bm-comet calc(var(--duration-fast) * 12) steps(12) infinite;
+}
+@keyframes bm-comet {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Placeholder for content that has not arrived: an empty cell. It does not shimmer. */
+.bm-skeleton {
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+/* Sheets and menus enter with opacity and a 16px rise in duration-base on ease-out, and leave in
+   duration-fast on ease-in. `.is-open` is the entered state; the scrim behind a sheet fades with it. */
+.bm-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-in);
+}
+.bm-scrim.is-open {
+  opacity: 1;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+.bm-sheet,
+.bm-menu {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity var(--duration-fast) var(--ease-in),
+    transform var(--duration-fast) var(--ease-in);
+}
+.bm-sheet.is-open,
+.bm-menu.is-open {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+.bm-sheet {
+  position: fixed;
+  z-index: 61;
+  right: 0;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(calc(100% - 24px), 440px);
+  max-height: calc(100dvh - 24px);
+  margin: 0 auto;
+  padding: var(--space-5);
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  background: var(--surface-1);
+}
+@media (min-width: 600px) {
+  .bm-sheet {
+    top: 0;
+    bottom: 0;
+    height: fit-content;
+    margin: auto;
+  }
+}
+.bm-menu {
+  position: fixed;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 200px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 6px;
+  overflow-y: auto;
+  border: var(--hairline) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.bm-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--control-md);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--ink);
+  font: 500 15px/22px var(--font-sans);
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.bm-menu__item:hover,
+.bm-menu__item:focus-visible {
+  background: var(--surface-1);
+}
+.bm-menu__item--danger {
+  color: var(--danger);
+}
+.bm-menu__item[disabled] {
+  opacity: var(--disabled);
+  cursor: default;
+}
+
+/* The page's one primary Button, pinned at the bottom of a form on a band of the page ground. */
+.bm-pinned {
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  background: var(--surface-0);
+}
+.bm-pinned::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface-0);
+}
+
+/* ==========================================================================
+   Part 3. The shell: Web UI, Shell. One column under 600px, two columns of
+   tiles to 1023px, a sidebar tile and twelve columns from 1024px.
+   ========================================================================== */
+
+/* Bento grid for a page's tiles. Span columns with Tailwind: `lg:col-span-5 lg:row-span-2`. */
+.bm-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+@media (min-width: 600px) {
+  .bm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .bm-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+}
+
+/* The scrolling page: 12px gutters, content up to content-max, and room under the last tile
+   for the floating mode bar. */
+.bm-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: calc(var(--content-max) + 24px);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: var(--space-2) max(12px, env(safe-area-inset-right))
+    calc(12px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+.bm-page--modebar {
+  padding-bottom: calc(var(--space-16) + 24px + env(safe-area-inset-bottom));
+}
+
+/* Top bar: menu, wordmark, and a warning glyph only when a warning exists. */
+.bm-topbar {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: var(--touch-min) 1fr var(--touch-min);
+  align-items: center;
+  padding: max(12px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0
+    max(10px, env(safe-area-inset-left));
+}
+.bm-topbar__btn {
+  display: grid;
+  place-items: center;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  border-radius: 50%;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* Sidebar: a tile beside the page from 1024px, the menu opened from the top bar below that. */
+.bm-sidebar {
+  gap: 0;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+.bm-sidebar__brand {
+  display: block;
+  padding: 6px 8px 20px;
+}
+.bm-sidebar__credit {
+  margin-top: auto;
+  padding: 20px 8px 0;
+}
+.bm-sidebar__credit .bm-link {
+  font-size: 13px;
+}
+@media (min-width: 1024px) {
+  .bm-page {
+    padding-top: 12px;
+  }
+  .bm-topbar {
+    display: none;
+  }
+  .bm-sidebar {
+    flex-shrink: 0;
+    width: var(--sidebar);
+    margin: 12px 0 12px 12px;
+  }
+}
+@media (max-width: 1023.98px) {
+  .bm-sidebar {
+    position: fixed;
+    z-index: 61;
+    top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    width: min(var(--sidebar), calc(100% - 24px));
+    max-height: calc(100dvh - 24px);
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity var(--duration-fast) var(--ease-in),
+      transform var(--duration-fast) var(--ease-in),
+      visibility 0s linear var(--duration-fast);
+  }
+  .bm-sidebar.is-open {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+  }
+}
+
+/* The mode bar floats 12px above the bottom edge and the safe area, at most 400px wide. Beside
+   the sidebar it floats 12px above the tiles' bottom line instead, as the desktop reference has it. */
+.bm-modebar--float {
+  position: absolute;
+  z-index: 40;
+  right: 0;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 0;
+  width: min(calc(100% - 24px), 400px);
+  margin: 0 auto;
+}
+@media (min-width: 1024px) {
+  .bm-modebar--float {
+    bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  .bm-page--modebar {
+    padding-bottom: calc(var(--space-16) + 32px + env(safe-area-inset-bottom));
+  }
+}
+/* Five modes still fit a 320px phone. */
+@media (max-width: 359.98px) {
+  .bm-modebar--float .bm-modebar__item {
+    min-width: 0;
+    padding: 0 2px;
+  }
+}
+
+/* Reduced motion removes every transition, rise and press of parts 2 and 3. */
+@media (prefers-reduced-motion: reduce) {
+  .bm-dial .bmf-tick,
+  .bm-checkbox__box,
+  .bm-radio__box,
+  .bm-scrim,
+  .bm-sheet,
+  .bm-menu,
+  .bm-sidebar {
+    transition: none;
+  }
+  .bm-sheet,
+  .bm-menu,
+  .bm-sidebar,
+  .bm-btn:active,
+  .bm-cta:active,
+  .bm-stepper__btn:active {
+    transform: none;
+  }
+  .bm-tooltip,
+  .bm-spinner .bm-spinner__comet {
+    animation: none;
+  }
+}

@@ -1,5 +1,8 @@
+// The web's themes are Light and Dark on <html data-theme>; System follows the OS. The stored
+// value keeps the key and the values of earlier releases.
 const THEME_STORAGE_KEY = 'gaggimate-daisyui-theme';
 const AVAILABLE_THEMES = ['system', 'light', 'dark'];
+const LEGACY_THEMES = { coffee: 'dark', nord: 'light' };
 
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -10,9 +13,8 @@ export function getSystemTheme() {
 export function getStoredTheme() {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === 'coffee') return 'dark';
-    if (stored === 'nord') return 'light';
-    return stored && AVAILABLE_THEMES.includes(stored) ? stored : 'system';
+    const theme = LEGACY_THEMES[stored] || stored;
+    return AVAILABLE_THEMES.includes(theme) ? theme : 'system';
   } catch (error) {
     console.warn('Failed to get stored theme:', error);
     return 'system';
@@ -37,8 +39,11 @@ export function applyTheme(theme) {
   if (!AVAILABLE_THEMES.includes(theme)) {
     return;
   }
-  const actualTheme = theme === 'system' ? getSystemTheme() : theme;
-  document.documentElement.setAttribute('data-theme', actualTheme);
+  const root = document.documentElement;
+  root.setAttribute('data-theme', theme === 'system' ? getSystemTheme() : theme);
+  // The browser's own chrome takes the page ground, which index.html sets for each theme.
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.content = getComputedStyle(root).backgroundColor;
 }
 
 export function getAvailableThemes() {

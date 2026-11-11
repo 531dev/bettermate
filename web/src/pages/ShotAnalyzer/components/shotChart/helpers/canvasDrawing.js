@@ -17,11 +17,15 @@ export function drawPixelIcon(ctx, { iconDef, x, y, size, color }) {
   const height = 24;
   const scale = size / Math.max(width, height);
 
+  // The glyphs are strokes on a 24 unit grid: 1.6 wide, round caps and joins.
   ctx.save();
-  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   ctx.translate(x - (width * scale) / 2, y - (height * scale) / 2);
   ctx.scale(scale, scale);
-  ctx.fill(new Path2D(pathData));
+  ctx.stroke(new Path2D(pathData));
   ctx.restore();
 }
 
