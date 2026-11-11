@@ -333,6 +333,7 @@ void BetterMateUI::gather(unsigned long now, ScreenId target) {
     state.bluetoothScale = controller->isBluetoothScaleHealthy();
     state.weight = scaleWeight;
     state.active = controller->isActive();
+    state.waterPumped = controller->getCurrentWaterPumped();
     state.grindActive = controller->isGrindActive();
     state.grindAvailable = settings.isSmartGrindActive() || settings.getAltRelayFunction() == ALT_RELAY_GRIND;
     state.grindVolumetric = settings.isVolumetricTarget() && state.volumetricAvailable;

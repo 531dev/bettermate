@@ -17,6 +17,8 @@
 //   pressure-sensor <0|1>          change the pressure capability (single/dual rings)
 //   scale <0|1>                    stop/resume mock scale telemetry (health expires after 1.5 s)
 //   weight <grams>                 set the mock scale reading
+//   pumped <ml>                    report water pumped since the last tare, as a controller with a dimmed pump
+//                                  does (the mock reports none by itself; a start or a stop tares it)
 //   wifi <sta|ap|ap-open|disconnected> inject network UI state for QR checks
 //   mode <standby|brew|steam|water|grind> change the machine's mode, as the web UI would
 //   panel <amoled|lcd>             pretend the panel is an AMOLED (Standby rests after 30 s) or not
@@ -62,6 +64,7 @@ class SimScript {
         PressureSensor,
         Scale,
         Weight,
+        Pumped,
         Wifi,
         Panel,
         Mode,

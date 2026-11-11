@@ -241,6 +241,10 @@ bool SimScript::parse(const char *text) {
             float value = 0;
             ok = static_cast<bool>(words >> value) && std::isfinite(value);
             steps.push_back({Kind::Weight, static_cast<int>(value * 1000), 0, false, {}});
+        } else if (verb == "pumped") {
+            float value = 0;
+            ok = static_cast<bool>(words >> value) && std::isfinite(value) && value >= 0;
+            steps.push_back({Kind::Pumped, static_cast<int>(value * 1000), 0, false, {}});
         } else if (verb == "autotune" || verb == "update") {
             steps.push_back({verb == "autotune" ? Kind::Autotune : Kind::Update, 0, 0, false, {}});
         } else if (verb == "mode") {
@@ -318,6 +322,9 @@ bool SimScript::run(SdlDriver *driver) {
             break;
         case Kind::Weight:
             controller.getClientController()->simulateWeight(step.a / 1000.0f);
+            break;
+        case Kind::Pumped:
+            controller.getClientController()->simulatePumpedWater(step.a / 1000.0f);
             break;
         case Kind::Wifi:
             if (step.path == "ap-open")

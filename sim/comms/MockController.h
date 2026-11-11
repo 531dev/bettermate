@@ -20,9 +20,15 @@ class MockController {
     void setPump(const PumpCommand &c);
     void setRelay(const RelayCommand &c);
     // Controller-side flow estimation is tared after a stop; the Bluetooth cup scale is independent.
-    void tareScale() { flowVolume = 0.0f; }
+    void tareScale() {
+        flowVolume = 0.0f;
+        pumpedWater = 0.0f;
+    }
     void tareBluetoothScale() { weight = 0.0f; }
     void setScaleWeight(float value) { weight = value; }
+    // A controller with a dimmed pump also reports the water pumped since the last tare. The mock pumps none;
+    // a script reports an amount with `pumped <ml>`.
+    void setPumpedWater(float value) { pumpedWater = value; }
 
     SensorFn onSensor;
     VolumetricFn onVolumetric;
@@ -49,4 +55,5 @@ class MockController {
     float flow = 0.0f;     // ml/s
     float weight = 0.0f;   // g accumulated on the scale
     float flowVolume = 0.0f;
+    float pumpedWater = 0.0f; // ml, only ever set by a script
 };

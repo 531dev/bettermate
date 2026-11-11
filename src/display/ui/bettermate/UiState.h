@@ -57,6 +57,7 @@ struct UiState {
 
     // Simple modes share their frame but keep distinct controller actions.
     bool active = false;
+    float waterPumped = 0.0f; // millilitres since the process started; 0 when the controller does not measure it
     bool grindActive = false;
     bool grindAvailable = false;
     bool grindVolumetric = false;

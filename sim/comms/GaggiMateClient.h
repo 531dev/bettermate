@@ -127,6 +127,7 @@ class GaggiMateClient {
     }
     void simulateScale(bool available) { _scaleAvailable = available; }
     void simulateWeight(float weight) { _mock.setScaleWeight(weight); }
+    void simulatePumpedWater(float millilitres) { _mock.setPumpedWater(millilitres); }
     void tareSimulatedScale() { _mock.tareBluetoothScale(); }
     void onSimulatedScale(VolumetricCallback cb) { _simulatedScaleCb = std::move(cb); }
     void simulateError(int code) {
