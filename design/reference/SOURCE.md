@@ -1,13 +1,15 @@
-# Design reference
+# Source
 
-These files are unchanged copies of the design system artifact `NAmDJMSSupMJrSdiDDBS2H`, recovered from the
-previous session's local export on 2026-10-02. Keep them as reference sources; change the implementation rather
-than editing them. The previews' `/_blob/` URLs belong to the artifact; the actual fonts, icons and logos are
-already under `design/`.
+These files are an unchanged copy of the BetterMate v2 design system, the claude.ai artifact
+`UnsxdMryJW25NAwXn12bSb` (version 1794424638-9f48, read 2026-11-11). Do not edit them by hand; re-import instead.
 
-`design/tokens.json` is authoritative for font weights: display title 600, body 400. The round-display document's
-500 weights were superseded by the user's choice of the tokens.
+| Here | In the artifact |
+| --- | --- |
+| `README.md`, `round-display.md`, `motion.md`, `web-ui.md` | `project/*.md` |
+| `components/` | `project/components/` (READMEs, previews, `bundle.css`, `bundle.js`, `index.d.ts`) |
+| `../tokens.json` | `project/tokens.json` |
+| `../fonts/` | `project/fonts/`, `project/licenses/OFL.txt` |
+| `../logos/` | the two wordmark uploads and `project/assets/Logos/README.md` |
+| `../icons.json` | the 53 stroke paths of `components/bundle.js` (`var P`), extracted verbatim |
 
-The user chose the stock gauge scales (0–160 °C and 0–16 bar) and target markers. Preserve the stock 300°
-temperature ring when the controller has no pressure sensor. These behavior choices take precedence over the
-static Brew preview.
+Read `round-display.md` and `motion.md` before touching LVGL, `web-ui.md` before touching `web/`.

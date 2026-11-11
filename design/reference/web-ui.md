@@ -1,54 +1,91 @@
-# Web UI mapping
+# Web UI
 
-How the tokens land in `web/` (Preact 10, Tailwind 4, DaisyUI 5). Keep DaisyUI's component classes; replace its themes and its depth.
+The web app is served by the display's ESP32 from flash, over home Wi-Fi, and doubles as the captive portal. It has to load fast, work offline and weigh little. It is built from tiles on a bento grid, and it draws the machine exactly as the display does.
 
-## Themes
+## Shell
 
-Replace the four `@plugin "daisyui/theme"` blocks in `web/src/style.css` with two, `light` (default) and `dark` (`prefersdark: true`), and set `AVAILABLE_THEMES` in `utils/themeManager.js` and the allow-list in `index.html` to `['system', 'light', 'dark']`. Map the DaisyUI variables to the tokens:
-
-| DaisyUI variable | Token |
+| Width | Layout |
 | --- | --- |
-| `--color-base-100` | `surface-1` (cards — DaisyUI's "100" is the card, so the page is set separately) |
-| `--color-base-200` | `surface-0` |
-| `--color-base-300` | `line` |
-| `--color-base-content` | `ink` |
-| `--color-primary` / `--color-primary-content` | `primary` / `on-primary` |
-| `--color-secondary` / `-content` | `heat` / `on-heat` |
-| `--color-accent` / `-content` | `flow` / `surface-2` |
-| `--color-neutral` / `-content` | `ink` / `surface-0` (the solid Badge and tooltips) |
-| `--color-info` / `-content` | `primary-soft` / `primary` |
-| `--color-success` / `-content` | `success-soft` / `success` |
-| `--color-warning` / `-content` | `warning-soft` / `warning` |
-| `--color-error` / `-content` | `danger-soft` / `danger` |
-| `--radius-selector` | `radius-pill` |
-| `--radius-field` | `radius-md` |
-| `--radius-box` | `radius-lg` |
-| `--border` | `hairline` |
-| `--depth`, `--noise` | `0` |
+| Under 600 px | One column, 12 px gutters, tiles `space-2` apart. Top bar: menu, wordmark, and a `triangle-alert` in `warning` only when a warning exists. The mode bar floats 12 px above the bottom edge and the safe area; the page pads `space-16` under its last tile. |
+| 600 to 1023 px | Two columns of tiles. Same top bar and mode bar. |
+| 1024 px and up | A sidebar tile, `sidebar` 248 px wide, then a 12 column grid with `space-3` gaps up to `content-max`. The mode bar floats at the bottom centre, 400 px wide. |
 
-Set `body { background: var(--surface-0) }` (it is `bg-base-100` today) and give tiles `bg-[var(--surface-2)]` instead of `bg-base-200/60`. Keep the `--analyzer-*` and `--statistics-*` custom properties but point each at a token (`--analyzer-pressure-text: var(--series-pressure)`, `--analyzer-temp-text: var(--series-temperature)`, `--analyzer-flow-text: var(--series-flow)`, `--analyzer-weight-text: var(--series-weight)`, tooltip backgrounds to `surface-2` + `line`) so the analyzer follows the theme; delete `--app-card-shadow`, `--app-glass-surface-*`, `--statistics-summary-shadow` and every `shadow-*` class (`Card.jsx` carries `shadow-xl`, `ModeTab.jsx` `shadow-sm`, `style.css` `.app-card-surface` and `.profile-list-drag-selected-item`).
+- The sidebar holds the wordmark, four pages (Dashboard, Profiles, History, Settings) and the GaggiMate credit. The current page is a `surface-2` item in `ink`.
+- The mode bar holds Standby, Brew, Steam, Water and Grind. The machine's mode is an `ink` pill. While a process runs the other modes take `disabled` opacity, except Steam, which never locks.
+- Exactly one set of mode controls shows at any size. The profile editor and Settings hide the mode bar and pin their own action instead.
 
-## Fonts
+## Dashboard
 
-In `style.css` `@theme { --font-sans: "Space Grotesk", …; --font-mono: "JetBrains Mono", …; }`, add the two `@font-face` rules for `fonts/SpaceGrotesk-Variable.woff2` (300–700) and `fonts/JetBrainsMono-Variable.woff2` (100–800) served from `web/public/fonts/`, and drop `--font-logo` / the Tailwind `logo` family — the sidebar shows `bettermate-wordmark.svg` (inverse file in dark) as an `<img>`. Give every numeric element `font-mono tabular-nums`.
+Build it in this order, on a phone from top to bottom:
 
-## Components
+1. **Dial tile.** Eyebrow with mode and profile, a status Chip on the right, the Dial, then one row holding any warning Chip and the Flush button.
+2. **ActionBanner.** The next thing you can do: START SHOT, WAKE UP, START GRINDING. While a process runs it turns `ink` and says STOP, with progress in segments.
+3. **StatTiles.** Two columns. At rest: water tank and last shot. During a shot: pressure, flow, weight, temperature, each with a segment bar.
+4. **Setup tile.** Favourite profiles as a Segmented control, a link to all profiles, and the target temperature Stepper.
+5. **Recent shots.** ListRows; the wake schedule is the last row.
 
-| App file | System recipe |
+On desktop the same tiles take these spans of the 12 columns:
+
+| Tile | Columns | Rows |
+| --- | --- | --- |
+| Dial | 5 | 2 |
+| ActionBanner | 4 | 1, stretched to the row, label at the bottom left |
+| Water tank, last shot | 3 each | 1 each |
+| Setup | 4 | 1 |
+| Shot chart | 7 | 1 |
+| Recent shots | 5 | 1 |
+
+Simple view shows this and nothing else. Advanced adds tiles (every reading with its target, the live chart between shots, the profile curve); it never swaps a component for a denser one.
+
+## What the dial shows
+
+| State | Ring | Centre |
+| --- | --- | --- |
+| Standby | Single, `ink-faint` | Boiler temperature; next wake |
+| Heating | Split | Boiler temperature; "Ready in about 40 s" |
+| Ready | Split | Boiler temperature; the shot plan (18.5 g in · 36 g out · 30 s) |
+| Pulling a shot | Split, pressure notch at the phase target | Timer under the phase name; temperature and pressure |
+| Finished | Split | Final time; yield and ratio |
+| Steam, Water | Single, `heat` | Boiler temperature; time to ready or ml pumped |
+| Grind | Single, `ink` | Target, then progress against it |
+
+The centre is an `eyebrow`, one `metric-xl` reading and one line of `body-sm`. Temperature and pressure live on the dial, so they leave the StatTiles in Simple view: each fact appears once.
+
+## Tiles
+
+- A tile is `surface-1`, `radius-xl`, padded `space-5`, with at most one title or eyebrow, one reading or list, and one control group.
+- Give a reading tile this order: `eyebrow`, numeral with its raised `unit` and optional target, then a segment bar.
+- Put several small readings in cells (`surface-2`, `radius-lg`) inside one tile, two columns, `space-2` apart.
+- A tile that only acts (the ActionBanner) is the cobalt one. A tile that only links is a ListRow, not a tile.
+
+## Pages
+
+- **Profiles.** `title`, an `ink` Button for New, a search input, then one tile of ListRows. The profile in use has an `ink` icon disc and an IN USE Chip. Tap a row to select; a menu at the row's end holds edit, details, export and delete.
+- **Shot history.** One tile per day with an `eyebrow` date. Rows show profile, then time, yield and peak pressure in `data`. Analyzer and Statistics are links under the title.
+- **Profile editor and Settings.** Tiles of fields. Segmented controls for choices of two or three, a Switch for on and off, an input for anything typed. The page's one primary Button is pinned at the bottom, `control-lg` tall and full width.
+- **Setup.** One tile per step, one primary Button per step, the wordmark above.
+
+## Charts
+
+- Lines only: 2.5 px for pressure in `series-pressure`, 2 px for the others, round joins, no fill under a line and no points.
+- Grid in `chart-grid`, three or four horizontal lines, no vertical ones. Ticks in `data` 11 px, `ink-muted`.
+- The legend is a row of neutral Chips, each with a dot in its series colour and the series name.
+- Keep `animation: false`. A live chart appends points; it never redraws its history.
+
+## Moving the current code over
+
+| In `web/src` today | Becomes |
 | --- | --- |
-| `components/Card.jsx` (`card bg-base-100 shadow-xl`) | `bm-card`: `bg-base-100 rounded-2xl p-5 max-sm:p-4`, no shadow |
-| `components/CardTitle.jsx` | `bm-eyebrow`: `font-mono text-[11px] tracking-[0.1em] uppercase text-base-content/70` (was `/55`, which fails 4.5:1) |
-| `components/PageHeader.jsx` | `title` style: `text-[28px] leading-[34px] font-bold tracking-tight` |
-| `components/TabBar.jsx` (`tabs tabs-border`) | `bm-tabs` / `bm-tab`: 44 px, `border-b-2 border-primary` when active |
-| `components/Navigation.jsx` | `bm-nav__item`: 44 px rows, active `bg-info text-info-content`; wordmark `<img>`; NEW badge = solid Badge |
-| `pages/Home/ModeTab.jsx`, `ModeCard.jsx` | `bm-seg` / `bm-seg__item`: well `bg-base-200`, active `bg-primary text-primary-content`, Steam active `bg-secondary text-secondary-content` |
-| `pages/Home/cards/MetricsGrid.jsx` (`MetricCell`) | `bm-metric`: eyebrow + series dot, `metric` value, `/ target` in `ink-muted`, round `−`/`+` |
-| `pages/Home/cards/FavoriteProfilesCard.jsx`, `ProfileList/…` | `bm-profile`: `border-2 border-transparent aria-pressed:border-primary`, chips |
-| `components/SettingsFormField.jsx` (`input`, `toggle`) | `bm-field` / `bm-input` / `bm-toggle`: unit inside, help below, `focus-within:outline-2 outline-primary` |
-| `components/ConfirmButton.jsx`, every `btn` | `bm-btn`: `rounded-full uppercase tracking-[0.08em] text-[13px] font-semibold`; `btn-primary` at most once per view |
-| `components/Tooltip.jsx` (`.tooltip-portal`) | `bg-neutral text-neutral-content rounded-md` stays — it is the solid Badge's colors |
-| `components/SkeletonBlock.jsx` (`.shimmer`) | keep, with `surface-1` → `surface-2` as the two stops |
-| `components/Chart.jsx`, `ShotAnalyzer/…/chartTheme.js` | read `--series-*`, `--chart-grid`, `--ink-muted` from `getComputedStyle`; mono ticks |
-| `pages/Home/index.jsx` status line | `bm-card__footer` |
+| Jost in `luxury.css` and the font files | Funnel Display and Geist Mono. The two files are under `fonts/` in this system; copy them into `design/fonts`. |
+| `--surface-*`, `--ink*`, `--primary*`, `--heat*` values | The values in Colors; the variable names stay. Add `--on-ink` and `--track`. |
+| `.bm-group` holding white tiles | `.bm-tile`, with `.bm-cell` when it needs to nest |
+| `.bm-dial__segment` gradient arcs and `.bm-dial__mark` | The tick ring: `BetterMate.ring()` or the same geometry in `MachineDial.jsx` |
+| `.bm-gauge` gradient bars with a sliding mark | `.bm-segbar` |
+| `.bm-cta__progress` (a bar that transitions `width`) | A `.bm-segbar` inside the banner |
+| Selected profile tile and active nav in cobalt | `ink` fill with `on-ink` |
+| Warning text in orange | `warning` Chips; orange is heat only |
+| `--disc` and `--on-disc` | `ink` and `on-ink` |
 
-Warning icons under `assets/warnings/` are replaced by the pixel glyphs `triangle-alert`, `droplet`, `bluetooth`, `thermometer`, `wifi` in a Badge of the matching tone. Every `<FontAwesomeIcon>` becomes an inline pixel SVG at exactly 24 px (`BetterMate.icon(name)`, or a Preact `Icon` component built from the same `assets/Icons` files) with `shape-rendering="crispEdges"` — never `h-4 w-4` or `size-5`; drop the three `@fortawesome/*` packages.
+## Weight
+
+Both fonts together are 41 KB of woff2 (Funnel Display 18 KB, Geist Mono 23 KB, Latin subsets). Icons are 53 path strings, about 3 KB. There is no icon font, no animation library and no image in the interface.

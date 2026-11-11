@@ -1,0 +1,20 @@
+<!-- @dsCard group="Forms" height=290 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Field, input and switch</title></head>
+<body>
+<div class="bm-stage">
+  <section class="bm-tile" style="width:366px">
+    <label class="bm-field"><span class="bm-field__label">Machine name</span><input class="bm-input" value="Kitchen Gaggia"><p class="bm-help">Shown in the browser tab and on the Wi-Fi setup page.</p></label>
+    <label class="bm-field"><span class="bm-field__label">Wi-Fi password</span><input class="bm-input" type="password" placeholder="Leave blank to keep the saved one"></label>
+  </section>
+  <section class="bm-tile" style="width:366px">
+    <div class="bm-setting"><span><span class="bm-field__label">Wake on a schedule</span><p class="bm-help">Hot before your first coffee.</p></span><button class="bm-switch" role="switch" aria-checked="true" aria-label="Wake on a schedule"></button></div>
+    <div class="bm-setting"><span><span class="bm-field__label">Smart grind</span><p class="bm-help">Stops the grinder by weight.</p></span><button class="bm-switch" role="switch" aria-checked="false" aria-label="Smart grind"></button></div>
+  </section>
+</div>
+<script>
+[].forEach.call(document.querySelectorAll('.bm-switch'), function (s) { s.onclick = function () { s.setAttribute('aria-checked', s.getAttribute('aria-checked') === 'true' ? 'false' : 'true'); }; });
+</script>
+</body>
+</html>

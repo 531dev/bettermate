@@ -1,0 +1,12 @@
+<!-- @dsCard group="Assets" height=690 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Icon</title></head>
+<body>
+<div class="bm-stage"><div id="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;width:100%"></div></div>
+<script>
+var g = document.getElementById('grid');
+g.innerHTML = BetterMate.icons.map(function (n) { return '<div class="bm-cell" style="align-items:center;gap:8px;padding:14px 6px">' + BetterMate.icon(n) + '<span class="bm-data" style="font-size:11px;text-align:center">' + n + '</span></div>'; }).join('');
+</script>
+</body>
+</html>

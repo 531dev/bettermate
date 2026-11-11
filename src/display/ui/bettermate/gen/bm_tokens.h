@@ -4,18 +4,21 @@
 
 namespace bm::tokens {
 
-// One 0xRRGGBB value per color token; see design/tokens.json for what each one is for.
+// One 0xRRGGBB value per color token; design/tokens.json says what each one is for.
 struct Palette {
     uint32_t surface0;
     uint32_t surface1;
     uint32_t surface2;
     uint32_t line;
     uint32_t lineStrong;
+    uint32_t track;
     uint32_t ink;
+    uint32_t onInk;
     uint32_t inkMuted;
     uint32_t inkFaint;
     uint32_t primary;
     uint32_t primaryHover;
+    uint32_t primaryText;
     uint32_t primarySoft;
     uint32_t onPrimary;
     uint32_t heat;
@@ -23,9 +26,7 @@ struct Palette {
     uint32_t heatSoft;
     uint32_t onHeat;
     uint32_t flow;
-    uint32_t flowSoft;
     uint32_t weight;
-    uint32_t weightSoft;
     uint32_t seriesPressure;
     uint32_t seriesTemperature;
     uint32_t seriesFlow;
@@ -37,7 +38,6 @@ struct Palette {
     uint32_t warningSoft;
     uint32_t danger;
     uint32_t dangerSoft;
-    uint32_t onDanger;
     uint32_t focus;
 };
 
@@ -45,149 +45,118 @@ inline constexpr Palette LIGHT = {
     0xe9e9e9, // surface0
     0xf4f4f4, // surface1
     0xffffff, // surface2
-    0xd4d4d4, // line
+    0xd6d6d6, // line
     0x767676, // lineStrong
+    0xcdcdcd, // track
     0x111111, // ink
-    0x5b5b5b, // inkMuted
-    0x7d7d7d, // inkFaint
-    0x2a3bea, // primary
-    0x1f2fd0, // primaryHover
-    0xdfe3ff, // primarySoft
+    0xffffff, // onInk
+    0x555555, // inkMuted
+    0x767676, // inkFaint
+    0x0f20ec, // primary
+    0x0c19bd, // primaryHover
+    0x0f20ec, // primaryText
+    0xdfe2ff, // primarySoft
     0xffffff, // onPrimary
-    0xe8440a, // heat
-    0xb23508, // heatText
-    0xffe4d8, // heatSoft
+    0xe4501c, // heat
+    0xa0380e, // heatText
+    0xfbe0d5, // heatSoft
     0x111111, // onHeat
-    0x0a6e55, // flow
-    0xd3efe6, // flowSoft
-    0x8a3fd1, // weight
-    0xefe2fb, // weightSoft
-    0x2a3bea, // seriesPressure
-    0xe8440a, // seriesTemperature
-    0x0a6e55, // seriesFlow
-    0x8a3fd1, // seriesWeight
-    0xd4d4d4, // chartGrid
+    0x1d7a46, // flow
+    0x6e6e6e, // weight
+    0x0f20ec, // seriesPressure
+    0xe4501c, // seriesTemperature
+    0x1d7a46, // seriesFlow
+    0x6e6e6e, // seriesWeight
+    0xd6d6d6, // chartGrid
     0x186a35, // success
     0xd9f0e0, // successSoft
     0x8a5a00, // warning
     0xfff0c2, // warningSoft
     0xb42323, // danger
     0xfbe3e3, // dangerSoft
-    0xffffff, // onDanger
-    0x2a3bea, // focus
-};
-
-inline constexpr Palette DARK = {
-    0x0e0e0e, // surface0
-    0x1a1a1a, // surface1
-    0x262626, // surface2
-    0x343434, // line
-    0x8b8b8b, // lineStrong
-    0xf2f2f2, // ink
-    0xa6a6a6, // inkMuted
-    0x767676, // inkFaint
-    0x7b88ff, // primary
-    0x929dff, // primaryHover
-    0x1c2461, // primarySoft
-    0x0e0e0e, // onPrimary
-    0xff7a45, // heat
-    0xff8a5c, // heatText
-    0x4a1f0e, // heatSoft
-    0x0e0e0e, // onHeat
-    0x3fcf9f, // flow
-    0x0f3a2e, // flowSoft
-    0xc08cff, // weight
-    0x331a55, // weightSoft
-    0x7b88ff, // seriesPressure
-    0xff7a45, // seriesTemperature
-    0x3fcf9f, // seriesFlow
-    0xc08cff, // seriesWeight
-    0x343434, // chartGrid
-    0x5ccf7c, // success
-    0x12351f, // successSoft
-    0xf5b400, // warning
-    0x3d2e00, // warningSoft
-    0xff6b6b, // danger
-    0x4a1414, // dangerSoft
-    0x0e0e0e, // onDanger
-    0x7b88ff, // focus
+    0x0f20ec, // focus
 };
 
 inline constexpr Palette AMOLED = {
     0x000000, // surface0
     0x141414, // surface1
-    0x222222, // surface2
-    0x2e2e2e, // line
+    0x232323, // surface2
+    0x2c2c2c, // line
     0x8b8b8b, // lineStrong
+    0x343434, // track
     0xf2f2f2, // ink
+    0x000000, // onInk
     0xa6a6a6, // inkMuted
-    0x767676, // inkFaint
-    0x7b88ff, // primary
-    0x929dff, // primaryHover
+    0x787878, // inkFaint
+    0x5361ff, // primary
+    0x6c78ff, // primaryHover
+    0xb4b9ff, // primaryText
     0x1c2461, // primarySoft
-    0x0e0e0e, // onPrimary
-    0xff7a45, // heat
-    0xff8a5c, // heatText
-    0x4a1f0e, // heatSoft
-    0x0e0e0e, // onHeat
-    0x3fcf9f, // flow
-    0x0f3a2e, // flowSoft
-    0xc08cff, // weight
-    0x331a55, // weightSoft
-    0x7b88ff, // seriesPressure
-    0xff7a45, // seriesTemperature
-    0x3fcf9f, // seriesFlow
-    0xc08cff, // seriesWeight
-    0x2e2e2e, // chartGrid
+    0xffffff, // onPrimary
+    0xe95b2a, // heat
+    0xff9a70, // heatText
+    0x3a1c10, // heatSoft
+    0x111111, // onHeat
+    0x86d9a2, // flow
+    0xb8b8b8, // weight
+    0xb4b9ff, // seriesPressure
+    0xe95b2a, // seriesTemperature
+    0x86d9a2, // seriesFlow
+    0xb8b8b8, // seriesWeight
+    0x2c2c2c, // chartGrid
     0x5ccf7c, // success
     0x12351f, // successSoft
     0xf5b400, // warning
     0x3d2e00, // warningSoft
     0xff6b6b, // danger
     0x4a1414, // dangerSoft
-    0x0e0e0e, // onDanger
-    0x7b88ff, // focus
+    0xb4b9ff, // focus
 };
 
-// Spacing, px (a 4 px grid)
-inline constexpr int SPACE_1 = 4;
-inline constexpr int SPACE_2 = 8;
-inline constexpr int SPACE_3 = 12;
-inline constexpr int SPACE_4 = 16;
-inline constexpr int SPACE_5 = 20;
-inline constexpr int SPACE_6 = 24;
-inline constexpr int SPACE_8 = 32;
-inline constexpr int SPACE_10 = 40;
-inline constexpr int SPACE_12 = 48;
-inline constexpr int SPACE_16 = 64;
-
 // Corner radii, px (radius-pill is LV_RADIUS_CIRCLE on the display)
-inline constexpr int RADIUS_SM = 6;
-inline constexpr int RADIUS_MD = 10;
-inline constexpr int RADIUS_LG = 16;
-inline constexpr int RADIUS_XL = 24;
+inline constexpr int RADIUS_SM = 8;
+inline constexpr int RADIUS_MD = 14;
+inline constexpr int RADIUS_LG = 20;
+inline constexpr int RADIUS_XL = 28;
 inline constexpr int RADIUS_PILL = 999;
 
 // Sizes, px
-inline constexpr int CONTROL_SM = 32;
-inline constexpr int CONTROL_MD = 40;
-inline constexpr int CONTROL_LG = 48;
-inline constexpr int ICON_1X = 24;
-inline constexpr int ICON_2X = 48;
-inline constexpr int ICON_3X = 72;
-inline constexpr int SIDEBAR = 272;
-inline constexpr int CONTENT_MAX = 1440;
-inline constexpr int DISPLAY_SIZE = 480;
-inline constexpr int DISPLAY_CONTENT = 400;
-inline constexpr int DISPLAY_SQUARE = 300;
-inline constexpr int GAUGE_STROKE = 12;
+inline constexpr int CONTROL_SM = 36;
+inline constexpr int CONTROL_MD = 44;
+inline constexpr int CONTROL_LG = 56;
+inline constexpr int BANNER = 76;
+inline constexpr int ICON = 24;
+inline constexpr int ICON_DISPLAY = 36;
+inline constexpr int SIDEBAR = 248;
+inline constexpr int CONTENT_MAX = 1280;
 inline constexpr int TOUCH_MIN = 44;
+inline constexpr int DISPLAY_SIZE = 480;
+inline constexpr int DISPLAY_CONTENT = 392;
+inline constexpr int DISPLAY_SQUARE = 276;
+inline constexpr int DISPLAY_TOUCH = 56;
+inline constexpr int DISPLAY_ACTION = 64;
 
-// Border widths, px
-inline constexpr int HAIRLINE = 1;
-inline constexpr int RING = 2;
+// The tick ring, px from the centre of the panel; ring-pitch is in degrees
+inline constexpr int RING_INNER = 212;
+inline constexpr int RING_OUTER = 234;
+inline constexpr int RING_NOTCH = 204;
+inline constexpr int RING_TICK = 6;
+inline constexpr int RING_PITCH = 4;
 
-// Whole-control opacity of a disabled control, 0..255
-inline constexpr int OPA_DISABLED = 115;
+// Motion, in panel frames (design/reference/motion.md)
+inline constexpr int FRAME_TICK = 1;
+inline constexpr int FRAME_MICRO = 3;
+inline constexpr int FRAME_STATE = 5;
+inline constexpr int FRAME_PAGE = 8;
+inline constexpr int FRAME_SWEEP = 12;
+
+// Letter spacing of the display's type styles, px
+inline constexpr int TRACKING_SCREEN_HERO = -4;
+inline constexpr int TRACKING_SCREEN_HERO_SM = -3;
+inline constexpr int TRACKING_SCREEN_VALUE = -1;
+inline constexpr int TRACKING_SCREEN_TITLE = 0;
+inline constexpr int TRACKING_SCREEN_BODY = 0;
+inline constexpr int TRACKING_SCREEN_LABEL = 1;
+inline constexpr int TRACKING_SCREEN_BUTTON = 1;
 
 } // namespace bm::tokens

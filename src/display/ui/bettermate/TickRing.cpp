@@ -1,131 +1,208 @@
 #include "TickRing.h"
-#include "UiState.h"
 
-#include <Arduino.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <display/ui/bettermate/Motion.h>
+#include <display/ui/bettermate/Ui.h>
 
 namespace bm {
 namespace {
 constexpr float DEG = 3.14159265358979323846f / 180.0f;
-constexpr float RADIUS = 214.0f;
-float bounded(float value, float maximum) { return std::isfinite(value) ? std::clamp(value, 0.0f, maximum) : 0.0f; }
+constexpr int CENTRE = tokens::DISPLAY_SIZE / 2;
+constexpr int PAD = tokens::RING_TICK / 2 + 1; // round caps plus antialiasing
+
+struct Geometry {
+    float start, sweep;
+};
+constexpr Geometry ARCS[3] = {{110.0f, 140.0f}, {70.0f, -140.0f}, {120.0f, 300.0f}};
+
+lv_point_t point(float degrees, int radius) {
+    return {static_cast<lv_coord_t>(lroundf(CENTRE + radius * cosf(degrees * DEG))),
+            static_cast<lv_coord_t>(lroundf(CENTRE + radius * sinf(degrees * DEG)))};
+}
+
+uint8_t code(Tone tone) { return static_cast<uint8_t>(tone) + 1; }
+bool lit(uint8_t c) { return c != 0 && (c & 0x7f) != code(Tone::Track); }
 } // namespace
 
-TickRing::~TickRing() {
-    if (timer)
-        lv_timer_del(timer);
+constexpr TickRing::Span TickRing::SPANS[3];
+
+float TickRing::fraction(float value, float max) {
+    return std::isfinite(value) && max > 0 ? std::clamp(value / max, 0.0f, 1.0f) : 0.0f;
 }
 
-TickRing::Segment TickRing::segment(float angle, float radius, bool tangent, float length, int width) {
-    const float ux = cosf(angle * DEG), uy = sinf(angle * DEG);
-    const float dx = (tangent ? -uy : ux) * length / 2.0f;
-    const float dy = (tangent ? ux : uy) * length / 2.0f;
-    Segment s;
-    s.a = {static_cast<lv_coord_t>(lroundf(240 + ux * radius - dx)), static_cast<lv_coord_t>(lroundf(240 + uy * radius - dy))};
-    s.b = {static_cast<lv_coord_t>(lroundf(240 + ux * radius + dx)), static_cast<lv_coord_t>(lroundf(240 + uy * radius + dy))};
-    const int pad = width / 2 + 2; // caps plus antialiasing
-    s.bounds = {static_cast<lv_coord_t>(std::min(s.a.x, s.b.x) - pad), static_cast<lv_coord_t>(std::min(s.a.y, s.b.y) - pad),
-                static_cast<lv_coord_t>(std::max(s.a.x, s.b.x) + pad), static_cast<lv_coord_t>(std::max(s.a.y, s.b.y) + pad)};
-    return s;
-}
-
-void TickRing::build(lv_obj_t *parent, Kind newKind, bool minimal) {
-    kind = newKind;
-    stroke = minimal ? 6 : tokens::GAUGE_STROKE;
-    start = kind == Kind::Pressure ? 70.0f : kind == Kind::FullTemperature ? 120.0f : 110.0f;
-    sweep = kind == Kind::Pressure ? -140.0f : kind == Kind::FullTemperature ? 300.0f : 140.0f;
-    maximum = kind == Kind::Pressure ? 16.0f : 160.0f;
-    count = kind == Kind::FullTemperature ? 52 : 24;
-    for (unsigned i = 0; i < count; ++i)
-        ticks[i] = segment(start + sweep * i / (count - 1), RADIUS, true, 4.0f, stroke);
-    obj = ui::box(parent);
-    lv_obj_set_size(obj, 480, 480);
-    lv_obj_set_pos(obj, 0, 0);
-    lv_obj_add_event_cb(
-        obj, [](lv_event_t *e) { static_cast<TickRing *>(lv_event_get_user_data(e))->draw(e); }, LV_EVENT_DRAW_MAIN, this);
-    if (kind != Kind::Pressure) {
-        timer = lv_timer_create([](lv_timer_t *t) { static_cast<TickRing *>(t->user_data)->pulse(); }, 500, this);
+void TickRing::build(lv_obj_t *parent) {
+    for (unsigned a = 0; a < 3; ++a) {
+        const Span &span = SPANS[a];
+        for (unsigned i = 0; i < span.count; ++i) {
+            const float degrees = ARCS[a].start + ARCS[a].sweep * i / (span.count - 1);
+            ticks[span.first + i] = {point(degrees, tokens::RING_OUTER), point(degrees, tokens::RING_INNER),
+                                     point(degrees, tokens::RING_NOTCH)};
+        }
     }
+    obj = lv_obj_create(parent);
+    lv_obj_remove_style_all(obj);
+    lv_obj_set_size(obj, tokens::DISPLAY_SIZE, tokens::DISPLAY_SIZE);
+    lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_event_cb(obj, drawEvent, LV_EVENT_DRAW_MAIN, this);
 }
 
-void TickRing::invalidate(const Segment &s) {
-    lv_area_t area = s.bounds;
-    lv_area_t coords;
-    lv_obj_get_coords(obj, &coords);
-    lv_area_move(&area, coords.x1, coords.y1);
-    lv_obj_invalidate_area(obj, &area);
+void TickRing::show(Layout newLayout, const Arc &first, const Arc &second) {
+    layout = newLayout;
+    arcs[0] = first;
+    arcs[1] = second;
+    plan();
 }
 
-void TickRing::update(float current, float target, bool newHeating, bool visible) {
-    ui::setVisible(obj, visible);
-    current = bounded(current, maximum);
-    const unsigned nextLit = current <= 0 ? 0 : std::min(count, static_cast<unsigned>(current / maximum * (count - 1)) + 1);
-    const bool nextSoft = newHeating && (millis() / 500) % 2;
-    for (unsigned i = 0; i < count; ++i) {
-        if ((i < lit) != (i < nextLit) || (i < nextLit && soft != nextSoft))
-            invalidate(ticks[i]);
-    }
-    lit = nextLit;
-    heating = newHeating;
-    soft = nextSoft;
-    target = bounded(target, maximum);
-    if (target != targetValue) {
-        if (targetValue >= 0)
-            invalidate(marker);
-        targetValue = target;
-        marker = segment(start + sweep * target / maximum, 199.0f, false, 8.0f, 3);
-        invalidate(marker);
-    }
-}
-
-void TickRing::pulse() {
-    if (!heating || lv_obj_get_screen(obj) != lv_scr_act() || !lv_obj_is_visible(obj))
+void TickRing::pulse(bool on) {
+    if (pulsing == on)
         return;
-    const bool nextSoft = (millis() / 500) % 2;
-    if (soft == nextSoft)
-        return;
-    soft = nextSoft;
-    for (unsigned i = 0; i < lit; ++i)
-        invalidate(ticks[i]);
+    pulsing = on;
+    soft = false;
+    plan();
 }
 
-void TickRing::draw(lv_event_t *event) {
-    lv_draw_ctx_t *ctx = lv_event_get_draw_ctx(event);
-    const Palette &p = theme().palette();
-    lv_area_t coords;
-    lv_obj_get_coords(obj, &coords);
+void TickRing::busy(bool on) {
+    if (comet == on)
+        return;
+    comet = on;
+    plan();
+}
+
+void TickRing::fill(const Span &span, const Arc &arc, bool pulse, uint8_t *out) const {
+    const int n = span.count;
+    const int on = std::clamp(static_cast<int>(lroundf(arc.value * n)), 0, n);
+    const int notch = arc.target < 0 ? -1 : std::clamp(static_cast<int>(lroundf(arc.target * (n - 1))), 0, n - 1);
+    for (int i = 0; i < n; ++i)
+        out[span.first + i] = code(i < on ? arc.tone : Tone::Track) | (i == notch ? NOTCH : 0);
+    if (pulse && soft && on > 0 && on - 1 != notch)
+        out[span.first + on - 1] = code(Tone::HeatSoft);
+}
+
+void TickRing::plan() {
+    uint8_t next[COUNT] = {};
+    if (layout == Layout::Split) {
+        fill(SPANS[0], arcs[0], pulsing, next);
+        fill(SPANS[1], arcs[1], false, next);
+    } else if (layout == Layout::Single) {
+        if (comet) {
+            Arc empty;
+            fill(SPANS[2], empty, false, next);
+            for (unsigned i = 0; i < 3; ++i)
+                next[SPANS[2].first + (cometAt + i) % FULL] = code(Tone::Ink);
+        } else {
+            fill(SPANS[2], arcs[0], pulsing, next);
+        }
+    }
+    for (unsigned a = 0; a < 3; ++a) {
+        const Span &span = SPANS[a];
+        if (memcmp(next + span.first, want + span.first, span.count) == 0)
+            continue;
+        memcpy(want + span.first, next + span.first, span.count);
+        // A new target sets the pace: a few ticks a frame, more only when the walk must fit the sweep.
+        int pending = 0, litNow = 0, litNext = 0;
+        for (unsigned i = span.first; i < span.first + span.count; ++i) {
+            pending += drawn[i] != want[i];
+            litNow += lit(drawn[i]);
+            litNext += lit(want[i]);
+        }
+        const Arc &arc = arcs[a == 1 ? 1 : 0];
+        const int fitted = (pending + motion::SWEEP - 1) / motion::SWEEP;
+        pace[a] = a == 2 && comet ? span.count : arc.pace ? arc.pace : static_cast<uint8_t>(std::max(4, fitted));
+        down[a] = litNext < litNow;
+    }
+}
+
+lv_area_t TickRing::box(unsigned index, bool notch) const {
+    const Tick &t = ticks[index];
+    const lv_point_t &in = notch ? t.notch : t.inner;
+    return {static_cast<lv_coord_t>(std::min(in.x, t.outer.x) - PAD), static_cast<lv_coord_t>(std::min(in.y, t.outer.y) - PAD),
+            static_cast<lv_coord_t>(std::max(in.x, t.outer.x) + PAD), static_cast<lv_coord_t>(std::max(in.y, t.outer.y) + PAD)};
+}
+
+void TickRing::apply(unsigned index) {
+    const lv_area_t area = box(index, (drawn[index] | want[index]) & NOTCH);
+    drawn[index] = want[index];
+    ui::invalidate(obj, &area);
+}
+
+void TickRing::step() {
+    if (++phase >= motion::SWEEP) {
+        phase = 0;
+        if (pulsing) {
+            soft = !soft;
+            plan();
+        }
+    }
+    if (comet && layout == Layout::Single) {
+        cometAt = (cometAt + 1) % FULL;
+        plan();
+    }
+    for (unsigned a = 0; a < 3; ++a) {
+        const Span &span = SPANS[a];
+        unsigned left = pace[a];
+        for (unsigned n = 0; n < span.count && left > 0; ++n) {
+            const unsigned i = span.first + (down[a] ? span.count - 1 - n : n);
+            if (drawn[i] != want[i]) {
+                apply(i);
+                --left;
+            }
+        }
+    }
+}
+
+void TickRing::settle() {
+    memcpy(drawn, want, sizeof(drawn));
+    ui::invalidate(obj);
+}
+
+void TickRing::drawEvent(lv_event_t *e) {
+    static_cast<const TickRing *>(lv_event_get_user_data(e))->draw(lv_event_get_draw_ctx(e));
+}
+
+void TickRing::draw(lv_draw_ctx_t *ctx) const {
+    const lv_area_t *clip = ctx->clip_area;
     lv_draw_line_dsc_t dsc;
     lv_draw_line_dsc_init(&dsc);
-    dsc.width = stroke;
+    dsc.width = tokens::RING_TICK;
     dsc.round_start = dsc.round_end = 1;
-    const auto drawSegment = [&](const Segment &s) {
-        lv_point_t a = {static_cast<lv_coord_t>(coords.x1 + s.a.x), static_cast<lv_coord_t>(coords.y1 + s.a.y)};
-        lv_point_t b = {static_cast<lv_coord_t>(coords.x1 + s.b.x), static_cast<lv_coord_t>(coords.y1 + s.b.y)};
-        lv_draw_line(ctx, &dsc, &a, &b);
-    };
-    for (unsigned i = 0; i < count; ++i) {
-        dsc.color = i >= lit ? p.line : kind == Kind::Pressure ? p.primary : soft ? p.heatSoft : p.heat;
-        drawSegment(ticks[i]);
-    }
-    if (targetValue >= 0) {
-        dsc.width = 3;
-        dsc.color = p.ink;
-        drawSegment(marker);
+    for (unsigned i = 0; i < COUNT; ++i) {
+        const uint8_t c = drawn[i];
+        if (c == 0)
+            continue;
+        const bool notch = c & NOTCH;
+        const lv_area_t area = box(i, notch);
+        if (area.x2 < clip->x1 || area.x1 > clip->x2 || area.y2 < clip->y1 || area.y1 > clip->y2)
+            continue;
+        dsc.color = tone(notch ? Tone::Ink : static_cast<Tone>((c & 0x7f) - 1));
+        const Tick &t = ticks[i];
+        lv_draw_line(ctx, &dsc, notch ? &t.notch : &t.inner, &t.outer);
     }
 }
 
-void Gauges::build(lv_obj_t *parent, bool minimal) {
-    temperature.build(parent, TickRing::Kind::Temperature, minimal);
-    pressure.build(parent, TickRing::Kind::Pressure, minimal);
-    full.build(parent, TickRing::Kind::FullTemperature, minimal);
-}
-
-void Gauges::update(const UiState &state) {
-    const bool heating = state.currentTemp < state.targetTemp;
-    temperature.update(state.currentTemp, state.targetTemp, heating, state.pressureAvailable);
-    pressure.update(state.pressure, state.targetPressure, false, state.pressureAvailable);
-    full.update(state.currentTemp, state.targetTemp, heating, !state.pressureAvailable);
+TickRing::Shown TickRing::shown() const {
+    Shown s{Layout::None, {0, 0}, {-1, -1}, {Tone::Track, Tone::Track}, false};
+    const bool split = drawn[SPANS[0].first] != 0 || drawn[SPANS[1].first] != 0;
+    const bool single = drawn[SPANS[2].first] != 0;
+    s.layout = split ? Layout::Split : single ? Layout::Single : Layout::None;
+    for (unsigned a = 0; a < 3; ++a) {
+        if ((a == 2) != (s.layout == Layout::Single))
+            continue;
+        const Span &span = SPANS[a];
+        const unsigned slot = a == 1 ? 1 : 0;
+        for (unsigned i = 0; i < span.count; ++i) {
+            const uint8_t c = drawn[span.first + i];
+            if (c & NOTCH)
+                s.notch[slot] = static_cast<int>(i);
+            else if (lit(c)) {
+                ++s.lit[slot];
+                s.tone[slot] = static_cast<Tone>((c & 0x7f) - 1);
+            }
+        }
+    }
+    s.walking = memcmp(drawn, want, sizeof(drawn)) != 0;
+    return s;
 }
 
 } // namespace bm

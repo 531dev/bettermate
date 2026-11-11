@@ -1,31 +1,23 @@
 #ifndef BETTERMATE_INFO_SCREEN_H
 #define BETTERMATE_INFO_SCREEN_H
 
-#include "WorkingScreen.h"
-#include <string>
+#include <display/ui/bettermate/Screen.h>
 
 namespace bm {
-// The connection QR is the one thing to look at; versions wait behind ABOUT.
-class InfoScreen : public WorkingScreen {
+
+// Network, QR code and versions. Placeholder until its lane lands.
+class InfoScreen : public Screen {
   public:
-    using WorkingScreen::WorkingScreen;
-    void onShow(const UiState &state) override;
+    using Screen::Screen;
     void update(const UiState &state) override;
 
   protected:
     void build(lv_obj_t *root) override;
 
   private:
-    lv_obj_t *address = nullptr;
-    lv_obj_t *qr = nullptr;
-    lv_obj_t *qrCaption = nullptr;
-    lv_obj_t *offline = nullptr;
-    lv_obj_t *about = nullptr;
-    lv_obj_t *versions = nullptr;
-    lv_obj_t *displayCaption = nullptr, *displayVersion = nullptr;
-    lv_obj_t *controllerCaption = nullptr, *controllerVersion = nullptr;
-    std::string qrContent;
-    bool showingAbout = false;
+    lv_obj_t *label = nullptr;
 };
+
 } // namespace bm
-#endif
+
+#endif // BETTERMATE_INFO_SCREEN_H

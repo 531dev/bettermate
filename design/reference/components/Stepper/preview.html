@@ -1,0 +1,17 @@
+<!-- @dsCard group="Forms" height=124 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Stepper</title></head>
+<body>
+<div class="bm-stage"><div class="bm-rowx" style="gap:32px">
+  <span class="bm-stepper"><button class="bm-stepper__btn" aria-label="Lower" data-icon="minus"></button><span class="bm-stepper__value" id="v">93°</span><button class="bm-stepper__btn" aria-label="Raise" data-icon="plus"></button></span>
+  <div class="bm-cell" style="flex-direction:row;align-items:center;gap:20px"><span class="bm-field__label">Grind target</span><span class="bm-stepper bm-stepper--on-cell"><button class="bm-stepper__btn" aria-label="Less" data-icon="minus"></button><span class="bm-stepper__value">18.0 g</span><button class="bm-stepper__btn" aria-label="More" data-icon="plus"></button></span></div>
+</div></div>
+<script>
+BetterMate.hydrate();
+var v = 93, out = document.getElementById('v'), btns = out.parentNode.querySelectorAll('button');
+btns[0].onclick = function () { v = Math.max(80, v - 1); out.textContent = v + '°'; };
+btns[1].onclick = function () { v = Math.min(100, v + 1); out.textContent = v + '°'; };
+</script>
+</body>
+</html>

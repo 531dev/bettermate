@@ -5,6 +5,7 @@
 //   wait <ms>                      let the firmware run
 //   tap <x> <y>                    press and release at a point
 //   hold <x> <y> <ms>              press, keep it down, release
+//   press <x> <y> / release        the two halves of a hold, with other steps in between
 //   swipe <x1> <y1> <x2> <y2> [ms] drag from one point to another (default 250 ms)
 //   key <1|2> <down|up>            the controller board's brew / steam inputs
 //   theme <n>                      set the display theme setting (0 dark, 1 light, 2 AMOLED)
@@ -17,17 +18,23 @@
 //   scale <0|1>                    stop/resume mock scale telemetry (health expires after 1.5 s)
 //   weight <grams>                 set the mock scale reading
 //   wifi <sta|ap|ap-open|disconnected> inject network UI state for QR checks
-//   expect <screen|mode|active> <n> check screen ID, MODE_* or process active (0/1); fail fast
+//   mode <standby|brew|steam|water|grind> change the machine's mode, as the web UI would
+//   panel <amoled|lcd>             pretend the panel is an AMOLED (Standby rests after 30 s) or not
+//   expect screen <name>           check the screen on the glass (standby, brew, shot, steam, water, grind, menu,
+//                                  profiles, adjust, sheet, warnings, info); fail fast
+//   expect <mode|active> <n>       check MODE_* or process active (0/1)
 //   expect <temperature|duration|target-weight> <n> check the selected profile (rounded)
 //   expect setpoint <degrees>      check the current mode's temperature target
 //   expect <grind-active|grind-duration|grind-weight> <n> check grinding, seconds, or tenths of a gram
-//   expect <text|hidden> <label>    check whether an exact label is visible on the real LVGL screen
+//   expect <text|hidden> <label>    check whether an exact label or reading is visible on the real LVGL screen
 //   shot <path>                    write a BMP of the current frame
-//   layout <path>                  write every visible object's geometry and text extents as JSON lines
+//   layout <path>                  write the screen, the ring and every visible object as JSON lines
+//   redraw <path>                  write every repaint since the last redraw step (time, pixels) as JSON lines
 //   quit                           leave the simulator
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 
 class SdlDriver;
@@ -56,10 +63,13 @@ class SimScript {
         Scale,
         Weight,
         Wifi,
+        Panel,
+        Mode,
         Expect,
         ExpectText,
         Shot,
         Layout,
+        Redraw,
         Quit
     };
     struct Step {
@@ -74,6 +84,7 @@ class SimScript {
     void wait(int ms) { steps.push_back({Kind::Wait, ms, 0, false, {}}); }
 
     std::vector<Step> steps;
+    std::pair<int, int> held{0, 0};
     size_t next = 0;
     unsigned long resumeAt = 0;
 };

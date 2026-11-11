@@ -7,69 +7,49 @@
 
 namespace bm {
 
-enum class ThemeId : uint8_t { Light, Dark, Amoled };
+// Display black ships on every panel: a black ground hides the round bezel. Light remains a setting.
+enum class ThemeId : uint8_t { Black, Light };
 
-// Foreground roles: the color of text and of an icon (icons are alpha maps recolored by the same style).
-enum class Fg : uint8_t { Ink, Muted, Faint, Primary, Heat, Success, Warning, Danger, OnPrimary, OnHeat, OnDanger, Count };
-
-// Fill roles: the background of a surface, a disc or a badge.
-enum class Bg : uint8_t {
-    Surface0,
-    Surface1,
-    Surface2,
-    Line,
+// The color tokens the display draws with. Ink selects, cobalt (Primary) acts, orange (Heat) is the boiler.
+enum class Tone : uint8_t {
+    Surface0, // the face
+    Surface1, // cards, the row track
+    Surface2, // discs
+    Track,    // unlit ticks and bars
+    Ink,
+    OnInk,
+    Muted,
+    Faint,
     Primary,
-    PrimaryHover,
-    PrimarySoft,
-    Heat,
-    HeatSoft,
-    SuccessSoft,
+    OnPrimary,
+    Heat,     // temperature marks
+    HeatText, // temperature as words
+    HeatSoft, // the dim phase of the heating pulse
+    Warning,
     WarningSoft,
-    DangerSoft,
     Danger,
+    DangerSoft,
+    QrGround, // the QR card is white with black modules in every theme
+    QrInk,
     Count
 };
 
-// The five type styles of the round display.
-enum class Type : uint8_t { Metric, MetricSm, Title, Body, Label, Count };
+// The seven type styles of the round display. Nothing is smaller than Label (20 px).
+enum class Type : uint8_t { Hero, HeroSm, Value, Title, Body, Label, Button, Count };
 
-// The active theme's colors, for code that draws by hand (the tick rings).
-struct Palette {
-    lv_color_t surface0, surface1, surface2, line, lineStrong;
-    lv_color_t ink, inkMuted, inkFaint;
-    lv_color_t primary, primaryHover, primarySoft, onPrimary;
-    lv_color_t heat, heatText, heatSoft, onHeat;
-    lv_color_t success, successSoft, warning, warningSoft, danger, dangerSoft, onDanger;
-};
+namespace theme {
+// Returns true when the theme actually changed; the caller then rebuilds what it drew.
+bool set(ThemeId id);
+ThemeId id();
+} // namespace theme
 
-// Every object on the display takes its colors from the shared styles below, so switching theme rewrites
-// a handful of styles and repaints once. No object is touched individually.
-class Theme {
-  public:
-    static Theme &get();
-
-    void init();
-    // Returns true when the theme actually changed.
-    bool apply(ThemeId id);
-    ThemeId id() const { return current; }
-    const Palette &palette() const { return colors; }
-
-    lv_style_t *fg(Fg role) { return &fgStyles[static_cast<size_t>(role)]; }
-    lv_style_t *bg(Bg role) { return &bgStyles[static_cast<size_t>(role)]; }
-    lv_style_t *type(Type style) { return &typeStyles[static_cast<size_t>(style)]; }
-
-  private:
-    Theme() = default;
-
-    bool initialized = false;
-    ThemeId current = ThemeId::Dark;
-    Palette colors{};
-    lv_style_t fgStyles[static_cast<size_t>(Fg::Count)];
-    lv_style_t bgStyles[static_cast<size_t>(Bg::Count)];
-    lv_style_t typeStyles[static_cast<size_t>(Type::Count)];
-};
-
-inline Theme &theme() { return Theme::get(); }
+lv_color_t tone(Tone tone);
+// A tone mixed toward the face: how the display fades without compositing (level 0..100).
+lv_color_t tone(Tone tone, uint8_t level);
+const lv_font_t *font(Type type);
+int tracking(Type type);
+// Distance from the top of a line of this type to its baseline: layouts are given in baselines.
+int ascent(Type type);
 
 } // namespace bm
 

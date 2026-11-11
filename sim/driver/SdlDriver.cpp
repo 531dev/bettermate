@@ -30,6 +30,10 @@ static bool s_quit = false;
 
 static void disp_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_p) {
     SDL_Rect r{area->x1, area->y1, area->x2 - area->x1 + 1, area->y2 - area->y1 + 1};
+    // SIM_TRACE_FLUSH=1 lists every area LVGL repaints: the way to find out what a frame redrew.
+    static const bool trace = getenv("SIM_TRACE_FLUSH") != nullptr;
+    if (trace)
+        fprintf(stderr, "[flush] %lu ms  %d,%d %dx%d\n", (unsigned long)SDL_GetTicks(), r.x, r.y, r.w, r.h);
     SDL_UpdateTexture(s_texture, &r, color_p, r.w * (int)sizeof(lv_color_t));
     lv_disp_flush_ready(drv);
 }

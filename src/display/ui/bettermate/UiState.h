@@ -23,6 +23,8 @@ struct UiState {
     bool displayOutdated = false;  // protocol mismatch: the display is the side that needs the update
     bool temperatureError = false; // the error is a boiler runaway
     bool canWake = false;          // a tap on standby may switch the machine on
+    bool amoledPanel = false;      // the panel burns in: Standby rests after a while
+    int menuOrigin = 0;            // the mode the menu was opened from, drawn as the active disc
 
     // Connectivity
     bool controllerConnected = false;
@@ -48,8 +50,7 @@ struct UiState {
     float profilePressure = 0.0f;
     bool profilePressureSet = false;
     bool profilePressureEditable = false;
-    bool adjusting = false;
-    bool confirming = false;
+    bool confirming = false; // the controller asks to confirm a start despite warnings
     bool volumetricAvailable = false;
     bool bluetoothScale = false;
     double weight = 0.0;
@@ -107,7 +108,7 @@ struct UiState {
         float phaseTarget = 0.0f;
         float progress = 0.0f; // 0..100
         double weight = 0.0;
-        // Planned seconds per phase and the running phase, for the segmented progress ring.
+        // Planned seconds per phase and the running phase, for the stage bars.
         float phaseDurations[8]{};
         int phaseCount = 0;
         int phaseIndex = 0;
@@ -128,8 +129,6 @@ struct UiState {
     // Warnings by WarningType: shown as a warning, or as an error that must be confirmed before brewing
     bool warn[WARNING_TYPE_COUNT] = {};
     bool error[WARNING_TYPE_COUNT] = {};
-    // Set for one show of the Modes screen when the warning indicator was tapped elsewhere.
-    bool openWarnings = false;
 };
 
 } // namespace bm

@@ -1,44 +1,31 @@
 #ifndef BETTERMATE_STANDBY_SCREEN_H
 #define BETTERMATE_STANDBY_SCREEN_H
 
-#include <display/ui/bettermate/LuxuryUI.h>
 #include <display/ui/bettermate/Screen.h>
 
 namespace bm {
 
-// Quiet clock face with a bare rim. A tap anywhere opens mode selection;
-// wake guards, scheduled wake, faults and AMOLED clock drift remain active.
+// The display at rest: the clock as the one reading, the boiler's residual heat greyed on a single ring, and
+// WAKE as the one action. While the machine is busy or blocked the reason takes the line under the clock.
 class StandbyScreen : public Screen {
   public:
     using Screen::Screen;
-
-    void onShow(const UiState &state) override;
     void update(const UiState &state) override;
-    lv_obj_t *body() override { return center; }
+    void tapped() override { host.act(Intent::Wake); }
 
   protected:
     void build(lv_obj_t *root) override;
+    void onEnter(const UiState &state) override;
 
   private:
-    void updateRest(const UiState &state, bool resting);
+    void place(const UiState &state, bool resting);
 
-    lv_obj_t *center = nullptr;
-    lv_obj_t *eyebrow = nullptr;
-    lv_obj_t *clockBlock = nullptr;
-    lv_obj_t *date = nullptr;
-    lv_obj_t *clock = nullptr;
-    lv_obj_t *meridiem = nullptr;
-    lv_obj_t *wordmark = nullptr;
-    lv_obj_t *divider = nullptr;
-    lv_obj_t *boiler = nullptr;
-    lv_obj_t *sentence = nullptr;
-    lv_obj_t *wakeButton = nullptr;
-    lv_obj_t *wakeLabel = nullptr;
-    lv_obj_t *activity = nullptr;
-    luxury::Indicators indicators;
-
-    unsigned long shownAt = 0;
-    int restStep = -1; // which step of the drift is applied; -1 while the full screen is lit
+    lv_obj_t *label = nullptr;
+    ui::Reading clock;
+    lv_obj_t *line = nullptr;
+    lv_obj_t *wake = nullptr;
+    unsigned long enteredAt = 0;
+    int restStep = -2;
 };
 
 } // namespace bm

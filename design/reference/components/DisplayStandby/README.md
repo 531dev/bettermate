@@ -1,11 +1,9 @@
-# Display · Standby
+The display at rest: the clock as the one reading, the boiler's residual heat greyed on a single ring, and WAKE as the one action.
 
-The screen the machine shows when it is off (StandbyScreen): connectivity at the top, the clock as the hero reading, the wordmark, and a tap hint at the bottom. It is deliberately the emptiest screen in the product — the rim is bare because no ring has anything to report.
+- Draw the ring in `ink-faint` with no notch; it answers "is it still warm" without inviting a tap.
+- One line under the clock says what happens next: `Boiler off · 21°`, or `Wakes at 06:30` when a schedule is set.
+- While connecting, updating or autotuning, remove the pill, put the reason on that line and run the busy comet on the ring.
+- WAKE opens the mode menu, as waking does today. It is drawn so the action is visible, not discovered.
+- On AMOLED, 30 s after entering Standby keep only the clock, in `ink-faint`, and move it 2 px each minute. Warnings stay visible through rest.
 
-- Status row at the top (`space-6` from the rim): the `wifi`, `bluetooth` and `refresh-cw` glyphs at 24 px (1×), `ink` when connected or in progress and `ink-muted` when not. Warnings (water low, scale lost) replace the row with one `warning` Badge.
-- Clock in `screen-metric` (mono, 64 px) with the date above it as `screen-label`; the wordmark asset `bettermate-wordmark-display.png` (480 × 65, shown 32 px tall) below in `ink` — the inverse file in Dark and AMOLED. Never set the name in a font.
-- A neutral Badge under the mark reports STANDBY and the boiler temperature so a warm machine is obvious at a glance.
-- The tap hint is the `hand` glyph (24 px, 1×) plus TAP TO WAKE in `screen-label`, `space-10` from the bottom; on machines with auto-wake it reads the next wake time instead.
-- AMOLED: true-black ground and, after 30 s, the clock alone to spare the panel.
-
-The markup here is a static rendition of the LVGL layout, drawn with the same tokens.
+Provide: time, date, the status line, boiler temperature as a fraction of 160 °C, and whether the controller is connected.
