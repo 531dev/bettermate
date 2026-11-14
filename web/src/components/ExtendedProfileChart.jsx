@@ -186,7 +186,8 @@ function makeChartData(phases, selectedPhase, showLabels, onPhaseClick) {
 /**
  * The pressure and flow a profile asks for, over its phases.
  *   data             the profile; its `phases` are drawn
- *   className        the canvas: cap its height here (`max-h-36`), or size the box with `style`
+ *   className        the canvas: cap its height here (`max-h-36`), or size the plot with `style`
+ *   style            the plot's box, such as `{ height: '128px' }`; the legend sits above it
  *   selectedPhase    index of the phase to mark with a band
  *   onPhaseClick(i)  makes the phases pressable, for the editor
  *   showPhaseLabels  false leaves the phase names off the lines; they are off under 520px anyway
@@ -222,9 +223,10 @@ export function ExtendedProfileChart({
   return (
     <ChartComponent
       className='min-h-0 max-w-full flex-shrink flex-grow'
+      plotClassName={style ? 'flex-none' : undefined}
+      plotStyle={style}
       chartClassName={`${className}${pressable ? ' cursor-pointer' : ''}`}
       data={config}
-      style={style}
       label='Pressure and flow over the phases of the profile'
     />
   );

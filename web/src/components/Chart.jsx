@@ -45,6 +45,7 @@ export function ChartLegend({ datasets, className }) {
  *                   object replaces what the chart shows; nothing animates.
  *   className       the box; give it a height, or cap the canvas with `chartClassName`
  *   plotClassName   the canvas's own box, to give the plot a height the legend cannot take from
+ *   plotStyle       the same as a style: a height in px that a setting holds
  *   chartClassName  the canvas
  *   legend          false to leave the Chips out and place a ChartLegend elsewhere
  *   label           the canvas's name for screen readers; the series names by default
@@ -54,6 +55,7 @@ export function ChartComponent({
   data,
   className,
   plotClassName,
+  plotStyle,
   chartClassName,
   style,
   legend = true,
@@ -124,7 +126,10 @@ export function ChartComponent({
   return (
     <div className={cx('flex min-w-0 flex-col gap-3', className)} style={style}>
       {legend && <ChartLegend datasets={data.data.datasets} />}
-      <div className={cx('relative min-h-0 w-full min-w-0 flex-1', plotClassName)}>
+      <div
+        className={cx('relative min-h-0 w-full min-w-0 flex-1', plotClassName)}
+        style={plotStyle}
+      >
         <canvas
           ref={canvas}
           className={chartClassName}

@@ -145,8 +145,9 @@ export function valueAxis({ min, max }, { position = 'left', grid = true, format
     min,
     max,
     border: { display: false },
-    grid: { display: grid, drawTicks: false },
-    ticks: { count: 4, padding: 8, ...(format && { callback: format }) },
+    grid: { display: grid && !hidden, drawTicks: false },
+    // All four, however short the plot: Chart.js would drop every other one under about 80px.
+    ticks: { count: 4, autoSkip: false, padding: 8, ...(format && { callback: format }) },
   };
 }
 
@@ -173,9 +174,14 @@ export function secondsAxis(min, max, format = (value, index) => (index ? value 
   };
 }
 
+// A plot shorter than this has no room for names beside its lines: they would run across the curves.
+const NAME_ROOM = 140;
+const roomForNames = ({ chart }) => !chart.chartArea || chart.chartArea.height >= NAME_ROOM;
+
 /**
  * A vertical line where a phase starts, with its name running up beside it, as the stage names
  * are set: uppercase mono, which a canvas has to be given, and no box, so no reading hides behind it.
+ * A short plot keeps the lines and leaves the names out.
  */
 export function phaseLine(x, name, showName = true) {
   return {
@@ -186,7 +192,7 @@ export function phaseLine(x, name, showName = true) {
     // The first phase starts at the plot's own edge, which needs no line.
     borderWidth: x > 0 ? 1 : 0,
     label: {
-      display: !!(showName && name),
+      display: showName && name ? roomForNames : false,
       content: String(name || '').toUpperCase(),
       backgroundColor: 'transparent',
       rotation: -90,
