@@ -11,43 +11,45 @@
 // Then the profile curve (12), and the chart (7) beside the recent shots (5). A tile grows to
 // fill its row; nothing leaves a ragged edge, and no reading is stretched across the page.
 //
-// Below 1024px none of this applies: the tiles follow their order in the page.
+// This takes a window of 1200px (75rem): beside the sidebar, 4 columns of a narrower one do not
+// hold a label and its Stepper. Below that the tiles follow their order in the page, each a
+// full row with the readings two to a row, as on a tablet.
 
 // The classes are written out whole, so Tailwind's scanner finds them.
 const BESIDE = {
-  left: 'lg:col-span-4',
-  right: 'lg:col-span-3',
-  alone: 'lg:col-span-7',
+  left: 'min-[75rem]:col-span-4',
+  right: 'min-[75rem]:col-span-3',
+  alone: 'min-[75rem]:col-span-7',
 };
 // The tiles beside the dial are placed row by row, in this order.
 const ORDER = [
-  'lg:order-2',
-  'lg:order-3',
-  'lg:order-4',
-  'lg:order-5',
-  'lg:order-6',
-  'lg:order-7',
-  'lg:order-8',
+  'min-[75rem]:order-2',
+  'min-[75rem]:order-3',
+  'min-[75rem]:order-4',
+  'min-[75rem]:order-5',
+  'min-[75rem]:order-6',
+  'min-[75rem]:order-7',
+  'min-[75rem]:order-8',
 ];
-const ROWS = ['', '', 'lg:row-span-2', 'lg:row-span-3', 'lg:row-span-4'];
-const LEAD_COLUMN = 'lg:col-start-6 lg:col-span-4';
-const READING_COLUMN = 'lg:col-start-10 lg:col-span-3';
+const ROWS = ['', '', 'min-[75rem]:row-span-2', 'min-[75rem]:row-span-3', 'min-[75rem]:row-span-4'];
+const LEAD_COLUMN = 'min-[75rem]:col-start-6 min-[75rem]:col-span-4';
+const READING_COLUMN = 'min-[75rem]:col-start-10 min-[75rem]:col-span-3';
 const SHARE = {
-  1: 'lg:order-9 lg:col-span-12',
-  2: 'lg:order-9 lg:col-span-6',
-  3: 'lg:order-9 lg:col-span-4',
-  4: 'lg:order-9 lg:col-span-3',
+  1: 'min-[75rem]:order-9 min-[75rem]:col-span-12',
+  2: 'min-[75rem]:order-9 min-[75rem]:col-span-6',
+  3: 'min-[75rem]:order-9 min-[75rem]:col-span-4',
+  4: 'min-[75rem]:order-9 min-[75rem]:col-span-3',
 };
-const DIAL = 'lg:order-1 lg:col-span-5';
-const DIAL_ALONE = 'lg:order-1 lg:col-span-12';
+const DIAL = 'min-[75rem]:order-1 min-[75rem]:col-span-5';
+const DIAL_ALONE = 'min-[75rem]:order-1 min-[75rem]:col-span-12';
 const RECENT = {
-  besideDial: 'lg:col-span-7',
-  besideChart: 'lg:order-12 lg:col-span-5',
-  alone: 'lg:order-12 lg:col-span-12',
+  besideDial: 'min-[75rem]:col-span-7',
+  besideChart: 'min-[75rem]:order-12 min-[75rem]:col-span-5',
+  alone: 'min-[75rem]:order-12 min-[75rem]:col-span-12',
 };
 
-export const CURVE = 'lg:order-10 lg:col-span-12';
-export const CHART = 'lg:order-11 lg:col-span-7';
+export const CURVE = 'min-[75rem]:order-10 min-[75rem]:col-span-12';
+export const CHART = 'min-[75rem]:order-11 min-[75rem]:col-span-7';
 
 const join = (...classes) => classes.filter(Boolean).join(' ');
 

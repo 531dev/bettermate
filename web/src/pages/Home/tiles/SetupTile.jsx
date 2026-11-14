@@ -53,8 +53,9 @@ function Favourites({ selectedProfileId, disabled }) {
     <Segmented
       block
       label='Favourite profiles'
-      // A long name is cut short inside its third of the track instead of widening it.
-      className='[&>button]:min-w-0'
+      // A long name is cut short inside its third of the track instead of widening it, and the
+      // items give up some of their padding so a name of ordinary length is not.
+      className='[&>button]:min-w-0 [&>button]:px-2'
       options={shown.map(p => ({
         value: p.id,
         label: <span className='min-w-0 truncate'>{p.label}</span>,

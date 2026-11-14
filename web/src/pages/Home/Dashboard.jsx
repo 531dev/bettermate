@@ -34,12 +34,14 @@ import { useShotPlan, useShotStages } from './useShotPlan.js';
 import { nextWakeLabel } from './wakeSchedule.js';
 import './reading.css';
 
-// Below 1024px every tile is a full row of the grid. Readings go two to a row, and an odd last
-// one takes a whole row: on the desktop grid of Simple and Advanced each is placed by itself.
-const ROW = 'sm:col-span-2';
+// Below the desktop placement (layout.js, 75rem) every tile is a full row of the grid: both of
+// its 2 columns from 600px, all 12 from 1024px. Readings go two to a row, and an odd last one
+// takes a whole row; on the desktop grid of Simple and Advanced each is placed by itself.
+const ROW = 'sm:max-lg:col-span-2';
+const ROW_BELOW_DESKTOP = 'sm:max-lg:col-span-2 lg:max-[75rem]:col-span-12';
 const PAIRS = 'grid grid-cols-2 gap-2';
 const ODD_LAST = '[&>:last-child:nth-child(odd)]:col-span-2';
-const ODD_LAST_BELOW_DESKTOP = 'max-lg:[&>:last-child:nth-child(odd)]:col-span-2';
+const ODD_LAST_BELOW_DESKTOP = 'max-[75rem]:[&>:last-child:nth-child(odd)]:col-span-2';
 
 // The warnings worth naming on the dashboard: what the top bar's glyph stands for, plus the
 // temperature reminder between shots, when the Chip beside it does not already say the boiler is
@@ -218,37 +220,44 @@ export function Dashboard({ view: mode }) {
           view={view}
           warnings={warnings}
           stages={stages}
-          className={cx(ROW, at.dial)}
+          className={cx(ROW_BELOW_DESKTOP, at.dial)}
         />
-        {action && <ActionBanner {...action} stretch className={cx(ROW, at.action)} />}
+        {action && (
+          <ActionBanner {...action} stretch className={cx(ROW_BELOW_DESKTOP, at.action)} />
+        )}
         {stats.length > 0 && (
           // On the desktop grid each reading is a tile of the grid itself.
           <div
             role='group'
             aria-label='Readings'
-            className={cx(PAIRS, ODD_LAST_BELOW_DESKTOP, ROW, 'lg:contents')}
+            className={cx(
+              PAIRS,
+              ODD_LAST_BELOW_DESKTOP,
+              ROW_BELOW_DESKTOP,
+              'lg:gap-3 min-[75rem]:contents',
+            )}
           >
             {stats.map((stat, i) => (
               <Reading key={stat.id} stat={stat} className={at.stats[i]} />
             ))}
           </div>
         )}
-        <SetupTile ds={ds} className={cx(ROW, at.setup)} />
+        <SetupTile ds={ds} className={cx(ROW_BELOW_DESKTOP, at.setup)} />
         {advanced && ds.mode === 1 && showCurve && (
           <CurveTile
             profile={shot.profile}
             processInfo={ds.processInfo}
-            className={cx(ROW, CURVE)}
+            className={cx(ROW_BELOW_DESKTOP, CURVE)}
           />
         )}
-        {showChart && <ChartTile title={chartTitle} className={cx(ROW, CHART)} />}
+        {showChart && <ChartTile title={chartTitle} className={cx(ROW_BELOW_DESKTOP, CHART)} />}
         <RecentShots
           recent={recent}
           // Simple keeps the list to the last three.
           max={advanced ? undefined : 3}
           settings={ds.settings}
           hour12={hour12}
-          className={cx(ROW, at.recent)}
+          className={cx(ROW_BELOW_DESKTOP, at.recent)}
         />
       </div>
     </>
