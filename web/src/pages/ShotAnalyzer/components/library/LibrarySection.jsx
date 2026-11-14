@@ -129,28 +129,10 @@ export function LibrarySection({
       style={sectionHeight ? { height: sectionHeight } : undefined}
       data-library-section={isShot ? 'shots' : 'profiles'}
     >
-      <div className='flex items-center justify-between gap-2'>
-        <h3 className='bm-sub flex items-center gap-2'>
+      <div className='flex items-center gap-2'>
+        <h3 className='bm-sub flex min-w-0 flex-1 items-center gap-2'>
           {title} <span className='bm-data'>{items.length}</span>
         </h3>
-        <LibraryActionsMenu
-          ariaLabel={`Open ${lowerTitle} actions menu`}
-          actions={[
-            { label: 'Export all', icon: 'download', onSelect: onExportAll },
-            { label: 'Delete all', icon: 'trash-2', tone: 'error', onSelect: onDeleteAll },
-          ]}
-        />
-      </div>
-
-      <div className='flex min-w-0 flex-wrap items-center gap-2'>
-        <Input
-          type='search'
-          placeholder={`Search ${lowerTitle}`}
-          aria-label={`Search ${lowerTitle}`}
-          value={searchValue}
-          onInput={e => onSearchChange(e.target.value)}
-          className='an-lib__field an-input--sm min-w-32 flex-1'
-        />
         <Select
           value={`${sortKey}-${sortOrder}`}
           aria-label={`Sort ${lowerTitle}`}
@@ -169,6 +151,24 @@ export function LibrarySection({
           {isShot && <option value='duration-desc'>Longest</option>}
           {isShot && <option value='duration-asc'>Shortest</option>}
         </Select>
+        <LibraryActionsMenu
+          ariaLabel={`Open ${lowerTitle} actions menu`}
+          actions={[
+            { label: 'Export all', icon: 'download', onSelect: onExportAll },
+            { label: 'Delete all', icon: 'trash-2', tone: 'error', onSelect: onDeleteAll },
+          ]}
+        />
+      </div>
+
+      <div className='flex min-w-0 flex-wrap items-center gap-2'>
+        <Input
+          type='search'
+          placeholder={`Search ${lowerTitle}`}
+          aria-label={`Search ${lowerTitle}`}
+          value={searchValue}
+          onInput={e => onSearchChange(e.target.value)}
+          className='an-lib__field an-input--sm min-w-40 flex-1 max-sm:basis-full'
+        />
         <Segmented
           onTile
           className='an-seg--sm'

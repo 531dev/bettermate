@@ -170,6 +170,8 @@ export function TrendChart({ trends }) {
               border: { display: false },
               ticks: {
                 ...tickStyle(tokens),
+                // the first and last dates stay inside the plot, clear of the y axis numbers
+                align: 'inner',
                 // Two ticks inside one bucket would carry the same date: the second stays blank.
                 callback: (value, index, ticks) => {
                   const labelOf = tickValue =>

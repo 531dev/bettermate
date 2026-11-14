@@ -429,14 +429,17 @@ export function StatisticsView({ initialContext }) {
         <Tile className='items-center text-center'>
           <h2 className='bm-heading'>No statistics built yet</h2>
           <p className='bm-help'>Choose what to include above, then build.</p>
-          <p className='st-keys bm-help flex flex-wrap items-center justify-center gap-x-4 gap-y-2'>
-            <span className='inline-flex items-center gap-2'>
-              <Chip>Enter</Chip> Build
-            </span>
-            <span className='inline-flex items-center gap-2'>
-              <Chip>C</Chip> Build and show shot charts
-            </span>
-          </p>
+          {/* st-keys hides on a touch screen: it carries no layout utility that would undo that */}
+          <div className='st-keys'>
+            <p className='bm-help flex flex-wrap items-center justify-center gap-x-4 gap-y-2'>
+              <span className='inline-flex items-center gap-2'>
+                <Chip>Enter</Chip> Build
+              </span>
+              <span className='inline-flex items-center gap-2'>
+                <Chip>C</Chip> Build and show shot charts
+              </span>
+            </p>
+          </div>
         </Tile>
       )}
     </div>

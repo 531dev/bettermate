@@ -485,12 +485,11 @@ export function DateBasisWarning({
       <p className='min-w-56 flex-1'>
         <span className='font-semibold'>Date basis.</span>{' '}
         {dateBasisWarningMessage ||
-          'Some shots have no shot timestamp. Choose how date handling should treat them.'}{' '}
-        {getDateBasisOptionTitle(dateBasisMode)}.
+          'Some shots have no shot timestamp. Choose how date handling should treat them.'}
       </p>
       <Segmented
         onTile
-        label='Date basis'
+        label={`Date basis: ${getDateBasisOptionTitle(dateBasisMode).toLowerCase()}`}
         options={DATE_BASIS_OPTIONS}
         value={dateBasisMode}
         onChange={onDateBasisModeChange}
