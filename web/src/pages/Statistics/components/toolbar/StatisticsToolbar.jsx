@@ -1,30 +1,20 @@
-// Main StatisticsToolbar component: orchestrates source/mode/date controls, profile/shot selectors, run button, and search help
+// StatisticsToolbar: the mode, selection, source, date and search controls of a statistics run.
+// Once statistics are built it folds into one summary row and unfolds on demand.
 import { useState, useRef } from 'preact/hooks';
-import {
-  getAnalyzerSurfaceTriggerClasses,
-  getAnalyzerTextButtonClasses,
-} from '../../../ShotAnalyzer/components/analyzerControlStyles';
-import '../StatisticsToolbar.css';
-import {
-  SOURCE_OPTIONS,
-  MODE_OPTIONS,
-  STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS,
-  STATISTICS_RUN_BUTTON_TONE_CLASS,
-} from './constants';
+import '../../statistics.css';
+import { SOURCE_OPTIONS } from './constants';
 import {
   formatCountLabel,
   formatCollapsedDateRangeText,
   getDateRangeDisplay,
   getCandidateSummary,
   getToolbarMessages,
-  getNeutralDropdownToneClasses,
-  getPrimaryDropdownToneClasses,
+  isToolbarControlTarget,
 } from './helpers';
 import {
   useAdvancedSearchSync,
   useDslPreviewOutsideDismiss,
   useToolbarCollapseBehavior,
-  useToolbarDropdownBehavior,
 } from './hooks';
 import {
   ToolbarBusyOverlay,
@@ -35,8 +25,6 @@ import {
   SelectionHint,
   DslSelectionPreview,
 } from './subcomponents';
-
-export { STATISTICS_RUN_BUTTON_TONE_CLASS };
 
 export function StatisticsToolbar({
   shotSource,
@@ -93,12 +81,10 @@ export function StatisticsToolbar({
   const isBusy = startLoading || loading || metadataLoading;
   const showBusyOverlay = startLoading || metadataLoading;
   const canExecute = canGo && !isBusy;
-  const { topError, noticeMessage, noticeTone } = getToolbarMessages({
+  const { topError, noticeMessage, noticeTone, moreCount } = getToolbarMessages({
     parseErrors,
     parseWarnings,
-    metadataError,
   });
-  const hasDateFilter = Boolean(dateFromLocal || dateToLocal);
   const dateRangeDisplay = getDateRangeDisplay({
     dateFromLocal,
     dateToLocal,
@@ -106,7 +92,7 @@ export function StatisticsToolbar({
     dateToPreviewLocal,
   });
   const showDateRangeLabelInTrigger = !dateRangeDisplay.isAuto;
-  const { candidateLabel, resetAriaCount } = getCandidateSummary({
+  const { candidateLabel, candidateTitle, resetAriaCount } = getCandidateSummary({
     metadataLoading,
     candidateCount,
   });
@@ -114,7 +100,6 @@ export function StatisticsToolbar({
     SOURCE_OPTIONS.find(opt => opt.value === shotSource) || SOURCE_OPTIONS[0];
   const currentProfileSourceOption =
     SOURCE_OPTIONS.find(opt => opt.value === profileSource) || SOURCE_OPTIONS[0];
-  const currentModeOption = MODE_OPTIONS.find(opt => opt.value === mode) || MODE_OPTIONS[0];
   const hasDslQuery = !!String(query || '').trim();
   const shotSelectionItemMap = new Map((shotSelectionItems || []).map(item => [item.id, item]));
   const selectedShotPreviewItems = (selectedShotKeys || [])
@@ -140,41 +125,12 @@ export function StatisticsToolbar({
   const shouldCollapseToolbar = Boolean(hasBuiltStatistics);
   const isToolbarExpanded = !shouldCollapseToolbar || isCollapsedStripExpanded;
   const shouldShowSelectionHint = topError || metadataError ? false : isToolbarExpanded;
-  const useBlankCollapseLayer = shouldCollapseToolbar && isToolbarExpanded;
-  const toolbarPassiveLayerClass = useBlankCollapseLayer ? 'pointer-events-none' : '';
-  const toolbarControlClass = useBlankCollapseLayer ? 'pointer-events-auto' : '';
-  const busyDropdownClass = isBusy ? 'pointer-events-none opacity-40' : '';
   const collapsedShotCountLabel = formatCountLabel(builtShotCount, 'shot', 'shots');
   const collapsedProfileCountLabel = formatCountLabel(builtProfileCount, 'profile', 'profiles');
   const collapsedDateRangeText = formatCollapsedDateRangeText(
     builtDateRangeStartMs,
     builtDateRangeEndMs,
   );
-  const sourceTriggerClasses = getAnalyzerSurfaceTriggerClasses({
-    className: `flex h-9 min-h-0 w-[15rem] max-w-full list-none items-center justify-between gap-2 rounded-lg bg-transparent px-2 text-xs font-bold [&::-webkit-details-marker]:hidden ${getNeutralDropdownToneClasses()} ${isBusy ? 'pointer-events-none opacity-40' : ''}`,
-  });
-  const modeTriggerClasses = getAnalyzerSurfaceTriggerClasses({
-    className: `${STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS} w-[7rem] list-none justify-between rounded-lg px-2 text-sm font-semibold [&::-webkit-details-marker]:hidden ${getPrimaryDropdownToneClasses()} ${isBusy ? 'pointer-events-none opacity-40' : ''}`,
-  });
-  const resetButtonClasses = getAnalyzerSurfaceTriggerClasses({
-    className: `inline-flex ${STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS} w-12 flex-col items-center justify-center gap-0.5 rounded-lg bg-base-content/4 px-0 text-[var(--ink-muted)] hover:bg-base-content/7 hover:text-base-content disabled:cursor-not-allowed disabled:opacity-40`,
-  });
-  const runButtonClasses = getAnalyzerSurfaceTriggerClasses({
-    className: `inline-flex ${STATISTICS_TOP_ROW_CONTROL_HEIGHT_CLASS} w-[6rem] items-center justify-center rounded-lg px-0 ${STATISTICS_RUN_BUTTON_TONE_CLASS} disabled:cursor-not-allowed disabled:opacity-40`,
-  });
-  const compactNeutralButtonClasses = getAnalyzerTextButtonClasses({
-    className:
-      'h-9 min-h-0 rounded-lg bg-transparent px-2 text-xs font-semibold text-[var(--ink-muted)] hover:text-base-content disabled:cursor-not-allowed disabled:opacity-40',
-  });
-  const activeCompactNeutralButtonClasses = getAnalyzerTextButtonClasses({
-    className:
-      'h-9 min-h-0 rounded-lg bg-transparent px-2 text-xs font-semibold text-base-content hover:text-base-content disabled:cursor-not-allowed disabled:opacity-40',
-  });
-  const dateTriggerClasses = getAnalyzerSurfaceTriggerClasses({
-    className: `flex h-9 min-h-0 w-[11.25rem] list-none items-center gap-1.5 rounded-lg bg-transparent px-2 text-left text-xs sm:w-[12.5rem] md:w-[15rem] [&::-webkit-details-marker]:hidden ${
-      hasDateFilter ? 'text-base-content' : 'text-[var(--ink-muted)] hover:text-base-content'
-    } ${busyDropdownClass}`,
-  });
 
   useAdvancedSearchSync({
     query,
@@ -192,19 +148,25 @@ export function StatisticsToolbar({
   });
   useToolbarCollapseBehavior({
     isToolbarExpanded,
-    isBusy,
     shouldCollapseToolbar,
     isCollapsedStripExpanded,
     toolbarContainerRef,
     setShowDslSelectionPreview,
     setIsCollapsedStripExpanded,
   });
-  useToolbarDropdownBehavior({ toolbarContainerRef, isToolbarExpanded });
+
+  // An unfolded toolbar folds again on a press on its empty ground.
+  const handleGroundClick = event => {
+    if (!shouldCollapseToolbar || !isCollapsedStripExpanded) return;
+    if (isToolbarControlTarget(event.target)) return;
+    setIsCollapsedStripExpanded(false);
+  };
 
   return (
     <div
       ref={toolbarContainerRef}
-      className='relative isolate z-[90] flex w-full min-w-0 flex-col gap-1.5 overflow-visible'
+      className='st-toolbar relative flex w-full min-w-0 flex-col gap-2'
+      onClick={handleGroundClick}
     >
       <ToolbarBusyOverlay visible={showBusyOverlay} />
       {shouldCollapseToolbar && !isToolbarExpanded ? (
@@ -216,16 +178,9 @@ export function StatisticsToolbar({
         />
       ) : (
         <ExpandedToolbarControls
-          useBlankCollapseLayer={useBlankCollapseLayer}
-          toolbarPassiveLayerClass={toolbarPassiveLayerClass}
-          toolbarControlClass={toolbarControlClass}
-          busyDropdownClass={busyDropdownClass}
-          setIsCollapsedStripExpanded={setIsCollapsedStripExpanded}
           mode={mode}
           onModeChange={onModeChange}
           isBusy={isBusy}
-          modeTriggerClasses={modeTriggerClasses}
-          currentModeOption={currentModeOption}
           profileSelectionItems={profileSelectionItems}
           selectedProfileNames={selectedProfileNames}
           onSelectedProfileNamesChange={onSelectedProfileNamesChange}
@@ -235,35 +190,29 @@ export function StatisticsToolbar({
           onSelectedShotKeysChange={onSelectedShotKeysChange}
           onShotPinToggle={onShotPinToggle}
           onClearFilters={onClearFilters}
-          resetButtonClasses={resetButtonClasses}
           resetAriaCount={resetAriaCount}
           candidateLabel={candidateLabel}
+          candidateTitle={candidateTitle}
           onGo={onGo}
           canExecute={canExecute}
-          runButtonClasses={runButtonClasses}
           setShowDslSelectionPreview={setShowDslSelectionPreview}
-          sourceTriggerClasses={sourceTriggerClasses}
           currentShotSourceOption={currentShotSourceOption}
           currentProfileSourceOption={currentProfileSourceOption}
           shotSource={shotSource}
           onShotSourceChange={onShotSourceChange}
           profileSource={profileSource}
           onProfileSourceChange={onProfileSourceChange}
-          dateTriggerClasses={dateTriggerClasses}
-          hasDateFilter={hasDateFilter}
           showDateRangeLabelInTrigger={showDateRangeLabelInTrigger}
           dateRangeDisplay={dateRangeDisplay}
           dateFromLocal={dateFromLocal}
           onDateFromChange={onDateFromChange}
           dateToLocal={dateToLocal}
           onDateToChange={onDateToChange}
-          compactNeutralButtonClasses={compactNeutralButtonClasses}
           showAdvancedSearch={showAdvancedSearch}
           setShowAdvancedSearch={setShowAdvancedSearch}
           dslInputRef={dslInputRef}
           query={query}
           onQueryChange={onQueryChange}
-          activeCompactNeutralButtonClasses={activeCompactNeutralButtonClasses}
         />
       )}
 
@@ -273,31 +222,21 @@ export function StatisticsToolbar({
         dateBasisMode={dateBasisMode}
         onDateBasisModeChange={onDateBasisModeChange}
         isBusy={isBusy}
-        toolbarPassiveLayerClass={toolbarPassiveLayerClass}
-        toolbarControlClass={toolbarControlClass}
       />
 
       <ToolbarNotice
         visible={isToolbarExpanded}
         noticeMessage={noticeMessage}
         noticeTone={noticeTone}
-        parseErrors={parseErrors}
-        parseWarnings={parseWarnings}
-        topError={topError}
-        toolbarPassiveLayerClass={toolbarPassiveLayerClass}
+        moreCount={moreCount}
       />
 
-      <SelectionHint
-        visible={shouldShowSelectionHint}
-        selectionHint={selectionHint}
-        toolbarPassiveLayerClass={toolbarPassiveLayerClass}
-      />
+      <SelectionHint visible={shouldShowSelectionHint} selectionHint={selectionHint} />
 
       <DslSelectionPreview
         visible={isToolbarExpanded && shouldShowDslSelectionPreview}
         profilePreviewItems={profilePreviewItems}
         shotPreviewItems={shotPreviewItems}
-        toolbarPassiveLayerClass={toolbarPassiveLayerClass}
       />
     </div>
   );

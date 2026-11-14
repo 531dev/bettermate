@@ -1,4 +1,5 @@
-import { Icon } from '../../../../components/Icon.jsx';
+import { Chip } from '../../../../components/Chip.jsx';
+import { Tile } from '../../../../components/Tile.jsx';
 import { useState, useEffect, useRef, useContext, useCallback } from 'preact/hooks';
 // Main StatisticsView orchestrator: wires hooks, toolbar, summary cards, and the detail section panel
 import { ApiServiceContext } from '../../../../services/ApiService';
@@ -13,7 +14,7 @@ import {
   toggleProfilePin,
   toggleShotPin,
 } from '../../../ShotAnalyzer/utils/analyzerUtils';
-import { StatisticsToolbar, STATISTICS_RUN_BUTTON_TONE_CLASS } from '../StatisticsToolbar';
+import { StatisticsToolbar } from '../StatisticsToolbar';
 import { SummaryCards } from '../SummaryCards';
 import { normalizeStatisticsSourceSelection } from '../../utils/statisticsRoute';
 import { STATISTICS_PANEL_CLASS } from './constants';
@@ -430,38 +431,18 @@ export function StatisticsView({ initialContext }) {
       )}
 
       {shouldShowEmptyStatisticsState && (
-        <div className='w-full'>
-          <div className='app-card-surface w-full space-y-6 rounded-xl p-8 text-left'>
-            <div className='space-y-2 text-center'>
-              <h3 className='text-base-content text-2xl font-bold'>No Statistics Built Yet</h3>
-              <p className='text-base-content text-sm opacity-70'>
-                Press{' '}
-                <span
-                  className={`inline-flex h-5 w-5 items-center justify-center rounded-md ${STATISTICS_RUN_BUTTON_TONE_CLASS}`}
-                >
-                  <Icon name={'play'} className='text-[10px]' />
-                </span>{' '}
-                to build a statistic.
-              </p>
-              <div className='border-base-content/10 mt-5 border-t pt-4 text-center'>
-                <div className='flex flex-wrap items-center justify-center gap-3 text-xs text-[var(--ink-muted)]'>
-                  <span>
-                    <span className='bg-base-content/8 border-base-content/10 mr-1.5 inline-flex min-w-10 items-center justify-center rounded-md border px-1.5 py-0.5 font-bold'>
-                      Enter
-                    </span>{' '}
-                    Build
-                  </span>
-                  <span>
-                    <span className='bg-base-content/8 border-base-content/10 mr-1.5 inline-flex min-w-6 items-center justify-center rounded-md border px-1.5 py-0.5 font-bold'>
-                      C
-                    </span>{' '}
-                    Build and show Shot Charts
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Tile className='items-center text-center'>
+          <h2 className='bm-heading'>No statistics built yet</h2>
+          <p className='bm-help'>Choose what to include above, then build.</p>
+          <p className='st-keys bm-help flex flex-wrap items-center justify-center gap-x-4 gap-y-2'>
+            <span className='inline-flex items-center gap-2'>
+              <Chip>Enter</Chip> Build
+            </span>
+            <span className='inline-flex items-center gap-2'>
+              <Chip>C</Chip> Build and show shot charts
+            </span>
+          </p>
+        </Tile>
       )}
     </div>
   );
