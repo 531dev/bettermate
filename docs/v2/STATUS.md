@@ -44,13 +44,13 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 | Dashboard (Home, DashboardSettings, 404) | yes, no old class left | no | The agent had not reported. |
 | Profiles and Setup | yes, no old class left | no | It was cleaning up hook dependencies in the editor when stopped. |
 | Settings | yes, no old class left | yes, 2026-11-14 (`da54fe15`) | Six tabs checked in Chromium against the simulator at 390 and 1440 px, light and dark, plus overflow at 13 widths from 320 px. Settings round-trip through the page and `GET /api/settings` on General, Machine and Plugins; autotune and the pump flow calibration ran for real; the update channel and the theme survive a reload. Mocked because the simulator cannot do them: Bluetooth scan/connect, OTA, history rebuild progress, restart. For integration: promote the pieces in `fields.jsx`, `SaveBar.jsx` and `PluginCard.jsx`; shared fixes wanted in `bm-seg--block` (three items overflow at 320 px), `PumpFlowCalibration` (its buttons are `primary`, the log does not scroll to its last line, "Was" shows the new values after saving), `TabBar` (`aria-controls` for panels not in the DOM), number-input spin buttons beside the unit, `TileHead` (a wide `end` Chip wraps the title on a phone). |
-| Shot history and charts | yes, no old class left | no | The four shared chart components are part of this lane. |
+| Shot history and charts | yes, no old class left | yes, 2026-11-14 (`22533719`, `a9654880`) | 1,574 assertions against the simulator in Chromium: chart configs and pixels in both themes and across a switch, live growth through whole shots, the history flows end to end. A profile curve's `style` now sizes its plot, with the legend Chips above it (the Dashboard's curve tile is about 36 px taller than its skeleton); `ChartComponent` takes an optional `plotStyle`; phase names are left out on plots under 140 px and on phases too narrow for them. Not checked: the autotune chart in Settings, a real scale (the weight line was fed injected readings), a real Visualizer upload. As upstream and left alone: export just after reopening a shot writes `notes: null`, history times ignore the 24-hour setting, a failed upload uses `alert()`. For integration: promote `usePhoneWidth` and the pager from `ShotHistory/index.jsx`; list `ChartComponent`, `ChartLegend` and the `chartTheme.js` builders in `WEB.md`. |
 | Shot Analyzer and Statistics | about half | no | Left in class strings: Analyzer 7 daisyUI component and 53 color classes, 12 `--color-*` references; Statistics 25 and 47, 1 `--color-*`, 1 `"Jost"`. |
 
 - `npm run lint:check`: 0 errors (6 known warnings). `vite build` passes again since `b760f232` (the Statistics
   toolbar imported two helpers that `toolbar/helpers.js` no longer exported).
-- 2026-11-14, second session: the lanes are being finished three at a time. Settings is done; Analyzer/Statistics
-  and Shot history/charts are running; Dashboard and Profiles/Setup follow.
+- 2026-11-14, second session: the lanes are being finished three at a time. Settings and Shot history/charts
+  are done; Analyzer/Statistics, Profiles/Setup and Dashboard are running.
 
 ## 2. What is left, in order
 
