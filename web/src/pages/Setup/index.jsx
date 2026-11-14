@@ -252,9 +252,30 @@ export function Setup() {
     setStep(2);
   };
 
+  // The shell is still behind this page, and its mode buttons would take a key press nobody can
+  // see. Tab goes round the step's own controls instead, wherever focus was.
+  const cover = useRef(null);
+  useEffect(() => {
+    const keepFocus = event => {
+      if (event.key !== 'Tab' || !cover.current) return;
+      const stops = [
+        ...cover.current.querySelectorAll('a[href], button:not([disabled]), input:not([disabled])'),
+      ];
+      if (stops.length === 0) return;
+      const at = stops.indexOf(document.activeElement);
+      const inside = cover.current.contains(document.activeElement);
+      const edge = event.shiftKey ? at <= 0 : at === stops.length - 1;
+      if (inside && !edge) return;
+      event.preventDefault();
+      stops[event.shiftKey ? stops.length - 1 : 0].focus();
+    };
+    document.addEventListener('keydown', keepFocus);
+    return () => document.removeEventListener('keydown', keepFocus);
+  }, []);
+
   // Covers the app shell: nothing else on the machine matters until this is done.
   return (
-    <div className='fixed inset-0 z-100 overflow-y-auto bg-(--surface-0)'>
+    <div ref={cover} className='fixed inset-0 z-100 overflow-y-auto bg-(--surface-0)'>
       <div className='mx-auto flex min-h-full w-full max-w-md flex-col gap-6 px-3 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-center'>
         <div className='flex justify-center'>
           <Wordmark />
