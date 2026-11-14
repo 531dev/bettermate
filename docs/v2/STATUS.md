@@ -45,17 +45,16 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 | Profiles and Setup | yes, no old class left | no | It was cleaning up hook dependencies in the editor when stopped. |
 | Settings | yes, no old class left | yes, 2026-11-14 (`da54fe15`) | Six tabs checked in Chromium against the simulator at 390 and 1440 px, light and dark, plus overflow at 13 widths from 320 px. Settings round-trip through the page and `GET /api/settings` on General, Machine and Plugins; autotune and the pump flow calibration ran for real; the update channel and the theme survive a reload. Mocked because the simulator cannot do them: Bluetooth scan/connect, OTA, history rebuild progress, restart. For integration: promote the pieces in `fields.jsx`, `SaveBar.jsx` and `PluginCard.jsx`; shared fixes wanted in `bm-seg--block` (three items overflow at 320 px), `PumpFlowCalibration` (its buttons are `primary`, the log does not scroll to its last line, "Was" shows the new values after saving), `TabBar` (`aria-controls` for panels not in the DOM), number-input spin buttons beside the unit, `TileHead` (a wide `end` Chip wraps the title on a phone). |
 | Shot history and charts | yes, no old class left | yes, 2026-11-14 (`22533719`, `a9654880`) | 1,574 assertions against the simulator in Chromium: chart configs and pixels in both themes and across a switch, live growth through whole shots, the history flows end to end. A profile curve's `style` now sizes its plot, with the legend Chips above it (the Dashboard's curve tile is about 36 px taller than its skeleton); `ChartComponent` takes an optional `plotStyle`; phase names are left out on plots under 140 px and on phases too narrow for them. Not checked: the autotune chart in Settings, a real scale (the weight line was fed injected readings), a real Visualizer upload. As upstream and left alone: export just after reopening a shot writes `notes: null`, history times ignore the 24-hour setting, a failed upload uses `alert()`. For integration: promote `usePhoneWidth` and the pager from `ShotHistory/index.jsx`; list `ChartComponent`, `ChartLegend` and the `chartTheme.js` builders in `WEB.md`. |
-| Shot Analyzer and Statistics | about half | no | Left in class strings: Analyzer 7 daisyUI component and 53 color classes, 12 `--color-*` references; Statistics 25 and 47, 1 `--color-*`, 1 `"Jost"`. |
+| Shot Analyzer and Statistics | yes, no old class left | yes, 2026-11-14 (`b760f232`, `b5050d6b`, `6a52b9f6`, `83100bb1`, `10d482d8`) | Checked in Chromium against the simulator at 390 and 1440 px, light and dark: a DOM audit (no shadow, blur, gradient, off-token colour or font) in every state visited, the chart configs, and the Analyzer and Statistics flows scripted. Counted at `f0ac9dd6`: Analyzer 14 daisyUI, 86 colour classes, 12 `--color-*`; Statistics 28, 73, 1 and 1 `"Jost"`; now all 0. Fixed on the way: `21.01.1970` in the folded toolbar (device timestamps read as milliseconds), `chart.resize()` on a destroyed chart, a library that could not close. Not run: video export, a real file drop, long-press paint selection, Export all / Delete all, saving a column preset; weight and pumped-water metrics read 0 without a scale. Its behaviour changes are in section 3, item 12. For integration: promote `ShotAnalyzer/ui/{PinIcon,IconButton,Popover,ShotBadge}.jsx`, `ui/chartTokens.js` and the `an-*` type helpers in `ui/tool.css`; `Segmented` has no per-option `title`, `Button` forwards no ref; the chart export popover's Export button is `primary`. |
 
 - `npm run lint:check`: 0 errors (6 known warnings). `vite build` passes again since `b760f232` (the Statistics
   toolbar imported two helpers that `toolbar/helpers.js` no longer exported).
-- 2026-11-14, second session: the lanes are being finished three at a time. Settings and Shot history/charts
-  are done; Analyzer/Statistics, Profiles/Setup and Dashboard are running.
+- 2026-11-14, second session: the lanes are being finished three at a time. Settings, Shot history/charts
+  and Analyzer/Statistics are done; Profiles/Setup and Dashboard are running.
 
 ## 2. What is left, in order
 
-1. **Web pages**: finish and verify the five lanes (`WEB-LANES.md`). Fix the Statistics import first so the app
-   builds; then the Analyzer/Statistics lane is the largest piece of remaining work.
+1. **Web pages**: finish and verify the five lanes (`WEB-LANES.md`). The table in section 1 says which are done.
 2. **Web integration**, once the lanes are done: promote page-local pieces the lanes built into
    `web/src/components` or `bm.css`; rewrite `scripts/verify_web_ui.mjs` for v2 (its selectors target the old shell)
    and run it against Vite and against the embedded bundle; refresh `docs/webui/` (README and captures);
@@ -90,6 +89,14 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 10. Driver changes that cannot be tested here: one LVGL draw buffer; changed-row flush on the AMOLED panels.
 11. The design-lint hook flags Geist Mono as an overused font; it is the design system's face, so the exception is
     recorded in `.impeccable/config.json`.
+12. Analyzer and Statistics (2026-11-14): the analysis table has four scroll buttons instead of six (first, step
+    left, step right, last; one 240 px step); the library's source filter is a visible `Segmented` in each section
+    instead of a dropdown in the column head; total duration reads `1:38 min` instead of `1 m 38 s`; a trend with one
+    bucket shows a sentence instead of a chart; phase bands in the shot chart start on the second phase and sit under
+    the grid; the date basis options lost their hover titles (the notice explains them); sentence case throughout
+    and `—` for a missing value.
+13. Settings (2026-11-14): the "Update available" Chip in the System tile's head is gone (each version cell already
+    says so; the Chip wrapped the title on a phone). Tiles go to two columns at 768 px, not at 600 as `WEB.md` says.
 
 ## 4. Restarting — one prompt per session
 
@@ -103,10 +110,6 @@ Statistics):
 > `bettermate/docs/v2/WEB-LANES.md` ("For every lane" and the lane's own section) exactly. The lane's work so far is
 > committed (`f0ac9dd6`): start by reading what its directories hold, finish what is unfinished, then verify the whole
 > lane as the brief says. Commit when it passes, and update the lane's row in `STATUS.md`.
-
-For Analyzer and Statistics add: "The web build is broken by this lane
-(`Statistics/components/toolbar/subcomponents.jsx` imports `getMenuItemClasses`, which `toolbar/helpers.js` no longer
-exports): fix that first."
 
 **Web integration** (after the five lanes):
 
