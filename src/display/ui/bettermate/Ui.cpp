@@ -567,6 +567,10 @@ void Reading::build(lv_obj_t *parent, int cx, int baseline, Type type, Tone fg) 
         next = readings;
         readings = this;
     }
+    // The list outlives the box: a theme change deletes every screen's objects and builds only the one on the
+    // glass again. Forget the box with its object, or the next object at that address is taken for this reading.
+    lv_obj_add_event_cb(
+        box, [](lv_event_t *e) { static_cast<Reading *>(lv_event_get_user_data(e))->box = nullptr; }, LV_EVENT_DELETE, this);
 #endif
 }
 

@@ -14,7 +14,7 @@ import os
 import re
 import struct
 
-from display_sim import Checks, Sim, same_color
+from display_sim import SHOT_SHIFT, Checks, Sim, same_color
 
 os.environ.setdefault("SIM_PORT_BASE", "8210")
 
@@ -148,7 +148,7 @@ def face(page, what, label, tone=MUTED, time=None, second=(), pill="STOP", ring=
 
 
 def bitmap(path):
-    """Pixel reader for the simulator's 24-bit BMP: at(x, y) -> (red, green, blue)."""
+    """Pixel reader for the simulator's 24-bit BMP: at(x, y) -> (red, green, blue), x and y in the design's box."""
     data = path.read_bytes()
     (offset,) = struct.unpack_from("<I", data, 10)
     width, height = struct.unpack_from("<ii", data, 18)
@@ -157,6 +157,7 @@ def bitmap(path):
     stride = (width * 3 + 3) & ~3
 
     def at(x, y):
+        x, y = x + SHOT_SHIFT, y + SHOT_SHIFT
         base = offset + ((height - 1 - y) if height > 0 else y) * stride + x * 3
         blue, green, red = data[base:base + 3]
         return red, green, blue

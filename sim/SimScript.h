@@ -2,6 +2,9 @@
 //
 //   program --script "wait 3000; tap 240 400; wait 500; shot brew.bmp; quit"
 //
+// Points are in the design's 480 px box on every panel: with SIM_PANEL_SIZE=466 the simulator moves them (and
+// what `layout` reports) by the 7 px the stage overhangs, so one script serves both sizes.
+//
 //   wait <ms>                      let the firmware run
 //   tap <x> <y>                    press and release at a point
 //   hold <x> <y> <ms>              press, keep it down, release
@@ -29,7 +32,7 @@
 //   expect setpoint <degrees>      check the current mode's temperature target
 //   expect <grind-active|grind-duration|grind-weight> <n> check grinding, seconds, or tenths of a gram
 //   expect <text|hidden> <label>    check whether an exact label or reading is visible on the real LVGL screen
-//   shot <path>                    write a BMP of the current frame
+//   shot <path>                    write a BMP of the current frame, in panel pixels
 //   layout <path>                  write the screen, the ring and every visible object as JSON lines
 //   redraw <path>                  write every repaint since the last redraw step (time, pixels) as JSON lines
 //   quit                           leave the simulator

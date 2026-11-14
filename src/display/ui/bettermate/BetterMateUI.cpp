@@ -25,8 +25,12 @@ namespace {
 constexpr uint32_t UI_LOOP_PERIOD_MS = 14;
 constexpr uint32_t PROFILE_LOOP_PERIOD_MS = 100;
 // One step of a screen change may repaint a quarter of the panel (design/reference/motion.md). The parts are
-// counted by their boxes, with a little kept back for what else the frame may repaint.
-constexpr unsigned STEP_BUDGET_PX = bm::tokens::DISPLAY_SIZE * bm::tokens::DISPLAY_SIZE * 22 / 100;
+// counted by their boxes, with a little kept back for what else the frame may repaint: 22% of the panel that
+// is there, which is smaller than the design's on the 466 px boards.
+unsigned stepBudget() {
+    lv_disp_t *display = lv_disp_get_default();
+    return static_cast<unsigned>(lv_disp_get_hor_res(display)) * static_cast<unsigned>(lv_disp_get_ver_res(display)) * 22 / 100;
+}
 
 ScreenId screenForMode(int mode) {
     switch (mode) {
@@ -235,7 +239,7 @@ void BetterMateUI::runFrame(unsigned long now) {
         }
         lv_obj_update_layout(lv_scr_act()); // the new parts' sizes, before they are measured
         const unsigned arriving = active->rankArea(settle, true) + active->steppingArea();
-        if (leavingArea == 0 || leavingArea + arriving <= STEP_BUDGET_PX) {
+        if (leavingArea == 0 || leavingArea + arriving <= stepBudget()) {
             active->reveal(settle);
             rankConcealed = false;
             if (++settle == 3)

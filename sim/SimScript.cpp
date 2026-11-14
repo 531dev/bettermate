@@ -29,6 +29,11 @@ struct Refresh {
 static std::vector<Refresh> refreshes;
 static void onRefresh(lv_disp_drv_t *, uint32_t, uint32_t px) { refreshes.push_back({millis(), px}); }
 
+// Script coordinates are the design's: its 480 px box, wherever the stage puts it on the panel. On a 480 px panel
+// the two agree; on a 466 px one (SIM_PANEL_SIZE=466) the stage starts 7 px outside the glass, so `tap 240 446`
+// still lands on the handle and `layout` still reports it at 240, 446. A `shot` is the panel as it is.
+static int stageShift() { return (lv_disp_get_hor_res(nullptr) - bm::tokens::DISPLAY_SIZE) / 2; }
+
 // The text an object shows: a label's, or a Reading's.
 static const char *textOf(lv_obj_t *obj) {
     if (lv_obj_check_type(obj, &lv_label_class))
@@ -79,6 +84,8 @@ static void dumpLayout(lv_obj_t *obj, FILE *out, int depth, int parentId, int &n
     const int id = nextId++;
     lv_area_t a;
     lv_obj_get_coords(obj, &a);
+    const lv_coord_t shift = static_cast<lv_coord_t>(stageShift());
+    lv_area_move(&a, -shift, -shift);
     const char *reading = bm::ui::Reading::textOf(obj);
     const bool label = lv_obj_check_type(obj, &lv_label_class);
     const char *kind = reading != nullptr                           ? "reading"
@@ -100,6 +107,7 @@ static void dumpLayout(lv_obj_t *obj, FILE *out, int depth, int parentId, int &n
         const lv_coord_t line = lv_obj_get_style_text_line_space(obj, LV_PART_MAIN);
         lv_area_t content;
         lv_obj_get_content_coords(obj, &content);
+        lv_area_move(&content, -shift, -shift);
         const lv_coord_t width = lv_area_get_width(&content);
         lv_point_t size;
         lv_txt_get_size(&size, text, font, letter, line, width, LV_TEXT_FLAG_NONE);
@@ -296,7 +304,7 @@ bool SimScript::run(SdlDriver *driver) {
             resumeAt = millis() + step.a;
             break;
         case Kind::Pointer:
-            driver->injectPointer(step.a, step.b, step.flag);
+            driver->injectPointer(step.a + stageShift(), step.b + stageShift(), step.flag);
             break;
         case Kind::Key:
             controller.getClientController()->simulateButton(step.a, step.flag);

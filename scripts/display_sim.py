@@ -15,18 +15,29 @@
 Each Sim runs the simulator once, headless, in its own scratch directory (the simulator keeps its state in
 ./sim_data), so cases never see each other's settings. Script verbs are listed in sim/SimScript.h. Build the
 simulator first: pio run -e display-sim. SIM_BIN overrides the program path.
+
+SIM_PANEL_SIZE=466 runs the same checks on a 466 px panel (the round AMOLED boards). Scripts and layout dumps
+stay in the design's 480 px box, which the simulator centres on the panel; a `shot` is in panel pixels, so read
+one through SHOT_SHIFT. Redrawn shares are of the panel that is there, and captures go to
+docs/display/v2/466/ instead of docs/display/v2/.
 """
 
 import json
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PANEL_PX = 480 * 480
+DESIGN = 480
+PANEL = int(os.environ.get("SIM_PANEL_SIZE") or DESIGN)
+PANEL_PX = PANEL * PANEL
+# Add this to a design coordinate to find it in a `shot`: 0 on a 480 px panel, -7 on a 466 px one.
+SHOT_SHIFT = (PANEL - DESIGN) // 2
+SHOTS = "docs/display/v2/"
 
 
 def same_color(actual, expected, tolerance=8):
@@ -35,6 +46,23 @@ def same_color(actual, expected, tolerance=8):
         return False
     a, e = int(actual[1:], 16), int(expected[1:], 16)
     return all(abs(((a >> shift) & 0xFF) - ((e >> shift) & 0xFF)) <= tolerance for shift in (16, 8, 0))
+
+
+def pixels(path):
+    """A `shot` as (size, at): at(x, y) -> (red, green, blue), x and y in panel pixels."""
+    data = Path(path).read_bytes()
+    (offset,) = struct.unpack_from("<I", data, 10)
+    width, height = struct.unpack_from("<ii", data, 18)
+    if struct.unpack_from("<H", data, 28)[0] != 24:
+        raise SystemExit(f"{path}: expected a 24-bit BMP")
+    stride = (width * 3 + 3) & ~3
+
+    def at(x, y):
+        base = offset + ((height - 1 - y) if height > 0 else y) * stride + x * 3
+        blue, green, red = data[base : base + 3]
+        return red, green, blue
+
+    return width, at
 
 
 class Page:
@@ -108,6 +136,8 @@ class Sim:
         A capture that already exists is kept (every run would otherwise rewrite it, if only because the clock
         moved on). Set UPDATE_SHOTS=1 to take them all again.
         """
+        if PANEL != DESIGN and str(destination).startswith(SHOTS):
+            destination = f"{SHOTS}{PANEL}/{str(destination)[len(SHOTS):]}"
         target = ROOT / destination
         if target.exists() and not os.environ.get("UPDATE_SHOTS"):
             return target

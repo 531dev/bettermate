@@ -22,6 +22,12 @@ it as the layout source. This file says how those become code under `src/display
   the cut. The host measures each step: when the outgoing and the incoming rank together would repaint more than 22%
   of the panel, the incoming rank waits one frame, so the 25% limit holds for any pair of screens. Measured in the
   simulator: 20 to 23% of the panel in the largest frame, about 3% a frame while the ring walks.
+- **One design, two panel sizes.** Every position is in the design's 480 px box. `ui::root()` is that box, a stage
+  centred on the LVGL screen: on the 466 px AMOLED boards it starts 7 px outside the glass on every side. Only the
+  ring reaches that far, so there its ticks end 7 px sooner (212 to 227 instead of 234) and keep their 3 px to the
+  edge; nothing else changes. A part that draws itself (`TickRing`, `StageBars`, `Reading`) adds its object's
+  position to what it draws and repaints: the stage is not at 0, 0 on every panel. The step budget is 22% of the
+  panel that is there.
 - **Exact repaints.** LVGL 8.4 grows every area an object invalidates by 5 px a side. `ui::` setters and `ui::show`
   switch that off and invalidate the object's own box (`ui::invalidate`). Use them; do not call `lv_obj_invalidate`,
   `lv_obj_add_flag(.., HIDDEN)` or `lv_obj_set_style_*_color` on a part yourself.
@@ -107,4 +113,13 @@ Script verbs are listed in `sim/SimScript.h` (`mode`, `tap`, `press`/`release`, 
 `weight`, `pumped`, `pressure-sensor`, `controller`, `error`, `protocol`, `autotune`, `update`, `wifi`, `panel`,
 `theme`, `expect ...`). The checks are `scripts/verify_display_{core,shot,modes,menu,profiles}.py`, each on
 `scripts/display_sim.py`; they keep the captures under `docs/display/v2/` unless `UPDATE_SHOTS=1` is set.
+
+The 466 px panels run the same scripts and the same checks. Points in a script and boxes in a `layout` dump are
+always the design's (the simulator moves them by the stage's 7 px); only a `shot` is in panel pixels, and
+`display_sim.SHOT_SHIFT` says where a design point is in it. Shares are of the 466 px panel, and the captures go to
+`docs/display/v2/466/`:
+
+```shell
+for check in scripts/verify_display_*.py; do SIM_PANEL_SIZE=466 python3 "$check" || break; done
+```
 On hardware, `pio run -e display-frame-stats -t upload -t monitor` logs render time and redrawn share once a second.

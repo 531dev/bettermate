@@ -4,7 +4,9 @@
     pio run -e display-sim && python3 scripts/verify_display_core.py
 """
 
-from display_sim import Checks, Sim
+import math
+
+from display_sim import Checks, Sim, pixels
 
 checks = Checks("display core")
 
@@ -33,17 +35,40 @@ for name, what in (("to-brew.json", "Standby to Brew"), ("to-standby.json", "Bre
     frames = sim.redraw(name)
     checks.at_most(max(frames), 25.0, f"{what}: no frame repaints over a quarter of the panel")
 checks.at_most(max(sim.redraw("heating.json")), 8.0, "heating on Brew: continuous motion stays under 8% a frame")
+# On any panel the ring is whole and centred on the glass: its ticks stop short of the round edge, and reach as far
+# to the left as to the right and to the top. (A 466 px panel is 7 px smaller on every side than the design.)
+size, at = pixels(sim.dir / "standby.bmp")
+rim = [
+    (x, y, math.hypot(x + 0.5 - size / 2, y + 0.5 - size / 2))
+    for y in range(size)
+    for x in range(size)
+    if max(at(x, y)) > 44  # a tick, lit or in track, on Display black
+]
+rim = [(x, y, r) for x, y, r in rim if size / 2 - 40 < r <= size / 2]
+checks.true(len(rim) > 2000, f"the ring's ticks are found on the rim of the capture: {len(rim)} px")
+if rim:
+    farthest = max(r for _, _, r in rim)
+    left, right, top = min(x for x, _, _ in rim), size - 1 - max(x for x, _, _ in rim), min(y for _, y, _ in rim)
+    checks.true(farthest <= size / 2 - 2, f"the ticks end inside the glass: {farthest:.1f} of {size / 2:.0f} px")
+    checks.true(abs(left - right) <= 1 and abs(left - top) <= 2, f"the ring is centred on the glass: {left} px to the left, {right} to the right, {top} to the top")
 sim.save("standby.bmp", "docs/display/v2/core/standby.png")
 sim.save("brew.bmp", "docs/display/v2/core/brew-heating.png")
 
-# Busy and blocked states take the line under the clock; the comet costs under 1% a frame.
-sim = Sim("core-states")
-sim.run(
-    "wait 3500; controller disconnected; wait 2500; expect text CONNECTING; expect hidden WAKE; redraw settle.json;"
-    "wait 2000; redraw comet.json; shot connecting.bmp; error 4; wait 1500; expect text TEMPERATURE ERROR;"
-    "expect hidden WAKE; shot error.bmp; quit"
-)
+# Busy and blocked states take the line under the clock; the comet costs under 1% a frame. It is measured over two
+# seconds of Standby: when the clock's minute turns inside them, one frame also repaints a digit of the clock (2 to
+# 3% of the panel, and not the comet's), so the case is run again.
+for attempt in range(3):
+    sim = Sim("core-states")
+    sim.run(
+        "wait 3500; controller disconnected; wait 2500; expect text CONNECTING; expect hidden WAKE; redraw settle.json;"
+        "layout before.json; wait 2000; redraw comet.json; layout after.json; shot connecting.bmp; error 4; wait 1500;"
+        "expect text TEMPERATURE ERROR; expect hidden WAKE; shot error.bmp; quit"
+    )
+    clocks = [[o["text"] for o in sim.layout(name).objects if o["kind"] == "reading"] for name in ("before.json", "after.json")]
+    if clocks[0] == clocks[1]:
+        break
 checks.count(sim)
+checks.equal(clocks[0], clocks[1], "the clock stood still while the comet was measured")
 checks.at_most(max(sim.redraw("comet.json")), 1.0, "the busy comet repaints under 1% a frame")
 sim.save("connecting.bmp", "docs/display/v2/core/standby-connecting.png")
 sim.save("error.bmp", "docs/display/v2/core/standby-error.png")

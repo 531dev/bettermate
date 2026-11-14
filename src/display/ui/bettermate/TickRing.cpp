@@ -33,11 +33,18 @@ float TickRing::fraction(float value, float max) {
 }
 
 void TickRing::build(lv_obj_t *parent) {
+    // The design's radii are for a 480 px panel. On a smaller one the stage overhangs the glass (7 px a side on
+    // the 466 px AMOLED boards), and ticks drawn out to 234 would be cut by the round edge. There the outer ends
+    // come in by the overhang, so the round caps keep their 3 px to the edge; the inner ends and the notch stay
+    // where every screen is laid out against them.
+    lv_disp_t *display = lv_obj_get_disp(parent);
+    const int glass = std::min<int>(lv_disp_get_hor_res(display), lv_disp_get_ver_res(display));
+    const int outer = tokens::RING_OUTER - std::max(0, (tokens::DISPLAY_SIZE - glass) / 2);
     for (unsigned a = 0; a < 3; ++a) {
         const Span &span = SPANS[a];
         for (unsigned i = 0; i < span.count; ++i) {
             const float degrees = ARCS[a].start + ARCS[a].sweep * i / (span.count - 1);
-            ticks[span.first + i] = {point(degrees, tokens::RING_OUTER), point(degrees, tokens::RING_INNER),
+            ticks[span.first + i] = {point(degrees, outer), point(degrees, tokens::RING_INNER),
                                      point(degrees, tokens::RING_NOTCH)};
         }
     }
@@ -114,11 +121,16 @@ void TickRing::plan() {
     }
 }
 
+// The ticks are kept in the design's coordinates. The ring lies on the stage, which starts 7 px outside the
+// glass on a 466 px panel: what is drawn and what is repainted both move with it.
 lv_area_t TickRing::box(unsigned index, bool notch) const {
     const Tick &t = ticks[index];
     const lv_point_t &in = notch ? t.notch : t.inner;
-    return {static_cast<lv_coord_t>(std::min(in.x, t.outer.x) - PAD), static_cast<lv_coord_t>(std::min(in.y, t.outer.y) - PAD),
-            static_cast<lv_coord_t>(std::max(in.x, t.outer.x) + PAD), static_cast<lv_coord_t>(std::max(in.y, t.outer.y) + PAD)};
+    lv_area_t area = {
+        static_cast<lv_coord_t>(std::min(in.x, t.outer.x) - PAD), static_cast<lv_coord_t>(std::min(in.y, t.outer.y) - PAD),
+        static_cast<lv_coord_t>(std::max(in.x, t.outer.x) + PAD), static_cast<lv_coord_t>(std::max(in.y, t.outer.y) + PAD)};
+    lv_area_move(&area, obj->coords.x1, obj->coords.y1);
+    return area;
 }
 
 void TickRing::apply(unsigned index) {
@@ -177,7 +189,11 @@ void TickRing::draw(lv_draw_ctx_t *ctx) const {
             continue;
         dsc.color = tone(notch ? Tone::Ink : static_cast<Tone>((c & 0x7f) - 1));
         const Tick &t = ticks[i];
-        lv_draw_line(ctx, &dsc, notch ? &t.notch : &t.inner, &t.outer);
+        const lv_point_t &in = notch ? t.notch : t.inner;
+        const lv_coord_t dx = obj->coords.x1, dy = obj->coords.y1;
+        const lv_point_t from = {static_cast<lv_coord_t>(in.x + dx), static_cast<lv_coord_t>(in.y + dy)};
+        const lv_point_t to = {static_cast<lv_coord_t>(t.outer.x + dx), static_cast<lv_coord_t>(t.outer.y + dy)};
+        lv_draw_line(ctx, &dsc, &from, &to);
     }
 }
 

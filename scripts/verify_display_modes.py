@@ -18,7 +18,7 @@ import json
 import re
 import struct
 
-from display_sim import PANEL_PX, Checks, Sim
+from display_sim import PANEL, PANEL_PX, SHOT_SHIFT, Checks, Sim
 
 OUT = "docs/display/v2/modes"
 
@@ -96,9 +96,10 @@ def brightest(sim, bmp, o):
         raise SystemExit(f"{bmp}: expected a bottom-up 24-bit BMP")
     stride = (width * 3 + 3) & ~3
     best = (0, 0, 0)
-    for y in range(o["y1"], o["y2"] + 1):
+    # The box is in the design's coordinates; the shot is the panel, which may be smaller.
+    for y in range(max(0, o["y1"] + SHOT_SHIFT), min(PANEL, o["y2"] + SHOT_SHIFT + 1)):
         row = offset + (height - 1 - y) * stride
-        for x in range(o["x1"], o["x2"] + 1):
+        for x in range(max(0, o["x1"] + SHOT_SHIFT), min(PANEL, o["x2"] + SHOT_SHIFT + 1)):
             blue, green, red = data[row + x * 3 : row + x * 3 + 3]
             if red + green + blue > sum(best):
                 best = (red, green, blue)

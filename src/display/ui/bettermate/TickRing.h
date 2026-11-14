@@ -11,6 +11,9 @@ namespace bm {
 //
 // The ring belongs to the UI, not to a screen: it stays put through a screen change and walks to what the
 // next screen asks for.
+//
+// On a panel smaller than the design's 480 px the ticks are shorter at their outer ends, by what the stage
+// overhangs the glass: on the 466 px boards they run from 212 to 227 instead of 234.
 class TickRing {
   public:
     // Split: temperature on the left from 110° up to 250°, pressure on the right from 70° up to -70°, 36 ticks
