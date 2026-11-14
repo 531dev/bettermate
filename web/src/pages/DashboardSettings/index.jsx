@@ -120,10 +120,10 @@ export function DashboardSettings() {
         {panelOrder.includes('profile') && (
           <Setting
             label='Profile curve height'
-            help='The curve shows for a profile that sets a pressure or a flow. A standard profile has none.'
+            help='For a profile that sets a pressure or a flow.'
           >
             <Stepper
-              value={`${curveHeight} px`}
+              value={<span className='whitespace-nowrap'>{curveHeight} px</span>}
               onDecrease={() => changeCurveHeight(curveHeight - PROFILE_CHART_HEIGHT.STEP)}
               onIncrease={() => changeCurveHeight(curveHeight + PROFILE_CHART_HEIGHT.STEP)}
               canDecrease={curveHeight > PROFILE_CHART_HEIGHT.MIN}
