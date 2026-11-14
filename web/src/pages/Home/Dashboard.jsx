@@ -32,6 +32,7 @@ import { useFinishedStats } from './useFinishedStats.js';
 import { useRecentShots } from './useRecentShots.js';
 import { useShotPlan, useShotStages } from './useShotPlan.js';
 import { nextWakeLabel } from './wakeSchedule.js';
+import './reading.css';
 
 // Below 1024px every tile is a full row of the grid. Readings go two to a row, and an odd last
 // one takes a whole row: on the desktop grid of Simple and Advanced each is placed by itself.
@@ -60,7 +61,7 @@ function Reading({ stat, className }) {
       unit={stat.unit}
       target={stat.target}
       bar={stat.bar}
-      className={className}
+      className={cx('home-reading', className)}
     >
       {stat.note && <span className='bm-data'>{stat.note}</span>}
     </StatTile>
@@ -91,7 +92,11 @@ function CurveTile({ profile, processInfo, className }) {
           style={style}
         />
       ) : (
-        <SkeletonBlock className='w-full' style={style} />
+        // The chart's own shape, legend row and plot, so the tile does not jump when it arrives.
+        <div className='flex flex-col gap-3'>
+          <SkeletonBlock className='h-6 w-40' />
+          <SkeletonBlock className='w-full' style={style} />
+        </div>
       )}
     </Tile>
   );
@@ -102,7 +107,7 @@ function CurveTile({ profile, processInfo, className }) {
  *   simple    the Dial tile, the ActionBanner, the readings that matter now, Setup, recent shots,
  *             and the chart only during a shot and after it
  *   advanced  the same tiles plus every reading with its target, the chart between shots and the
- *             profile curve
+ *             curve of a profile that sets a pressure or a flow
  *   custom    the tiles and readings chosen in Dashboard Settings, in that order, beside the chart
  */
 export function Dashboard({ view: mode }) {
@@ -136,6 +141,9 @@ export function Dashboard({ view: mode }) {
   // Nothing moves between shots, so Simple only charts a shot and its result.
   const showChart = custom || advanced || brewing;
   const chartTitle = brewing ? 'This shot' : 'Last minute';
+  // The curve tile holds its place while the profile loads, and leaves when the profile turns
+  // out to have no curve: an empty chart would say nothing.
+  const showCurve = !shot.profile || shot.hasCurve;
   const action = view.action && { ...view.action, 'aria-label': view.action.label };
 
   if (custom) {
@@ -150,7 +158,7 @@ export function Dashboard({ view: mode }) {
         </div>
       ),
       favorites: <SetupTile ds={ds} />,
-      profile: <CurveTile profile={shot.profile} processInfo={ds.processInfo} />,
+      profile: showCurve && <CurveTile profile={shot.profile} processInfo={ds.processInfo} />,
       watertank: (
         <Reading
           stat={{ id: 'watertank', label: 'Water tank', ...metricById('waterlevel').stat(ds) }}
@@ -226,7 +234,7 @@ export function Dashboard({ view: mode }) {
           </div>
         )}
         <SetupTile ds={ds} className={cx(ROW, at.setup)} />
-        {advanced && ds.mode === 1 && (
+        {advanced && ds.mode === 1 && showCurve && (
           <CurveTile
             profile={shot.profile}
             processInfo={ds.processInfo}

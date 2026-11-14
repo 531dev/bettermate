@@ -290,10 +290,13 @@ export function describeMachine(ds, { shot = {}, nextWake = '', openGrinderSetti
           },
         };
       }
+      // A grind that ran out its time is given no end by the firmware, and the elapsed time it
+      // then reports is not one: such a grind took the time it was set to.
+      const ranFor = isFinished && p?.tt === 'time' ? fmtElapsed(Math.min(p.e, p.pt)) : elapsed;
       // By weight the dial counts grams, by time it counts the clock; both against the target.
       const ground = label => ({
         label,
-        value: byWeight ? (ds.currentWeight ?? 0).toFixed(1) : elapsed,
+        value: byWeight ? (ds.currentWeight ?? 0).toFixed(1) : ranFor,
         unit: byWeight ? 'g' : undefined,
         line: `of ${grindTargetLabel(ds)}`,
       });

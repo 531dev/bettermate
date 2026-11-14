@@ -45,7 +45,7 @@ export function DialTile({ ds, view, warnings, stages, className }) {
       <Dial
         {...view.ring}
         role='group'
-        aria-label='Live readings'
+        aria-label='Dial'
         eyebrow={dial.label}
         value={dial.value}
         plan={dial.line}
@@ -55,7 +55,9 @@ export function DialTile({ ds, view, warnings, stages, className }) {
       </Dial>
       {stages && <StageTrack stages={stages} aria-label='Shot phases' role='group' />}
       {(warnings.length > 0 || showFlush) && (
-        <div className='flex flex-wrap items-center gap-2'>
+        // One row: the warnings stack at the left when there are several, and Flush keeps its
+        // place at the right.
+        <div className='flex items-end gap-2'>
           {warnings.length > 0 && (
             <ul aria-label='Warnings' className='flex min-w-0 flex-wrap gap-1.5'>
               {warnings.map(w => (
@@ -66,7 +68,7 @@ export function DialTile({ ds, view, warnings, stages, className }) {
             </ul>
           )}
           {showFlush && (
-            <span className='ml-auto'>
+            <span className='ml-auto shrink-0'>
               <FlushButton
                 isFlushing={ds.isFlushing}
                 startFlush={ds.startFlush}

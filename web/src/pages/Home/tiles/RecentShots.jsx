@@ -40,14 +40,19 @@ const FACTS = {
   avgFlow: shot => (shot.avgFlow != null ? `${shot.avgFlow.toFixed(2)} ml/s` : null),
 };
 
-// Day and time share a line where the tile is wide enough, and stack where it is not, so the
-// facts keep their room on a phone.
-function When({ day, time }) {
+// One thing at the end of a row, on one line. Where the tile is wide enough that is the day and
+// the time; on a phone it is the time of a shot pulled today and the day of an older one, so the
+// facts keep their room.
+function When({ timestamp, hour12 }) {
+  const day = getRelativeDayLabel(timestamp);
+  const today = day === 'Today';
   return (
-    <>
-      <span className='block @sm:inline'>{day}</span>{' '}
-      <span className='block @sm:inline'>{time}</span>
-    </>
+    <span className='whitespace-nowrap'>
+      <span className={today ? 'hidden @sm:inline' : undefined}>{day}</span>{' '}
+      <span className={today ? undefined : 'hidden @sm:inline'}>
+        {formatShotTime(timestamp, hour12)}
+      </span>
+    </span>
   );
 }
 
@@ -65,12 +70,7 @@ function ShotRow({ shot, hour12 }) {
       icon='coffee'
       title={cleanName(shot.profile) || 'Unknown'}
       meta={facts && <span className='whitespace-normal'>{facts}</span>}
-      end={
-        <When
-          day={getRelativeDayLabel(shot.timestamp)}
-          time={formatShotTime(shot.timestamp, hour12)}
-        />
-      }
+      end={<When timestamp={shot.timestamp} hour12={hour12} />}
     />
   );
 }

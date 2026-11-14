@@ -118,7 +118,10 @@ export function DashboardSettings() {
           />
         </Field>
         {panelOrder.includes('profile') && (
-          <Setting label='Profile curve height' help='How tall the profile curve is drawn.'>
+          <Setting
+            label='Profile curve height'
+            help='The curve shows for a profile that sets a pressure or a flow. A standard profile has none.'
+          >
             <Stepper
               value={`${curveHeight} px`}
               onDecrease={() => changeCurveHeight(curveHeight - PROFILE_CHART_HEIGHT.STEP)}
