@@ -13,7 +13,9 @@ namespace bm::ui {
 // (motion: Stage advance), so a running shot spends a few dozen pixels a frame here, never the bar.
 class StageBars {
   public:
-    static constexpr unsigned MAX = 8;
+    // One bar per phase, for as many phases as the design's row can hold: 16 dots of 8 px with 6 px between
+    // them are 218 of its 220 px. A longer profile shows its first 16 phases (the design does not say what else).
+    static constexpr unsigned MAX = 16;
 
     // The row starts at x, y and is `width` wide; a bar is 8 px tall.
     void build(lv_obj_t *parent, int x, int y, int width);

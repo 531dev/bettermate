@@ -110,8 +110,10 @@ struct UiState {
         float phaseTarget = 0.0f;
         float progress = 0.0f; // 0..100
         double weight = 0.0;
-        // Planned seconds per phase and the running phase, for the stage bars.
-        float phaseDurations[8]{};
+        // Planned seconds per phase and the running phase, for the stage bars: as many phases as the row holds
+        // (ui::StageBars::MAX). `phaseIndex` is not cut, so past the last bar every bar is full.
+        static constexpr int MAX_PHASES = 16;
+        float phaseDurations[MAX_PHASES]{};
         int phaseCount = 0;
         int phaseIndex = 0;
     } shot;

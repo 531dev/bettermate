@@ -44,7 +44,7 @@ it as the layout source. This file says how those become code under `src/display
 | `Motion.h` | Frame counts and the ease tables. |
 | `TickRing.h` | The ring: `Layout::{None, Split, Single}`, `Arc{value, target, tone, pace}`, fixed scales `MAX_TEMPERATURE` 160 and `MAX_PRESSURE` 16. |
 | `Ui.h` | The parts: `text`, `textLeft`, `fit`, `clamp`, `icon`, `pill`, `disc`, `textButton`, `labelButton`, `group`, `card`, `chip`, `SegRow`, `Reading`, and `setText`, `setTone`, `setFill`, `setPill`, `setIcon`, `show`, `pressable`, `invalidate`. |
-| `parts/` | Custom-drawn parts one screen needs: `StageBars` (the phases of a shot, growing a pixel at a time). |
+| `parts/` | Custom-drawn parts one screen needs: `StageBars` (the phases of a shot, growing a pixel at a time): one bar per phase for up to 16 phases, which is what the design's 220 px row holds as 8 px dots 6 px apart. A longer profile shows its first 16; what it should show is open (`docs/display/v2/shot/over-16-phases-options.png`). |
 | `Screen.h` | `Screen` (parts, ranks, bindings, the handle and the exception slot), `Host`, `Intent`, `ScreenId`, `anyWarning`, `warningName`, `formatTime`, `upper`. |
 | `UiState.h` | The snapshot a screen reads. A screen never reads the controller. |
 | `BetterMateUI.*` | The host: events, snapshot, routing, intents, frames, theme, brightness, favourites task. |

@@ -28,6 +28,9 @@ constexpr int CAPTION_WIDTH = 128;
 constexpr int ACTION_Y = 344;
 constexpr int ACTION_WIDTH = 168;
 
+// The snapshot carries a duration for every bar the row can draw.
+static_assert(UiState::Shot::MAX_PHASES == static_cast<int>(ui::StageBars::MAX), "one planned duration per stage bar");
+
 // The label face is fixed width: this many glyphs fill the label.
 constexpr unsigned LABEL_GLYPHS = 16;
 // The boiler has strayed when it is more than 3 degrees off the shot's target, and has recovered once it is

@@ -462,5 +462,38 @@ checks.count(sim)
 face(sim.layout("flush.json"), "timed flush", "FLUSH", time="0:01", second=[(LEFT, PRESSURE), (RIGHT, BOILER)])
 bars(sim, "flush.bmp", "timed flush", [5, 1], done=0, running=(0.2, 0.5))
 
+# ---- 7. Many phases: one bar each, for as many as the row holds --------------------------------------------
+# 220 px hold sixteen 8 px dots with 6 px between them. Twelve phases are four bars and eight dots; sixteen are
+# all but dots. (What a profile of more than sixteen phases should show is not decided: it shows its first sixteen.)
+
+TWELVE = [3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1]
+sim = seeded("shot-twelve", profile("Twelve", [phase(f"Stage {i + 1}", seconds, 6, valve=0) for i, seconds in enumerate(TWELVE)],
+                                    temperature=23))
+sim.run(
+    "wait 3500; mode brew; wait 3000; expect screen brew; redraw boot.json; tap 240 372; wait 700; expect screen shot;"
+    # The shot is about 0.1 s younger than the waits since the tap: 7.3 s here, then 16.5 s, half-way through a dot.
+    "redraw settle.json; wait 6700; expect text STAGE 3; shot mid.bmp; wait 9200; redraw run.json;"
+    "expect text STAGE 9; shot dots.bmp; wait 7500; expect active 0; expect text SHOT COMPLETE; shot done.bmp; quit"
+)
+checks.count(sim)
+checks.equal(len(planned_bars(TWELVE)), 12, "twelve phases are planned as twelve bars")
+bars(sim, "mid.bmp", "twelve phases, the third running", TWELVE, done=2, running=(0.3, 0.65))
+bars(sim, "dots.bmp", "twelve phases, the ninth running", TWELVE, done=8, running=(0.0, 1.0))
+bars(sim, "done.bmp", "twelve phases, finished", TWELVE, done=12)
+budget(sim, "settle.json", 25.0, "brew:start with twelve stage bars, the settle", "settle")
+budget(sim, "run.json", 8.0, "a running shot of twelve phases", "running")
+sim.save("mid.bmp", f"{OUT}/twelve-phases.png")
+
+SIXTEEN = [3, 3, 3] + [1] * 13
+sim = seeded("shot-sixteen", profile("Sixteen", [phase(f"Stage {i + 1}", seconds, 6, valve=0) for i, seconds in enumerate(SIXTEEN)],
+                                     temperature=23))
+sim.run(
+    "wait 3500; mode brew; wait 3000; expect screen brew; tap 240 372; wait 700; expect screen shot;"
+    "wait 9900; expect text STAGE 5; shot mid.bmp; quit"
+)
+checks.count(sim)
+bars(sim, "mid.bmp", "sixteen phases, the fifth running", SIXTEEN, done=4, running=(0.0, 1.0))
+sim.save("mid.bmp", f"{OUT}/sixteen-phases.png")
+
 print("largest frame, percent of the panel: " + ", ".join(f"{key} {value:.2f}" for key, value in measured.items()))
 checks.finish()

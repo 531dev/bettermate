@@ -509,7 +509,7 @@ void BetterMateUI::gatherProcess() {
         shot.phaseTarget = bp->getPhaseDuration() / 1000.0f;
     }
     shot.progress = shot.phaseTarget > 0 ? std::clamp(shot.phaseCurrent / shot.phaseTarget * 100.0f, 0.0f, 100.0f) : 0;
-    shot.phaseCount = std::min<int>(bp->profile.phases.size(), 8);
+    shot.phaseCount = std::min<int>(bp->profile.phases.size(), bm::UiState::Shot::MAX_PHASES);
     for (int i = 0; i < shot.phaseCount; ++i)
         shot.phaseDurations[i] = bp->profile.phases[i].duration;
     shot.phaseIndex = static_cast<int>(bp->phaseIndex);
