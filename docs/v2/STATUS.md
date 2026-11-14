@@ -22,7 +22,8 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
   calibrating, complete, flush), Mode (Steam, Water, Grind), Menu, Profiles, Adjust, Sheet, Warnings (and the confirm
   question), Info (QR, About). Captures of every state are in `docs/display/v2/{core,shot,modes,menu,profiles}/`.
 - **Checks** (`scripts/verify_display_*.py` on `scripts/display_sim.py`), all passing on this tree:
-  core 29, shot 489, modes 520, menu 891, profiles 1401. Native tests: 57 pass, 7 skipped.
+  core 35, shot 565, modes 520, menu 891, profiles 1401, and the same counts with `SIM_PANEL_SIZE=466` (as of
+  `4cd810c7`, 2026-11-14). Native tests: 57 pass, 7 skipped.
 - **Motion budget, measured in the simulator** (share of the panel repainted in one frame): a screen change 20 to
   23% in its largest frame (limit 25%; the host delays the incoming rank a frame when a pair of screens would exceed
   22%); the ring walk about 3%; a running shot at most 5.3%; modes running under 5%; the busy comet under 1%.
@@ -50,8 +51,8 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 - `npm run lint:check`: 0 errors (6 known warnings). `vite build` passes again since `b760f232` (the Statistics
   toolbar imported two helpers that `toolbar/helpers.js` no longer exported).
 - 2026-11-14, second session: the lanes are being finished three at a time. all five are done and verified
-  against Vite and the simulator (not against the embedded bundle). The web integration pass and the display loose
-  ends are running.
+  against Vite and the simulator (not against the embedded bundle). The display loose ends are done (section 2, item 4). The
+  web-only part of the integration pass is running; the embedded bundle, the rebuilds and the sizes follow it.
 
 ## 2. What is left, in order
 
@@ -63,9 +64,24 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 3. **Hardware**: flash `display-frame-stats`, read the `FrameStats` lines (pass mark: no line over 42 ms a frame or
    25% redrawn while something animates), check touch targets, the ring, a real shot, steam, the scale, the AMOLED
    flush if such a board is at hand. Back up the flash first, as on 2026-10-03 (`docs/hardware/2026-10-03.md`).
-4. **Loose ends on the display**: run every screen at `SIM_PANEL_SIZE=466` (only Standby and Brew were looked at);
-   a screen's first build repaints an 11 x 11 px box at the origin (cosmetic, cause not found); profiles with more
-   than eight phases show eight stage bars.
+4. **Loose ends on the display**: done 2026-11-14 (`90488c24`, `90034020`, `4cd810c7`), one decision left.
+   - **466 px.** Every state the checks visit was captured and looked at (`docs/display/v2/466/`, 76 captures). The
+     ring was drawn at screen coordinates, so at 466 it sat 7 px off-centre and the edge cut it; it now lies on the
+     stage and its ticks end at 227 instead of 234 there. Nothing else was clipped, off-centre or mis-hit. The five
+     checks run at 466 unchanged: `SIM_PANEL_SIZE=466 python3 scripts/verify_display_<name>.py` (script points and
+     layout dumps are always in the design's 480 px box). Simulator only: no AMOLED board was flashed.
+   - **The 11 x 11 px repaint.** A new label, visible at the stage's origin until `part()` hides it, invalidated
+     LVGL's glyph margin there with every style set. Screens are now built with invalidation off.
+     `SIM_TRACE_INVALIDATE=1` (or `=stack`) shows who invalidates what.
+   - **Stage bars.** One bar per phase for up to 16 phases, which is what the 220 px row holds. **Open:** a profile
+     of more than 16 phases shows its first 16, all full while the rest run. Options in
+     `docs/display/v2/shot/over-16-phases-options.png`: A a window that follows the shot, B neighbouring short phases
+     share a bar (the agent's recommendation), C smaller marks.
+   - Two flaky checks were fixed on the way (a chevron "lost" after a theme change, from stale pointers in the
+     simulator's list of readings; the comet check when the clock's minute turned inside its window). Not run: the
+     slow `steam-ready` case of `verify_display_modes.py`, `pio check`, `scripts/format.sh` (`clang-format` is not
+     on PATH). Seen and unchanged: "Menu to Standby, forced by the controller's loss" repaints the whole panel in
+     one frame; `verify_display_menu` lists it as not judged.
 5. **Housekeeping**: remove the four merged agent worktrees
    (`git worktree list`; `git worktree unlock` then `git worktree remove --force .claude/worktrees/<name>`, and delete
    their `worktree-agent-*` branches); decide whether `ui/v2` should become `main`.
@@ -106,6 +122,11 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
     column spacing, per-panel compact view, metrics columns, last row fill. Their stored keys are untouched.
 15. Profiles and Setup (2026-11-14): the drag handle for reordering favourites is inside a row's details; favourite
     state shows only in the row's menu (the icon set has no star).
+16. Display at 466 px (2026-11-14): the ring's ticks are 15 px long instead of 22 (the outer end comes in 7 px; the
+    inner end and the notch stay), rather than the whole ring moving inward. The step budget for a screen change is
+    22% of the real panel.
+17. The stage row draws up to 16 bars (was 8, an array size), read from the design's "one bar per phase" and its
+    220 px row.
 
 ## 4. Restarting — one prompt per session
 
