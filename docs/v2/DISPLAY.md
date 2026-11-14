@@ -31,6 +31,9 @@ it as the layout source. This file says how those become code under `src/display
 - **Exact repaints.** LVGL 8.4 grows every area an object invalidates by 5 px a side. `ui::` setters and `ui::show`
   switch that off and invalidate the object's own box (`ui::invalidate`). Use them; do not call `lv_obj_invalidate`,
   `lv_obj_add_flag(.., HIDDEN)` or `lv_obj_set_style_*_color` on a part yourself.
+  A screen's parts are built with invalidation off (`Screen::enter`): a new label is visible at the stage's origin
+  until `part()` hides it, without a size but with the margin LVGL keeps around a label (a quarter of its line
+  height), and every style set on it would mark that margin for repainting, 11 x 11 px at 0, 0.
 
 ## Files
 
@@ -106,6 +109,8 @@ SIM_HTTP_PORT=8101 SDL_VIDEODRIVER=dummy <repo>/.pio/build/display-sim/program -
   "wait 3500; mode brew; wait 3000; redraw settle.json; shot brew.bmp; layout brew.json; quit"
 # redraw <path>: one JSON line per repaint since the last redraw step: {"ms":..,"px":..}; px / 2304 is percent.
 # SIM_TRACE_FLUSH=1 prints every repainted rectangle, to find out what a frame redrew.
+# SIM_TRACE_INVALIDATE=1 prints every area as it is marked for repainting, and =stack the call stack with it,
+# to find out which object asked.
 # layout <path>: the screen, the ring (layout, lit ticks, notch, tone) and every visible object with text and colors.
 ```
 

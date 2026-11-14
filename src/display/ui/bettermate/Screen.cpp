@@ -10,6 +10,16 @@ void Screen::enter(const UiState &state) {
         partCount = 0;
         bindingCount = 0;
         warningSlot = updateSlot = nullptr;
+        // Nothing built here is on the glass before its rank is revealed, so nothing it marks for repainting on
+        // the way is wanted. And it does mark: a new label is visible, at the stage's origin, without a size but
+        // with the margin LVGL keeps around a label for overhanging glyphs (a quarter of its line height). Each
+        // style set on it before part() hides it invalidates that margin and LVGL's own 5 px: 11 x 11 px at 0, 0
+        // in the screen's first frame. So the parts are built with invalidation off. What is already on the
+        // glass is laid out first, so a layout pass during the build (ui::chip measures itself) has nothing
+        // visible left to move unseen.
+        lv_obj_update_layout(root);
+        lv_disp_t *display = lv_obj_get_disp(root);
+        lv_disp_enable_invalidation(display, false);
         const uint32_t before = lv_obj_get_child_cnt(root);
         build(root);
         // Anything left on the root unregistered would stay on the glass for ever; make it a part.
@@ -21,6 +31,7 @@ void Screen::enter(const UiState &state) {
             if (!known)
                 part(child, 1);
         }
+        lv_disp_enable_invalidation(display, true);
         // Lay the parts out while they are hidden, so the first reveal repaints each one once, in place.
         lv_obj_update_layout(root);
     }

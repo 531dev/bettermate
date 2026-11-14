@@ -106,11 +106,14 @@ class Sim:
         self.port = port
         self.log = ""
 
-    def run(self, script, timeout=180, check=True):
-        """Runs one script to its `quit`. Returns the exit status; 3 means an `expect` failed."""
+    def run(self, script, timeout=180, check=True, env=None):
+        """Runs one script to its `quit`. Returns the exit status; 3 means an `expect` failed.
+
+        `env` adds environment variables for this run (SIM_TRACE_FLUSH=1 for flushes()).
+        """
         if not self.program.exists():
             raise SystemExit(f"{self.program} not found: run `pio run -e display-sim` first")
-        env = dict(os.environ, SIM_HTTP_PORT=str(self.port), SDL_VIDEODRIVER="dummy")
+        env = dict(os.environ, SIM_HTTP_PORT=str(self.port), SDL_VIDEODRIVER="dummy", **(env or {}))
         done = subprocess.run([str(self.program), "--script", script], cwd=self.dir, env=env, capture_output=True, text=True, timeout=timeout)
         self.log = done.stderr + done.stdout
         if check and done.returncode != 0:
@@ -121,6 +124,15 @@ class Sim:
     def verified(self):
         """The `expect` steps that passed, as the simulator reported them."""
         return [line.split("verified ", 1)[1] for line in self.log.splitlines() if "[sim-script] verified " in line]
+
+    def flushes(self):
+        """Every rectangle the run repainted, in order, as (x, y, width, height) in panel pixels. Needs SIM_TRACE_FLUSH."""
+        found = []
+        for line in self.log.splitlines():
+            if line.startswith("[flush] "):
+                corner, size = line.split()[-2:]
+                found.append((*map(int, corner.split(",")), *map(int, size.split("x"))))
+        return found
 
     def layout(self, name):
         return Page(self.dir / name)

@@ -6,7 +6,7 @@
 
 import math
 
-from display_sim import Checks, Sim, pixels
+from display_sim import PANEL, Checks, Sim, pixels
 
 checks = Checks("display core")
 
@@ -16,9 +16,16 @@ sim.run(
     "wait 3500; expect screen standby; shot standby.bmp; layout standby.json; redraw boot.json;"
     "mode brew; wait 2500; expect screen brew; redraw to-brew.json; shot brew.bmp; layout brew.json;"
     "wait 6000; redraw heating.json;"
-    "mode standby; wait 2500; expect screen standby; redraw to-standby.json; quit"
+    "mode standby; wait 2500; expect screen standby; redraw to-standby.json; quit",
+    env={"SIM_TRACE_FLUSH": "1"},
 )
 checks.count(sim)
+# Building a screen repaints nothing. (A label used to mark 11 x 11 px at the stage's origin while it was built.)
+# The panel's corner is outside the round glass, so after the first paint nothing has a reason to repaint it.
+painted = sim.flushes()
+corner = [area for area in painted if area[:2] == (0, 0) and area[2:] != (PANEL, PANEL)]
+checks.true(len(painted) > 100, f"the run's repaints are listed: {len(painted)} rectangles")
+checks.equal(corner, [], "Standby's and Brew's first builds repaint nothing at the panel's corner")
 standby = sim.layout("standby.json")
 checks.equal(standby.ring["layout"], "single", "Standby draws the single ring")
 checks.equal(standby.ring["tone"][0], "faint", "Standby's ring is ink-faint")

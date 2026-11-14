@@ -74,8 +74,9 @@ glass:
   a frame in a millisecond or two, so time proves nothing here, but the redrawn share is exactly what the panel pays
   for: `design/reference/motion.md` allows 25% of the panel in one step of a transition and 8% in continuous motion.
 
-Two environment variables help: `SIM_TRACE_FLUSH=1` prints every repainted rectangle, and `SIM_PANEL_SIZE=466` runs
-the 480 px design on a panel the size of the AMOLED boards. Points in a script and boxes in a `layout` dump are in
+Three environment variables help: `SIM_TRACE_FLUSH=1` prints every repainted rectangle, `SIM_TRACE_INVALIDATE=1`
+prints every area as LVGL marks it for repainting (`=stack` adds the call stack, which names the object's code),
+and `SIM_PANEL_SIZE=466` runs the 480 px design on a panel the size of the AMOLED boards. Points in a script and boxes in a `layout` dump are in
 the design's 480 px box on either panel (at 466 the simulator moves them by the 7 px the design overhangs the
 glass), so one script serves both; a `shot` is in panel pixels. The checks run at 466 the same way:
 `SIM_PANEL_SIZE=466 python3 scripts/verify_display_core.py` (captures then go to `docs/display/v2/466/`).

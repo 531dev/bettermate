@@ -2,7 +2,9 @@
 
 #include <SDL.h>
 #include <cstdlib>
+#include <cstring>
 #include <display/main.h>
+#include <execinfo.h>
 #include <lvgl.h>
 #include <vector>
 
@@ -37,6 +39,21 @@ static void disp_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *co
         fprintf(stderr, "[flush] %lu ms  %d,%d %dx%d\n", (unsigned long)SDL_GetTicks(), r.x, r.y, r.w, r.h);
     SDL_UpdateTexture(s_texture, &r, color_p, r.w * (int)sizeof(lv_color_t));
     lv_disp_flush_ready(drv);
+}
+
+// SIM_TRACE_INVALIDATE=1 lists every area as it is marked for repainting (LVGL asks the driver to round each
+// one, which is the only place to see them before they are merged); =stack adds who asked. SIM_TRACE_FLUSH
+// says what a frame redrew, this says why.
+static void trace_invalidate(lv_disp_drv_t *, lv_area_t *area) {
+    if (lv_disp_get_default()->rendering_in_progress)
+        return; // the refresh asks too, while it splits an area into strips
+    static const bool stack = strcmp(getenv("SIM_TRACE_INVALIDATE"), "stack") == 0;
+    fprintf(stderr, "[invalidate] %lu ms  %d,%d %dx%d\n", (unsigned long)SDL_GetTicks(), area->x1, area->y1,
+            area->x2 - area->x1 + 1, area->y2 - area->y1 + 1);
+    if (stack) {
+        void *frames[24];
+        backtrace_symbols_fd(frames + 1, backtrace(frames, 24) - 1, 2);
+    }
 }
 
 static void mouse_read(lv_indev_drv_t *drv, lv_indev_data_t *data) {
@@ -93,6 +110,8 @@ void SdlDriver::init() {
     disp_drv.hor_res = DISP_W;
     disp_drv.ver_res = DISP_H;
     disp_drv.flush_cb = disp_flush;
+    if (getenv("SIM_TRACE_INVALIDATE") != nullptr)
+        disp_drv.rounder_cb = trace_invalidate;
     disp_drv.draw_buf = &s_draw_buf;
     lv_disp_drv_register(&disp_drv);
 
