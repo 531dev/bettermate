@@ -176,12 +176,34 @@ export function secondsAxis(min, max, format = (value, index) => (index ? value 
 
 // A plot shorter than this has no room for names beside its lines: they would run across the curves.
 const NAME_ROOM = 140;
-const roomForNames = ({ chart }) => !chart.chartArea || chart.chartArea.height >= NAME_ROOM;
+// How a name sits beside its line: the gap between them, and half the height of its line of text.
+const NAME_GAP = 9;
+const NAME_PAD = 4;
+const NAME_HALF = TICK_SIZE * 0.6;
+
+// Whether the name of the phase that starts at `x` has room on the chart as it is laid out now:
+// it must end before the next phase's line.
+const roomForName =
+  x =>
+  ({ chart }) => {
+    const area = chart.chartArea;
+    if (!area) return true;
+    if (area.height < NAME_ROOM) return false;
+    let next = Infinity;
+    for (const mark of Object.values(chart.config.options.plugins.annotation?.annotations || {})) {
+      if (mark.kind === 'phase' && mark.xMin > x && mark.xMin < next) next = mark.xMin;
+    }
+    if (next === Infinity) return true;
+    const scale = chart.scales.x;
+    // The plugin keeps a name inside the plot, so the first one sits further from its line.
+    const centre = Math.max(scale.getPixelForValue(x), area.left + NAME_PAD + NAME_HALF) + NAME_GAP;
+    return scale.getPixelForValue(next) >= centre + NAME_HALF + 2;
+  };
 
 /**
  * A vertical line where a phase starts, with its name running up beside it, as the stage names
  * are set: uppercase mono, which a canvas has to be given, and no box, so no reading hides behind it.
- * A short plot keeps the lines and leaves the names out.
+ * A short plot keeps the lines and leaves the names out, and so does a phase too narrow for its name.
  */
 export function phaseLine(x, name, showName = true) {
   return {
@@ -192,13 +214,13 @@ export function phaseLine(x, name, showName = true) {
     // The first phase starts at the plot's own edge, which needs no line.
     borderWidth: x > 0 ? 1 : 0,
     label: {
-      display: showName && name ? roomForNames : false,
+      display: showName && name ? roomForName(x) : false,
       content: String(name || '').toUpperCase(),
       backgroundColor: 'transparent',
       rotation: -90,
       position: 'end',
-      xAdjust: 9,
-      padding: { x: 4, y: 0 },
+      xAdjust: NAME_GAP,
+      padding: { x: NAME_PAD, y: 0 },
     },
   };
 }
