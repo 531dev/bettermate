@@ -1,12 +1,16 @@
 export const WARNING_LEVEL = { IGNORE: 0, WARN: 1, ERROR: 2 };
 
+// As options of a Segmented control. `tone` is the Chip and notice tone of a shown warning.
 export const WARNING_LEVELS = [
-  { value: WARNING_LEVEL.IGNORE, label: 'Ignore', activeClass: 'btn-primary' },
-  { value: WARNING_LEVEL.WARN, label: 'Warn', activeClass: 'btn-warning' },
-  { value: WARNING_LEVEL.ERROR, label: 'Error', activeClass: 'btn-error' },
+  { value: WARNING_LEVEL.IGNORE, label: 'Ignore' },
+  { value: WARNING_LEVEL.WARN, label: 'Warn', tone: 'warning' },
+  { value: WARNING_LEVEL.ERROR, label: 'Error', tone: 'danger' },
 ];
 
-// Keys match WarningManager on the firmware; icons are the same SVGs the display uses.
+// A shown warning is amber; one set to Error is the fault tone. Never orange: that is heat.
+export const warningTone = level => (level === WARNING_LEVEL.ERROR ? 'danger' : 'warning');
+
+// Keys match WarningManager on the firmware; icons are the same glyphs the display uses.
 export const WARNINGS = [
   { key: 'water', label: 'Water tank low', settingKey: 'warnWaterLevel', icon: 'droplet' },
   {
@@ -50,11 +54,4 @@ export function activeWarnings(states = []) {
     .filter(s => s.level > WARNING_LEVEL.IGNORE && (s.active ?? true))
     .map(s => ({ ...warningByKey(s.key), ...s }))
     .filter(w => w.icon);
-}
-
-// Reminders about the next shot: they only matter on the dashboard, in the modes they affect.
-const SHOT_REMINDERS = ['flush', 'temperature'];
-
-export function urgentWarnings(states = []) {
-  return activeWarnings(states).filter(w => !SHOT_REMINDERS.includes(w.key));
 }

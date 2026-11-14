@@ -1,51 +1,42 @@
 import { Icon } from '../../../components/Icon.jsx';
-import { analyzerUiColors } from '../utils/analyzerUtils';
 
-const SOURCE_MARKER_VARIANTS = {
-  compact: {
-    gmWidth: '0.84rem',
-    gmHeight: '0.72rem',
-    webSize: '0.72rem',
-    wrapperClassName: 'inline-flex items-center justify-center',
-  },
-  library: {
-    gmWidth: '0.84rem',
-    gmHeight: '0.72rem',
-    webSize: '0.72rem',
-    wrapperClassName: 'inline-flex items-center justify-center',
-  },
-  large: {
-    gmWidth: '1rem',
-    gmHeight: '0.86rem',
-    webSize: '0.9rem',
-    wrapperClassName: 'inline-flex items-center justify-center',
-  },
+// The glyph's size per variant: beside a line of data, in a list row, in an icon disc.
+const SOURCE_MARKER_SIZES = {
+  compact: 16,
+  library: 18,
+  large: 20,
 };
 
-export function GmLogoIcon() {
-  return <Icon name='coffee' />;
+// Where a shot or profile lives: the machine, this browser, or nowhere (opened temporarily).
+const SOURCES = {
+  gaggimate: { icon: 'coffee', word: 'Machine' },
+  browser: { icon: 'monitor', word: 'Browser' },
+  temp: { icon: 'eye', word: 'Temporary' },
+};
+
+export function getSourceWord(source) {
+  return (SOURCES[source] || SOURCES.browser).word;
 }
 
-export function SourceMarker({ source, variant = 'compact' }) {
-  // Central size map for the GM/Web source markers.
-  const resolvedVariant = SOURCE_MARKER_VARIANTS[variant] || SOURCE_MARKER_VARIANTS.compact;
-  const isGaggiMate = source === 'gaggimate';
+/** The machine's glyph. `size` is the Icon size. */
+export function GmLogoIcon({ size = SOURCE_MARKER_SIZES.compact }) {
+  return <Icon name={SOURCES.gaggimate.icon} size={size} />;
+}
+
+/**
+ * The source of a shot or profile as a glyph in currentColor, with its word for screen readers.
+ *   source   'gaggimate' (the machine), 'browser', or 'temp' for a file opened without saving
+ *   variant  'compact' 16px, 'library' 18px, 'large' 20px
+ *   size     an Icon size, in place of a variant
+ */
+export function SourceMarker({ source, variant = 'compact', size }) {
+  const { icon, word } = SOURCES[source] || SOURCES.browser;
+  const iconSize = size ?? SOURCE_MARKER_SIZES[variant] ?? SOURCE_MARKER_SIZES.compact;
 
   return (
-    <span
-      className={resolvedVariant.wrapperClassName}
-      style={{ lineHeight: 0, overflow: 'visible' }}
-    >
-      <span className='sr-only'>{isGaggiMate ? 'MACHINE' : 'WEB'}</span>
-      {isGaggiMate ? (
-        <GmLogoIcon width={resolvedVariant.gmWidth} height={resolvedVariant.gmHeight} />
-      ) : (
-        <Icon
-          name={'monitor'}
-          style={{ color: analyzerUiColors.sourceBadgeWebText, fontSize: resolvedVariant.webSize }}
-          aria-hidden='true'
-        />
-      )}
+    <span className='inline-flex items-center justify-center'>
+      <span className='sr-only'>{word}</span>
+      <Icon name={icon} size={iconSize} />
     </span>
   );
 }

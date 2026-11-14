@@ -1,7 +1,10 @@
 import { Icon } from '../../../../../components/Icon.jsx';
+import { IconButton } from '../../../ui/IconButton.jsx';
+import { ShotBadge } from '../../../ui/ShotBadge.jsx';
 import {
   CompareSelect,
   CompareTargetSelect,
+  LegendDisclosure,
   SHOT_CHART_PRIMARY_LEGEND_LABELS,
   ShotChartLegendToggles,
 } from '../ShotChartControls';
@@ -26,7 +29,7 @@ export function getMainChartTitleContent({
   if (shotStylePreset === 'statistics') {
     return (
       <CompareChartTitle
-        title='Pressure & Pump Flow'
+        title='Pressure and pump flow'
         variant='statisticsMain'
         icons={[
           {
@@ -44,7 +47,7 @@ export function getMainChartTitleContent({
     );
   }
 
-  if (showMainChartTitle) return <CompareChartTitle title='Compare Overlay' />;
+  if (showMainChartTitle) return <CompareChartTitle title='Compare overlay' />;
   return null;
 }
 
@@ -115,7 +118,7 @@ export function CompareMobileLegend({
   };
 
   return (
-    <div className='shot-chart-scrubber-legend shot-chart-scrubber-legend--mobile shot-chart-scrubber-legend--compare'>
+    <div className='shot-chart-scrubber-legend shot-chart-scrubber-legend--mobile'>
       <ShotChartLegendToggles
         labels={SHOT_CHART_PRIMARY_LEGEND_LABELS}
         hiddenLegendLabels={hiddenLegendLabels}
@@ -127,15 +130,7 @@ export function CompareMobileLegend({
         visibility={visibility}
         className='contents'
       />
-      <button
-        type='button'
-        className='shot-chart-scrubber-legend__toggle'
-        onClick={onToggleExpanded}
-        aria-expanded={isExpanded}
-      >
-        <Icon name={isExpanded ? 'minus' : 'plus'} className='text-xs' aria-hidden='true' />
-        <span>{isExpanded ? 'Hide legend' : 'Show legend'}</span>
-      </button>
+      <LegendDisclosure expanded={isExpanded} onToggle={onToggleExpanded} />
       {isExpanded ? (
         <ShotChartLegendToggles
           labels={MOBILE_COMPARE_FIXED_SERIES_LABELS}
@@ -165,15 +160,12 @@ export function CompareMobileShotSwitcher({ compareShotLegendItems, onCompareSwa
       </div>
       <div className='shot-chart-compare-mobile-shot-switcher__swap-slot'>
         {shotItems.length > 1 && onCompareSwap ? (
-          <button
-            type='button'
-            className='shot-chart-compare-mobile-shot-switcher__swap'
+          <IconButton
+            icon='refresh-cw'
+            label='Swap shot 1 and shot 2'
+            size='sm'
             onClick={onCompareSwap}
-            title='Swap shot 1 and shot 2'
-            aria-label='Swap shot 1 and shot 2'
-          >
-            <Icon name={'refresh-cw'} aria-hidden='true' />
-          </button>
+          />
         ) : null}
       </div>
       <div className='shot-chart-compare-mobile-shot-switcher__slot'>
@@ -190,18 +182,7 @@ function CompareMobileShotSwitcherItem({ item }) {
 
   return (
     <div className='shot-chart-compare-mobile-shot-switcher__item' title={label}>
-      <span
-        className={[
-          'analyzer-compare-shot-badge shot-chart-compare-mobile-shot-switcher__badge',
-          item.shotNumber === 2 ? 'analyzer-compare-shot-badge--striped' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        style={{ '--analyzer-compare-shot-color': item.badgeColor || item.color }}
-        aria-label={`Shot ${item.shotNumber || ''}`}
-      >
-        {item.shotNumber}
-      </span>
+      <ShotBadge number={item.shotNumber} />
       <span className='shot-chart-compare-mobile-shot-switcher__label'>{label}</span>
     </div>
   );
@@ -230,7 +211,7 @@ export function CompareMobileChartControls({
           options={compareAlignmentOptions}
           title='Compare alignment'
           value={compareAlignmentMode}
-          widthClass='w-[8.75rem] max-w-[8.75rem]'
+          widthClass='w-36'
         />
       ) : null}
       {shouldShowTargets ? (
@@ -288,26 +269,21 @@ export function CompareChartTitle({
     });
 
     return (
-      <div className='shot-chart-statistics-chart-title text-base-content/80 mb-2 inline-flex items-center gap-1.5 px-0.5 py-1 text-[10px] font-semibold'>
+      <div className='shot-chart-statistics-chart-title'>
         {titleIcons.map(item => (
           <Icon
             key={item.key || item.label}
             name={item.icon}
-            className='text-[10px]'
+            size={18}
             style={item.color ? { color: item.color } : undefined}
-            aria-hidden='true'
           />
         ))}
-        <span>{displayLabel}</span>
+        <span className='bm-eyebrow'>{displayLabel}</span>
       </div>
     );
   }
 
-  return (
-    <div className='mb-2 text-[11px] font-semibold tracking-wide text-[var(--ink-muted)] uppercase'>
-      {title}
-    </div>
-  );
+  return <div className='bm-eyebrow'>{title}</div>;
 }
 
 function CompareMobileTooltipPlaceholder() {
@@ -329,50 +305,40 @@ function getStatisticsMetricDefinitions(metricLabel = null) {
     Pressure: [
       {
         key: 'peakPressure',
-        label: 'Avg. Peak Pressure',
+        label: 'Avg. peak pressure',
         unit: 'bar',
-        color: 'var(--analyzer-pressure-text)',
-        icon: 'gauge',
         getValue: total => total?.p?.max,
       },
     ],
     'Pump Flow': [
       {
         key: 'flow',
-        label: 'Avg. Pump Flow',
+        label: 'Avg. pump flow',
         unit: 'ml/s',
-        color: 'var(--analyzer-flow-text)',
-        icon: getShotChartLabelIcon('Pump Flow'),
         getValue: total => total?.f?.avg,
       },
     ],
     'Puck Flow': [
       {
         key: 'puckFlow',
-        label: 'Avg. Puck Flow',
+        label: 'Avg. puck flow',
         unit: 'ml/s',
-        color: 'var(--analyzer-puckflow-text)',
-        icon: getShotChartLabelIcon('Puck Flow'),
         getValue: total => total?.pf?.avg,
       },
     ],
     'Puck Resistance': [
       {
         key: 'puckResistance',
-        label: 'Avg. Puck Resistance',
+        label: 'Avg. puck resistance',
         unit: 's·√bar/mL',
-        color: 'var(--analyzer-puckresistance-text)',
-        icon: getShotChartLabelIcon('Puck Resistance'),
         getValue: total => total?.pr?.avg,
       },
     ],
     'Liquid Resistance': [
       {
         key: 'liquidResistance',
-        label: 'Avg. Liquid Resistance',
+        label: 'Avg. liquid resistance',
         unit: 'bar·s/mL',
-        color: 'var(--analyzer-liquidresistance-text)',
-        icon: getShotChartLabelIcon('Liquid Resistance'),
         getValue: total => total?.lr?.avg,
       },
     ],
@@ -381,28 +347,22 @@ function getStatisticsMetricDefinitions(metricLabel = null) {
         key: 'weight',
         label: 'Weight',
         unit: 'g',
-        color: 'var(--analyzer-weight-text)',
-        icon: getShotChartLabelIcon('Weight'),
         getValue: total => total?.weight,
       },
     ],
     'Weight Flow': [
       {
         key: 'weightFlow',
-        label: 'Avg. Weight Flow',
+        label: 'Avg. weight flow',
         unit: 'g/s',
-        color: 'var(--analyzer-weightflow-text)',
-        icon: getShotChartLabelIcon('Weight Flow'),
         getValue: total => total?.wf?.avg,
       },
     ],
     Temp: [
       {
         key: 'temperature',
-        label: 'Avg. Temperature',
+        label: 'Avg. temperature',
         unit: '\u2103',
-        color: 'var(--analyzer-temp-text)',
-        icon: getShotChartLabelIcon('Temperature'),
         getValue: total => total?.t?.avg,
       },
     ],
@@ -413,18 +373,14 @@ function getStatisticsMetricDefinitions(metricLabel = null) {
   return [
     {
       key: 'peakPressure',
-      label: 'Peak Pressure',
+      label: 'Peak pressure',
       unit: 'bar',
-      color: 'var(--analyzer-pressure-text)',
-      icon: 'gauge',
       getValue: total => total?.p?.max,
     },
     {
       key: 'flow',
-      label: 'Pump Flow',
+      label: 'Pump flow',
       unit: 'ml/s',
-      color: 'var(--analyzer-flow-text)',
-      icon: getShotChartLabelIcon('Pump Flow'),
       getValue: total => total?.f?.avg,
     },
   ];
@@ -517,18 +473,14 @@ function getCompareMobileDetailMetricDefinitions(labelKey, pageKey = null) {
   if (labelKey === 'Pump Flow') {
     const pumpFlowRow = {
       key: 'flow',
-      label: 'Avg. Pump Flow',
+      label: 'Avg. pump flow',
       unit: 'ml/s',
-      color: 'var(--analyzer-flow-text)',
-      icon: getShotChartLabelIcon('Pump Flow'),
       getValue: total => total?.f?.avg,
     };
     const pumpedWaterRow = {
       key: 'pumpedWater',
-      label: 'Pumped Water',
+      label: 'Pumped water',
       unit: 'ml',
-      color: 'var(--statistics-summary-water)',
-      icon: getShotChartLabelIcon('Pumped Water (Total)'),
       getValue: total => total?.water,
     };
 
@@ -539,58 +491,44 @@ function getCompareMobileDetailMetricDefinitions(labelKey, pageKey = null) {
   const detailRowsByLabel = {
     Pressure: {
       key: 'pressure',
-      label: 'Avg. Pressure',
+      label: 'Avg. pressure',
       unit: 'bar',
-      color: 'var(--analyzer-pressure-text)',
-      icon: getShotChartLabelIcon('Pressure'),
       getValue: nextTotal => nextTotal?.p?.avg,
     },
     'Puck Flow': {
       key: 'puckFlow',
-      label: 'Avg. Puck Flow',
+      label: 'Avg. puck flow',
       unit: 'ml/s',
-      color: 'var(--analyzer-puckflow-text)',
-      icon: getShotChartLabelIcon('Puck Flow'),
       getValue: nextTotal => nextTotal?.pf?.avg,
     },
     'Puck Resistance': {
       key: 'puckResistance',
-      label: 'Avg. Puck Resistance',
+      label: 'Avg. puck resistance',
       unit: 's·√bar/mL',
-      color: 'var(--analyzer-puckresistance-text)',
-      icon: getShotChartLabelIcon('Puck Resistance'),
       getValue: nextTotal => nextTotal?.pr?.avg,
     },
     'Liquid Resistance': {
       key: 'liquidResistance',
-      label: 'Avg. Liquid Resistance',
+      label: 'Avg. liquid resistance',
       unit: 'bar·s/mL',
-      color: 'var(--analyzer-liquidresistance-text)',
-      icon: getShotChartLabelIcon('Liquid Resistance'),
       getValue: nextTotal => nextTotal?.lr?.avg,
     },
     Weight: {
       key: 'weight',
       label: 'Weight',
       unit: 'g',
-      color: 'var(--analyzer-weight-text)',
-      icon: getShotChartLabelIcon('Weight'),
       getValue: nextTotal => nextTotal?.weight,
     },
     'Weight Flow': {
       key: 'weightFlow',
-      label: 'Avg. Weight Flow',
+      label: 'Avg. weight flow',
       unit: 'g/s',
-      color: 'var(--analyzer-weightflow-text)',
-      icon: getShotChartLabelIcon('Weight Flow'),
       getValue: nextTotal => nextTotal?.wf?.avg,
     },
     Temp: {
       key: 'temperature',
-      label: 'Avg. Temperature',
+      label: 'Avg. temperature',
       unit: '\u2103',
-      color: 'var(--analyzer-temp-text)',
-      icon: getShotChartLabelIcon('Temperature'),
       getValue: nextTotal => nextTotal?.t?.avg,
     },
   };

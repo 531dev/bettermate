@@ -1,3 +1,13 @@
+import { SegmentBar } from '../../../../components/SegmentBar.jsx';
+
+// Segments of the scrubber's track: enough to read as a scale at a phone's width.
+const SCRUBBER_SEGMENTS = 48;
+
+/**
+ * The phone's way to read a chart: drag along the track under it and the readings above follow.
+ * The track is a row of segments lit up to the scrubbed time. An unseen native range sits over
+ * it for the keyboard and for assistive technology.
+ */
 export function MobileChartScrubber({
   active = false,
   ariaLabel,
@@ -20,6 +30,9 @@ export function MobileChartScrubber({
     onPointerUpdate(event);
   };
 
+  const span = Number(max) - Number(min);
+  const fraction = active && span > 0 ? (Number(value) - Number(min)) / span : 0;
+
   return (
     <div
       ref={scrubberRef}
@@ -33,7 +46,11 @@ export function MobileChartScrubber({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
     >
-      <div className='shot-chart-mobile-scrubber__track' aria-hidden='true' />
+      <SegmentBar
+        value={fraction}
+        total={SCRUBBER_SEGMENTS}
+        className='shot-chart-mobile-scrubber__track'
+      />
       <div className='shot-chart-mobile-scrubber__hint' aria-hidden='true'>
         Swipe
       </div>
@@ -47,6 +64,7 @@ export function MobileChartScrubber({
         aria-label={ariaLabel}
         onInput={onInput}
       />
+      <span className='shot-chart-mobile-scrubber__focus' aria-hidden='true' />
     </div>
   );
 }

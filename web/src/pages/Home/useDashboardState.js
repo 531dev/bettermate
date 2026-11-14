@@ -19,9 +19,12 @@ export function useDashboardState() {
 
   // Anything but a ready controller locks the dashboard into standby, exactly like the touch UI.
   const systemReady = connected.value && (!s.system || s.system.state === 'ready');
+  // 'offline' until the page reaches the machine, then the controller's own state:
+  // starting, waiting, ready, updating, autotuning, mismatch or error.
+  const systemState = !connected.value ? 'offline' : (s.system?.state ?? 'ready');
   // Only a not-ready state carries a message; ready leaves the default standby text in place.
   const systemMessage = !connected.value
-    ? 'Connecting to the machine...'
+    ? 'Connecting to the machine'
     : systemReady
       ? ''
       : s.system.message || s.system.state;
@@ -118,6 +121,7 @@ export function useDashboardState() {
     // raw status
     mode,
     systemReady,
+    systemState,
     systemMessage,
     currentTemperature: s.currentTemperature,
     targetTemperature: s.targetTemperature,

@@ -1,318 +1,109 @@
-import { Chart } from 'chart.js';
+import { useMemo } from 'preact/hooks';
 import { ChartComponent } from '../../components/Chart.jsx';
-import { niceAxis, phaseMarkerColors } from '../../utils/chartTheme.js';
+import {
+  chartOptions,
+  line,
+  niceAxis,
+  phaseLine,
+  secondsAxis,
+  valueAxis,
+} from '../../utils/chartTheme.js';
 
-// Helper function to get phase name from shot data (v5+) or fallback to profile/generic
-function getPhaseName(shot, phaseNumber) {
-  // For v5+ shots, check if we have phase transition data
-  if (shot.phaseTransitions && shot.phaseTransitions.length > 0) {
-    const transition = shot.phaseTransitions.find(t => t.phaseNumber === phaseNumber);
-    if (transition && transition.phaseName) {
-      return transition.phaseName;
-    }
-  }
-
-  // Fallback to no label for v4 shots or missing data
-  return '';
-}
+const READINGS = ['ct', 'cp', 'fl', 'pf', 'v', 'vf'];
+const TARGETS = ['tt', 'tp', 'tf'];
 
 function getChartData(shot) {
-  // Build sample point arrays once (numeric x for linear scale)
-  const data = shot.samples;
-  const ct = [];
-  const tt = [];
-  const cp = [];
-  const tp = [];
-  const fl = [];
-  const pf = [];
-  const tf = [];
-  const v = [];
-  const vf = [];
-
-  // Process all samples to build data arrays
-  for (let i = 0; i < data.length; i++) {
-    const s = data[i];
-    const x = s.t / 1000.0; // Convert time to seconds for chart display
-
-    ct.push({ x, y: s.ct });
-    tt.push({ x, y: s.tt });
-    cp.push({ x, y: s.cp });
-    tp.push({ x, y: s.tp });
-    fl.push({ x, y: s.fl });
-    pf.push({ x, y: s.pf });
-    tf.push({ x, y: s.tf });
-    v.push({ x, y: s.v });
-    vf.push({ x, y: s.vf });
+  // One pass over the samples, straight into the { x, y } points the chart draws. A target of
+  // zero is no target, and leaves a gap in its line.
+  const points = Object.fromEntries([...READINGS, ...TARGETS].map(field => [field, []]));
+  for (const sample of shot.samples) {
+    const x = sample.t / 1000;
+    for (const field of READINGS) points[field].push({ x, y: sample[field] });
+    for (const field of TARGETS) {
+      points[field].push({ x, y: sample[field] > 0 ? sample[field] : null });
+    }
   }
+  const range = (...fields) => {
+    let low = Infinity;
+    let high = -Infinity;
+    for (const field of fields) {
+      for (const { y } of points[field]) {
+        if (y == null) continue;
+        if (y < low) low = y;
+        if (y > high) high = y;
+      }
+    }
+    return [low, high];
+  };
+  // A reading that never leaves zero (no scale, no target) has no line and no place in the legend.
+  const drawn = (field, series, label, options) =>
+    points[field].some(point => point.y > 0) ? [line(series, label, points[field], options)] : [];
 
-  // For v5+ files, use phase transitions from header
-  let phaseTransitions = [];
+  const [coolest, hottest] = range('ct', 'tt');
+  const [, highest] = range('cp', 'tp', 'fl', 'pf', 'tf', 'vf');
+  const [, heaviest] = range('v');
+  const last = shot.samples[shot.samples.length - 1];
 
-  if (shot.version >= 5 && shot.phaseTransitions) {
-    // Use phase transitions directly from header
-    phaseTransitions = shot.phaseTransitions.map(t => ({
-      time: (t.sampleIndex * (shot.sampleInterval || 250)) / 1000.0,
-      phaseNumber: t.phaseNumber,
-      phaseDisplayNumber: t.phaseNumber + 1,
-      phaseName: t.phaseName,
-    }));
-  }
-  // No phase tracking for versions before v5
-  const tempValues = ct.map(i => i.y).concat(tt.map(i => i.y));
-  const timeValues = ct.map(i => i.x);
-  const minTemp = Math.floor(Math.min(...tempValues));
-  const maxTemp = Math.ceil(Math.max(...tempValues));
-  const minX = Math.min(...timeValues);
-  const maxX = Math.max(...timeValues);
-  const padding = maxTemp - minTemp > 10 ? 2 : 5;
-  const tempAxis = niceAxis(Math.max(minTemp - padding, 0), maxTemp + padding);
-
-  // Check if weight data has any non-zero values
-  const hasWeight = v.some(point => point.y > 0);
-  const hasWeightFlow = vf.some(point => point.y > 0);
-
-  // Create phase annotations
-  const phaseAnnotations = {};
-  const isSmall = window.innerWidth < 640;
-  const marker = phaseMarkerColors();
-
-  // Add shot start marker
-  if (data.length > 0) {
-    const shotStartTime = data[0].t / 1000.0; // First sample time in seconds
-    const startPhaseName = getPhaseName(shot, 0); // Get first phase name
-    phaseAnnotations['shot_start'] = {
-      type: 'line',
-      xMin: shotStartTime,
-      xMax: shotStartTime,
-      borderColor: marker.line,
-      borderWidth: 1,
-      label: {
-        display: true,
-        content: startPhaseName,
-        rotation: -90,
-        position: 'end',
-        xAdjust: -5,
-        yAdjust: 0,
-        padding: { x: 6, y: 0 },
-        color: marker.text,
-        backgroundColor: marker.background,
-        textAlign: 'start',
-        font: {
-          size: isSmall ? 9 : 11,
-          weight: 500,
-        },
-        clip: false,
-      },
-    };
-  }
-
-  phaseTransitions.forEach((transition, index) => {
-    // Skip the first transition since we handle it with shot_start marker
-    if (index === 0) return;
-
-    phaseAnnotations[`phase_line_${index}`] = {
-      type: 'line',
-      xMin: transition.time,
-      xMax: transition.time,
-      borderColor: marker.line,
-      borderWidth: 1,
-      label: {
-        display: true,
-        content:
-          transition.phaseName ||
-          `Phase ${transition.phaseDisplayNumber || transition.phaseNumber + 1}`,
-        rotation: -90,
-        position: 'end',
-        xAdjust: -10,
-        yAdjust: 0,
-        padding: { x: 6, y: 0 },
-        color: marker.text,
-        backgroundColor: marker.background,
-        textAlign: 'start',
-        font: {
-          size: isSmall ? 9 : 11,
-          weight: 500,
-        },
-        clip: false,
-      },
-    };
+  // Phase starts come from the header of v5+ files; older shots have none.
+  const transitions = shot.version >= 5 && shot.phaseTransitions ? shot.phaseTransitions : [];
+  const annotations = {};
+  transitions.forEach((transition, index) => {
+    // The sample's own time where the file has it; older files only count samples.
+    const sample = shot.samples[transition.sampleIndex];
+    const ms = sample ? sample.t : transition.sampleIndex * (shot.sampleInterval || 250);
+    const at = index ? ms / 1000 : 0;
+    const name = transition.phaseName || (index ? `Phase ${transition.phaseNumber + 1}` : '');
+    annotations[`phase${index}`] = phaseLine(at, name);
   });
+
+  const onRight = { yAxisID: 'y1' };
   return {
     type: 'line',
     data: {
       datasets: [
-        {
-          label: 'Current Temperature',
-          borderColor: '#F0561D',
-          pointStyle: false,
-          data: ct,
-        },
-        {
-          label: 'Target Temperature',
-          borderColor: '#731F00',
-          borderDash: [6, 6],
-          pointStyle: false,
-          data: tt,
-        },
-        {
-          label: 'Current Pressure',
-          borderColor: '#0066CC',
-          pointStyle: false,
-          yAxisID: 'y1',
-          data: cp,
-        },
-        {
-          label: 'Target Pressure',
-          borderColor: '#0066CC',
-          borderDash: [6, 6],
-          pointStyle: false,
-          yAxisID: 'y1',
-          data: tp,
-        },
-        {
-          label: 'Current Pump Flow',
-          borderColor: '#63993D',
-          pointStyle: false,
-          yAxisID: 'y1',
-          data: fl,
-        },
-        {
-          label: 'Current Puck Flow',
-          borderColor: '#204D00',
-          pointStyle: false,
-          yAxisID: 'y1',
-          data: pf,
-        },
-        {
-          label: 'Target Pump Flow',
-          borderColor: '#63993D',
-          borderDash: [6, 6],
-          pointStyle: false,
-          yAxisID: 'y1',
-          data: tf,
-        },
-        // Only include weight datasets if they have non-zero values
-        ...(hasWeight
-          ? [
-              {
-                label: 'Weight',
-                borderColor: '#8B5CF6',
-                pointStyle: false,
-                yAxisID: 'y2',
-                data: v,
-              },
-            ]
-          : []),
-        ...(hasWeightFlow
-          ? [
-              {
-                label: 'Weight Flow',
-                borderColor: '#4b2e8dff',
-                pointStyle: false,
-                yAxisID: 'y1',
-                data: vf,
-              },
-            ]
-          : []),
+        ...drawn('cp', 'pressure', 'Pressure', onRight),
+        ...drawn('fl', 'flow', 'Pump flow', onRight),
+        ...drawn('pf', 'flow', 'Puck flow', { ...onRight, kind: 'estimate' }),
+        ...drawn('ct', 'temperature', 'Temp', {}),
+        ...drawn('v', 'weight', 'Weight', { yAxisID: 'y2' }),
+        ...drawn('vf', 'weight', 'Weight flow', { ...onRight, kind: 'estimate' }),
+        ...drawn('tp', 'pressure', undefined, { ...onRight, kind: 'target' }),
+        ...drawn('tf', 'flow', undefined, { ...onRight, kind: 'target' }),
+        ...drawn('tt', 'temperature', undefined, { kind: 'target' }),
       ],
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      parsing: false, // We already provide x/y objects
-      spanGaps: true,
-      plugins: {
-        legend: {
-          position: 'top',
-          display: true,
-          labels: {
-            usePointStyle: true,
-            pointStyle: 'line',
-            pointStyleWidth: 20,
-            padding: 8,
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-            generateLabels: function (chart) {
-              const original = Chart.defaults.plugins.legend.labels.generateLabels;
-              // Targets are the dashed line in the same color, so the legend names each series once.
-              return original
-                .call(this, chart)
-                .filter(label => !label.text.startsWith('Target'))
-                .map(label => ({
-                  ...label,
-                  text: label.text.replace('Current ', ''),
-                  lineWidth: 3,
-                }));
-            },
-          },
-        },
-        title: {
-          display: false,
-        },
-        annotation: {
-          annotations: phaseAnnotations,
-        },
-      },
-      animation: false,
+    options: chartOptions({
       scales: {
-        x: {
-          min: minX,
-          max: maxX,
-          type: 'linear',
-          title: { display: true, text: 'Time (s)' },
-          grid: { display: false },
-          ticks: { font: { size: window.innerWidth < 640 ? 10 : 12 } },
-        },
-        y: {
-          type: 'linear',
-          ticks: {
-            stepSize: tempAxis.step,
-            callback: value => `${value.toFixed()}°`,
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-          },
-          min: tempAxis.min,
-          max: tempAxis.max,
-        },
-        y1: {
-          type: 'linear',
-          min: 0,
-          max: 16,
-          position: 'right',
-          title: { display: true, text: 'bar, ml/s' },
-          ticks: {
-            maxTicksLimit: 5,
-            callback: value => value.toFixed(),
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-          },
-          grid: { drawOnChartArea: false },
-        },
-        ...(hasWeight
-          ? {
-              y2: {
-                type: 'linear',
-                display: false,
-                min: 0,
-              },
-            }
-          : {}),
+        x: secondsAxis(0, last ? last.t / 1000 : 1),
+        y: valueAxis(
+          coolest <= hottest
+            ? niceAxis(Math.max(0, Math.floor(coolest) - 2), Math.ceil(hottest) + 2)
+            : niceAxis(80, 100),
+          { format: value => `${Math.round(value)}°` },
+        ),
+        y1: valueAxis(niceAxis(0, Math.max(12, highest)), { position: 'right', grid: false }),
+        y2: valueAxis(niceAxis(0, Math.max(10, heaviest)), { hidden: true }),
       },
-    },
+      annotations,
+    }),
   };
 }
 
+/** The readings of one recorded shot over its time. */
 export function HistoryChart({ shot }) {
-  const chartData = getChartData(shot);
+  // The list reloads when a note is saved; the chart only changes with the recording itself.
+  const { samples, version, phaseTransitions, sampleInterval } = shot;
+  const chartData = useMemo(
+    () => getChartData({ samples, version, phaseTransitions, sampleInterval }),
+    [samples, version, phaseTransitions, sampleInterval],
+  );
 
   return (
     <ChartComponent
-      className='min-h-[350px] flex-1'
-      chartClassName='w-full min-h-[350px]'
+      plotClassName='h-56 flex-none sm:h-72'
+      chartClassName='h-full w-full'
       data={chartData}
+      label={`Readings of shot ${shot.id}`}
     />
   );
 }

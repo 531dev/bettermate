@@ -1,4 +1,3 @@
-import { Icon } from '../../../../../components/Icon.jsx';
 /* global globalThis */
 
 /** Coordinates the single-chart lifecycle, responsive layout, hover, replay, and export. */
@@ -8,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import Chart from 'chart.js/auto';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import {
+  LegendDisclosure,
   SHOT_CHART_PRIMARY_LEGEND_LABELS,
   SHOT_CHART_SERIES_LEGEND_LABELS,
   ShotChartControls,
@@ -32,12 +32,10 @@ import {
 } from '../constants';
 import {
   buildShotChartReplayModel,
-  createStripedFillPattern,
-  getLegendColorByLabel,
   getShotChartColors,
-  getTooltipColorByLabel,
+  SERIES_CSS_COLOR_BY_LABEL,
 } from '../helpers';
-import { getShotChartBrewModeMeta } from '../labelVisuals';
+import { useThemeVersion } from '../../../ui/chartTokens.js';
 import { useShotChartFullDisplay } from './useShotChartFullDisplay';
 import { useShotChartReplayExport } from './useShotChartReplayExport';
 import { buildShotChartModel } from '../buildShotChartModel';
@@ -105,7 +103,8 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
   });
   const mainChartInstance = useRef(null);
   const tempChartInstance = useRef(null);
-  const chartColorsRef = useRef(null);
+  // The charts are rebuilt when the theme changes, so they are redrawn in its tokens.
+  const themeVersion = useThemeVersion();
 
   const [visibility, setVisibility] = useState(() =>
     normalizeSingleChartVisibility(loadFromStorage(ANALYZER_DB_KEYS.SINGLE_CHART_VISIBILITY)),
@@ -128,12 +127,6 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
     standardChartSize.availableCombinedHeight,
     Number(desktopCardHeight) > 0,
   );
-
-  // Cache theme-derived chart colors so legend/UI helpers can read them before the
-  // next chart build runs. The effect below refreshes the cache whenever charts rebuild.
-  if (!chartColorsRef.current) {
-    chartColorsRef.current = getShotChartColors();
-  }
 
   const shotSamples = Array.isArray(shotData?.samples) ? shotData.samples : EMPTY_SHOT_SAMPLES;
 
@@ -181,7 +174,7 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
     [scrubberMax],
   );
 
-  const legendColorByLabel = getLegendColorByLabel(chartColorsRef.current);
+  const legendColorByLabel = SERIES_CSS_COLOR_BY_LABEL;
   const hideExternalTooltip = useCallback(() => {
     setExternalTooltipState(prev => {
       const hiddenState = createHiddenExternalTooltipState();
@@ -221,9 +214,7 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
   } = useShotChartReplayExport({
     shotData,
     profileData,
-    exportMenuRef,
     chartRefs: { mainChartInstance, tempChartInstance, hoverAreaRef },
-    legendColorByLabel,
     visibility,
     hasWeightData,
     hasWeightFlowData,
@@ -521,44 +512,18 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
     destroyCharts();
     if (!mainChartRef.current || !tempChartRef.current) return undefined;
 
+    // Colours and fonts are read from the tokens now, for the theme the page is in.
     const colors = getShotChartColors();
-    chartColorsRef.current = colors;
-
-    const mainCanvasCtx = mainChartRef.current.getContext('2d');
-    const tempCanvasCtx = tempChartRef.current.getContext('2d');
-    if (!mainCanvasCtx || !tempCanvasCtx) return undefined;
-
-    const targetPressureFill = createStripedFillPattern(mainCanvasCtx, colors.pressure, {
-      baseAlpha: 0.018,
-      stripeAlpha: 0.065,
-      size: 18,
-      lineWidth: 2,
-    });
-    const targetFlowFill = createStripedFillPattern(mainCanvasCtx, colors.flow, {
-      baseAlpha: 0.018,
-      stripeAlpha: 0.065,
-      size: 18,
-      lineWidth: 2,
-    });
-    const tempToTargetFill = createStripedFillPattern(tempCanvasCtx, colors.temp, {
-      baseAlpha: 0.018,
-      stripeAlpha: 0.09,
-      size: 9,
-      lineWidth: 1,
-    });
-
-    const brewModeMeta = getShotChartBrewModeMeta(results, colors);
 
     const model = buildShotChartModel({
       shotData,
       results,
       visibility,
       colors,
-      brewModeMeta,
       usePhaseNumbers: true,
     });
     setChartMaxTime(model.maxTime || 0);
-    const tooltipColorByLabel = getTooltipColorByLabel(colors);
+    const tooltipColorByLabel = SERIES_CSS_COLOR_BY_LABEL;
     const updateExternalTooltip = ({ chart, tooltip }) => {
       const tooltipState = buildExternalTooltipState({
         chart,
@@ -596,9 +561,6 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
       visibility,
       hasWeightData,
       hasWeightFlowData,
-      targetPressureFill,
-      targetFlowFill,
-      tempToTargetFill,
       updateExternalTooltip,
       showStopBadges: visibility.stops,
     });
@@ -680,6 +642,7 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
     hideExternalTooltip,
     useStaticTooltip,
     updateScrubberInsets,
+    themeVersion,
   ]);
 
   useEffect(() => {
@@ -769,14 +732,11 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
       ref={chartShellRef}
       className={
         isFullDisplay
-          ? 'shot-chart-full-display__charts shot-chart-single-layout w-full'
-          : 'shot-chart-single-layout w-full'
+          ? 'shot-chart-full-display__charts shot-chart-single-layout'
+          : 'shot-chart-single-layout'
       }
     >
-      <div
-        ref={hoverAreaRef}
-        className='shot-chart-hover-surface flex w-full flex-1 flex-col justify-center'
-      >
+      <div ref={hoverAreaRef} className='shot-chart-hover-surface'>
         {useStaticTooltip ? (
           <ShotChartExternalTooltip
             tooltipRef={externalTooltipRef}
@@ -806,14 +766,16 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
         <div className='shot-chart-hover-connector' style={hoverGuideConnectorStyle} />
         <div
           ref={mainChartContainerRef}
-          className='shot-chart-interaction-layer relative w-full'
+          className='shot-chart-interaction-layer'
+          data-chart='shot-main'
           style={{ height: `${effectiveMainChartHeight}px` }}
         >
           <canvas ref={mainChartRef} />
         </div>
         <div
           ref={tempChartContainerRef}
-          className='shot-chart-interaction-layer relative mt-3 w-full'
+          className='shot-chart-interaction-layer shot-chart-interaction-layer--temp'
+          data-chart='shot-temperature'
           style={{ height: `${renderedTempChartHeight}px` }}
         >
           <canvas ref={tempChartRef} />
@@ -864,19 +826,10 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
           visibility={visibility}
           className='contents'
         />
-        <button
-          type='button'
-          className='shot-chart-scrubber-legend__toggle'
-          onClick={() => setIsMobileSeriesLegendExpanded(expanded => !expanded)}
-          aria-expanded={isMobileSeriesLegendExpanded}
-        >
-          <Icon
-            name={isMobileSeriesLegendExpanded ? 'minus' : 'plus'}
-            className='text-xs'
-            aria-hidden='true'
-          />
-          <span>{isMobileSeriesLegendExpanded ? 'Hide legend' : 'Show legend'}</span>
-        </button>
+        <LegendDisclosure
+          expanded={isMobileSeriesLegendExpanded}
+          onToggle={() => setIsMobileSeriesLegendExpanded(expanded => !expanded)}
+        />
         {isMobileSeriesLegendExpanded ? (
           <ShotChartLegendToggles
             labels={SHOT_CHART_SERIES_LEGEND_LABELS}
@@ -913,16 +866,14 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
     // overflow, transforms, and stacking contexts cannot turn full display into
     // a constrained in-page viewer.
     return createPortal(
-      <div className='shot-chart-full-display select-none'>
-        <button
-          type='button'
-          className='shot-chart-full-display__backdrop'
-          onClick={() => {
-            if (!isControlsLocked) toggleFullDisplay();
-          }}
-          aria-label='Close full display'
-        />
-        <div className='shot-chart-full-display__panel'>
+      <div
+        className='shot-chart-full-display'
+        data-tool-portal='chart'
+        role='dialog'
+        aria-modal='true'
+        aria-label='Shot chart'
+      >
+        <div className='shot-chart-full-display__panel bm-tile'>
           {controls}
           {charts}
         </div>
@@ -932,7 +883,7 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
   }
 
   return (
-    <div className='flex w-full flex-col select-none lg:h-full'>
+    <div className='shot-chart-root'>
       {controls}
       {charts}
     </div>

@@ -1,53 +1,31 @@
 import { Icon } from '../../components/Icon.jsx';
-import Card from '../../components/Card.jsx';
+import { List, ListRow } from '../../components/ListRow.jsx';
+import { Tile } from '../../components/Tile.jsx';
+
+const TYPES = [
+  { type: 'standard', icon: 'list', title: 'Simple', meta: 'Time and weight targets' },
+  { type: 'pro', icon: 'chart-column', title: 'Pro', meta: 'Pressure, flow and ramps' },
+];
 
 export function ProfileTypeSelection({ onSelect }) {
   return (
-    <div className='grid grid-cols-1 gap-4 lg:grid-cols-10'>
-      <Card sm={10} lg={5} title='Simple Profile'>
-        <div
-          className='text-base-content hover:text-primary flex cursor-pointer flex-col items-center justify-center gap-2 p-4 transition-colors'
-          onClick={() => onSelect('standard')}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onSelect('standard');
-            }
-          }}
-          role='button'
-          tabIndex={0}
-          aria-label='Select simple profile type'
-        >
-          <Icon name={'list'} className='text-5xl' />
-          <span className='text-lg font-medium'>Simple profile</span>
-          <span className='text-center text-sm text-[var(--ink-muted)]'>
-            Supports creating of profiles with different brew phases and targets.
-          </span>
-        </div>
-      </Card>
-
-      <Card sm={10} lg={5} title='Pro Profile'>
-        <div
-          className='text-base-content hover:text-primary flex cursor-pointer flex-col items-center justify-center gap-2 p-4 transition-colors'
-          onClick={() => onSelect('pro')}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onSelect('pro');
-            }
-          }}
-          role='button'
-          tabIndex={1}
-          aria-label='Select Pro profile type'
-        >
-          <Icon name={'chart-column'} className='text-5xl' />
-          <span className='text-lg'>Pro profile</span>
-          <span className='text-center text-sm text-[var(--ink-muted)]'>
-            Supports advanced pressure and flow controlled phases with ramps, different targets and
-            further visualization.
-          </span>
-        </div>
-      </Card>
-    </div>
+    <Tile title='Choose a type'>
+      <List>
+        {TYPES.map(({ type, icon, title, meta }) => (
+          <ListRow
+            key={type}
+            onClick={() => onSelect(type)}
+            icon={icon}
+            title={title}
+            meta={meta}
+            end={<Icon name='chevron-right' size={20} />}
+          />
+        ))}
+      </List>
+      <p className='bm-help'>
+        A simple profile runs its phases one after another. A Pro profile also sets pressure or flow
+        in each phase, ramps between them and draws the shot as a chart.
+      </p>
+    </Tile>
   );
 }

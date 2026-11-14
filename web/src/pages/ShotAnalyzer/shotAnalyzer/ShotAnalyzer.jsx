@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useContext, useRef, useCallback } from 'preact/hooks';
 import { useRoute } from 'preact-iso';
+import PageHeader from '../../../components/PageHeader.jsx';
 import { LibraryPanel } from '../components/LibraryPanel';
 import { EmptyState } from '../components/EmptyState.jsx';
 import { useAnalyzerMobileSubpageNavigation } from '../components/useAnalyzerMobileSubpageNavigation';
@@ -917,12 +918,11 @@ export function ShotAnalyzer() {
 
   const {
     chartMountKey,
-    compareCollectionWithAccents,
+    compareCollection,
     compareDetailsKey,
     compareHasSecondaryShot,
     compareSecondaryProfile,
     compareSecondaryShot,
-    compareSecondaryStatsHref,
     compareSelectedCount,
     compareSelectionKeys,
     displayCompareSecondaryShotKey,
@@ -956,103 +956,92 @@ export function ShotAnalyzer() {
   });
 
   return (
-    <div className='shot-analyzer-page pb-20'>
-      {/* Header */}
-      <div className='mb-4 flex flex-row items-center gap-2'>
-        <h2 className='flex-grow text-[28px] leading-[34px] font-bold tracking-tight'>
-          Deep Dive Shot Analyzer
-        </h2>
+    <div className='shot-analyzer-page flex w-full flex-col gap-2 lg:gap-3' data-tool='analyzer'>
+      <PageHeader title='Analyzer' />
+
+      <div ref={libraryPanelRef}>
+        <LibraryPanel
+          currentShot={currentShot}
+          currentProfile={currentProfile}
+          currentShotName={currentShotName}
+          currentProfileName={currentProfileName}
+          pendingPrimarySelection={pendingPrimarySelection}
+          onShotSelect={handleShotSelect}
+          onProfileLoad={handleProfileLoad}
+          onShotUnload={() => {
+            clearPendingPrimarySelection();
+            clearPendingCompareSelection();
+            resetCompareState({ disableMode: true });
+            cancelPrimaryProfileSearch();
+            updateCurrentShot(null);
+            setCurrentShotName('No Shot Loaded');
+            setCurrentProfile(null);
+            setCurrentProfileName('No Profile Loaded');
+            setCurrentProfileSelectionMode('none');
+            setAnalysisResults(null);
+          }}
+          onProfileUnload={handleProfileUnload}
+          onShowStats={context =>
+            persistStatisticsInitialContext({
+              context: {
+                ...context,
+                preferredDetailSection: compareMode ? 'compare' : null,
+              },
+              currentProfile,
+              currentProfileName,
+              currentShot,
+            })
+          }
+          statsHref={statsHref}
+          importMode={importMode}
+          onImportModeChange={setImportMode}
+          compareMode={compareMode}
+          compareHasSecondaryShot={compareHasSecondaryShot}
+          compareSelectedCount={compareSelectedCount}
+          compareSelectionKeys={compareSelectionKeys}
+          comparePendingKeys={comparePendingKeys}
+          compareSecondaryShotKey={displayCompareSecondaryShotKey}
+          secondaryShot={compareSecondaryShot?.shot || null}
+          secondaryProfile={compareSecondaryProfile}
+          secondaryShotName={compareSecondaryShot?.shotName || 'No Shot Loaded'}
+          secondaryProfileName={compareSecondaryShot?.profileName || 'No Profile Loaded'}
+          pendingCompareSelection={pendingCompareSelection}
+          onCompareModeToggle={handleCompareModeToggle}
+          onCompareShotToggle={handleCompareShotToggle}
+          onCompareProfileLoad={handleCompareProfileLoad}
+          onCompareProfileUnload={handleCompareProfileUnload}
+          onCompareSwap={handleSwapCompareSlots}
+          onRetryProfileSearch={handleRetryProfileSearch}
+          onRetryCompareProfileSearch={handleRetryCompareProfileSearch}
+          isMatchingProfile={isMatchingProfile}
+          isSearchingProfile={isSearchingProfile}
+          compareIsSearchingProfile={compareIsSearchingProfile}
+        />
       </div>
 
-      <div className='w-full'>
-        {/* Library Panel (Always visible) */}
-        <div ref={libraryPanelRef} className='mt-4'>
-          <LibraryPanel
-            currentShot={currentShot}
-            currentProfile={currentProfile}
-            currentShotName={currentShotName}
-            currentProfileName={currentProfileName}
-            pendingPrimarySelection={pendingPrimarySelection}
-            onShotSelect={handleShotSelect}
-            onProfileLoad={handleProfileLoad}
-            onShotUnload={() => {
-              clearPendingPrimarySelection();
-              clearPendingCompareSelection();
-              resetCompareState({ disableMode: true });
-              cancelPrimaryProfileSearch();
-              updateCurrentShot(null);
-              setCurrentShotName('No Shot Loaded');
-              setCurrentProfile(null);
-              setCurrentProfileName('No Profile Loaded');
-              setCurrentProfileSelectionMode('none');
-              setAnalysisResults(null);
-            }}
-            onProfileUnload={handleProfileUnload}
-            onShowStats={context =>
-              persistStatisticsInitialContext({
-                context: {
-                  ...context,
-                  preferredDetailSection: compareMode ? 'compare' : null,
-                },
-                currentProfile,
-                currentProfileName,
-                currentShot,
-              })
-            }
-            statsHref={statsHref}
-            importMode={importMode}
-            onImportModeChange={setImportMode}
-            compareMode={compareMode}
-            compareHasSecondaryShot={compareHasSecondaryShot}
-            compareSelectedCount={compareSelectedCount}
-            compareSelectionKeys={compareSelectionKeys}
-            comparePendingKeys={comparePendingKeys}
-            compareSecondaryShotKey={displayCompareSecondaryShotKey}
-            secondaryShot={compareSecondaryShot?.shot || null}
-            secondaryProfile={compareSecondaryProfile}
-            secondaryShotName={compareSecondaryShot?.shotName || 'No Shot Loaded'}
-            secondaryProfileName={compareSecondaryShot?.profileName || 'No Profile Loaded'}
-            pendingCompareSelection={pendingCompareSelection}
-            secondaryStatsHref={compareSecondaryStatsHref}
-            onCompareModeToggle={handleCompareModeToggle}
-            onCompareShotToggle={handleCompareShotToggle}
-            onCompareProfileLoad={handleCompareProfileLoad}
-            onCompareProfileUnload={handleCompareProfileUnload}
-            onCompareSwap={handleSwapCompareSlots}
-            onRetryProfileSearch={handleRetryProfileSearch}
-            onRetryCompareProfileSearch={handleRetryCompareProfileSearch}
-            isMatchingProfile={isMatchingProfile}
-            isSearchingProfile={isSearchingProfile}
-            compareIsSearchingProfile={compareIsSearchingProfile}
-          />
-        </div>
-
-        {currentShot ? (
-          <ActiveAnalysisView
-            activeColumns={activeColumns}
-            analysisResults={analysisResults}
-            analysisSectionRef={analysisSectionRef}
-            chartMountKey={chartMountKey}
-            compareCollectionWithAccents={compareCollectionWithAccents}
-            compareTargetDisplayMode={compareTargetDisplayMode}
-            currentShot={currentShot}
-            currentProfile={currentProfile}
-            handleSwapCompareSlots={handleSwapCompareSlots}
-            isCompareActive={isCompareActive}
-            mobileSubpageNavigation={mobileSubpageNavigation}
-            setActiveColumns={setActiveColumns}
-            setCompareTargetDisplayMode={setCompareTargetDisplayMode}
-            shotDetailsColumnRef={shotDetailsColumnRef}
-            shotDetailsEntries={shotDetailsEntries}
-            singleDesktopChartStyle={singleDesktopChartStyle}
-            singleDesktopDetailsHeight={singleDesktopDetailsHeight}
-          />
-        ) : (
-          <div className='mt-6'>
-            <EmptyState loading={loading} />
-          </div>
-        )}
-      </div>
+      {currentShot ? (
+        <ActiveAnalysisView
+          activeColumns={activeColumns}
+          analysisResults={analysisResults}
+          analysisSectionRef={analysisSectionRef}
+          chartMountKey={chartMountKey}
+          compareCollection={compareCollection}
+          compareTargetDisplayMode={compareTargetDisplayMode}
+          currentShot={currentShot}
+          currentProfile={currentProfile}
+          handleSwapCompareSlots={handleSwapCompareSlots}
+          isCompareActive={isCompareActive}
+          mobileSubpageNavigation={mobileSubpageNavigation}
+          setActiveColumns={setActiveColumns}
+          setCompareTargetDisplayMode={setCompareTargetDisplayMode}
+          shotDetailsColumnRef={shotDetailsColumnRef}
+          shotDetailsEntries={shotDetailsEntries}
+          singleDesktopChartStyle={singleDesktopChartStyle}
+          singleDesktopDetailsHeight={singleDesktopDetailsHeight}
+        />
+      ) : (
+        <EmptyState loading={loading} />
+      )}
     </div>
   );
 }

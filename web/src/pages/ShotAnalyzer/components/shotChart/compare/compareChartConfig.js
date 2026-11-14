@@ -1,10 +1,8 @@
-import { readCssColorVar } from '../helpers/chartTheme.js';
+import { gridStyle, tickStyle } from '../../../ui/chartTokens.js';
 import { areTooltipStatesEqual, buildExternalTooltipState } from '../ShotChartExternalTooltip';
 import { UNIT_BY_LABEL } from '../constants';
 import {
   createChartPointElementConfig,
-  finalWeightBadgeOverlayPlugin,
-  finalWeightCalloutLinePlugin,
   getAxisUnitReservedPadding,
   formatResponsiveXAxisTick,
   formatUniqueAxisTick,
@@ -112,24 +110,37 @@ export function getCompareAnnotations({
   };
 }
 
-function getComparePhaseTooltipGroups(compareModels, compareShotLegendItems = []) {
+function getComparePhaseTooltipGroups(compareModels) {
   return compareModels.map(({ entry, model }, index) => ({
     rows: model.phaseOverviewRows || [],
     shotLabel: entry.label || `Shot ${index + 1}`,
     shotNumber: index + 1,
-    color: entry.accentColor || compareShotLegendItems[index]?.color || null,
   }));
 }
 
+// A right-hand axis of the overlay: ticks in the tick style, no grid of its own.
+function rightAxis({ colors, display, range, offset = false }) {
+  return {
+    type: 'linear',
+    display,
+    position: 'right',
+    offset,
+    min: range.min,
+    max: range.max,
+    ticks: { ...tickStyle(colors), display, callback: formatUniqueAxisTick },
+    grid: gridStyle(colors, false),
+    border: { display: false },
+  };
+}
+
 export function getCompareMainChartConfig({
+  colors,
   compareModels,
-  compareShotLegendItems,
   mainAnnotations,
   mainAxisRange,
   mainAxisUnitLabels,
   mainAxisUnitPadding,
   mainDatasets,
-  neutralAxisTickColor,
   puckResistanceAxisRange,
   liquidResistanceAxisRange,
   showStopAnnotations,
@@ -141,17 +152,15 @@ export function getCompareMainChartConfig({
 }) {
   return {
     type: 'line',
-    phaseTooltipGroups: getComparePhaseTooltipGroups(compareModels, compareShotLegendItems),
+    phaseTooltipGroups: getComparePhaseTooltipGroups(compareModels),
     showPhaseTooltipNames: true,
     showPhaseTooltipStops: showStopAnnotations,
     data: { datasets: mainDatasets },
     plugins: [
       hoverGuidePlugin,
-      finalWeightCalloutLinePlugin,
       axisUnitLabelPlugin,
       phaseLabelOverlayPlugin,
       stopIconOverlayPlugin,
-      finalWeightBadgeOverlayPlugin,
     ],
     options: {
       responsive: true,
@@ -169,19 +178,14 @@ export function getCompareMainChartConfig({
         intersect: false,
       },
       plugins: {
+        theme: { tokens: colors },
         legend: { display: false },
         annotation: {
           clip: false,
           annotations: mainAnnotations,
         },
-        finalWeightCalloutLine: {
-          callouts: Object.entries(mainAnnotations)
-            .filter(([key]) => key.endsWith('final_weight_callout_meta'))
-            .map(([, annotation]) => annotation),
-        },
         axisUnitLabels: {
           yLabels: mainAxisUnitLabels,
-          chartLabels: [],
           xLabel: 's',
         },
         phaseLabelOverlay: {
@@ -190,11 +194,6 @@ export function getCompareMainChartConfig({
         stopIconOverlay: {
           stops: compareModels.flatMap(({ model }) => model.stopIconOverlays || []),
         },
-        finalWeightBadgeOverlay: {
-          labels: Object.entries(mainAnnotations)
-            .filter(([key]) => key.endsWith('final_weight'))
-            .map(([, annotation]) => annotation),
-        },
       },
       scales: {
         x: {
@@ -202,10 +201,9 @@ export function getCompareMainChartConfig({
           min: xRange.min,
           max: xRange.max,
           ticks: {
+            ...tickStyle(colors),
             display: true,
             autoSkip: false,
-            font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-            color: neutralAxisTickColor,
             callback: formatResponsiveXAxisTick,
             padding: 4,
             align: 'inner',
@@ -213,73 +211,31 @@ export function getCompareMainChartConfig({
             maxRotation: 0,
             minRotation: 0,
           },
-          grid: {
-            display: true,
-            color: readCssColorVar('--chart-grid', '#d4d4d4'),
-          },
+          grid: gridStyle(colors, false),
+          border: { display: true, color: colors.grid },
         },
         yMain: {
           type: 'linear',
           position: 'left',
           min: mainAxisRange.min,
           max: mainAxisRange.max,
-          ticks: {
-            display: true,
-            font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-            color: neutralAxisTickColor,
-            callback: formatUniqueAxisTick,
-          },
-          grid: {
-            color: readCssColorVar('--chart-grid', '#d4d4d4'),
-          },
-        },
-        yWeight: {
-          type: 'linear',
-          display: showWeightAxis,
-          position: 'right',
-          min: weightAxisRange.min,
-          max: weightAxisRange.max,
-          ticks: {
-            display: showWeightAxis,
-            font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-            color: neutralAxisTickColor,
-            callback: formatUniqueAxisTick,
-          },
-          grid: { display: false },
+          ticks: { ...tickStyle(colors), display: true, callback: formatUniqueAxisTick },
+          grid: gridStyle(colors),
           border: { display: false },
         },
-        yPuckResistance: {
-          type: 'linear',
+        yWeight: rightAxis({ colors, display: showWeightAxis, range: weightAxisRange }),
+        yPuckResistance: rightAxis({
+          colors,
           display: showPuckResistanceAxis,
-          position: 'right',
+          range: puckResistanceAxisRange,
           offset: true,
-          min: puckResistanceAxisRange.min,
-          max: puckResistanceAxisRange.max,
-          ticks: {
-            display: showPuckResistanceAxis,
-            font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-            color: neutralAxisTickColor,
-            callback: formatUniqueAxisTick,
-          },
-          grid: { display: false },
-          border: { display: false },
-        },
-        yLiquidResistance: {
-          type: 'linear',
+        }),
+        yLiquidResistance: rightAxis({
+          colors,
           display: showLiquidResistanceAxis,
-          position: 'right',
+          range: liquidResistanceAxisRange,
           offset: true,
-          min: liquidResistanceAxisRange.min,
-          max: liquidResistanceAxisRange.max,
-          ticks: {
-            display: showLiquidResistanceAxis,
-            font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-            color: neutralAxisTickColor,
-            callback: formatUniqueAxisTick,
-          },
-          grid: { display: false },
-          border: { display: false },
-        },
+        }),
       },
     },
   };
@@ -288,11 +244,11 @@ export function getCompareMainChartConfig({
 function getCompareDetailChartConfig({
   axisRange,
   axisUnitLabel,
+  colors,
   compareModels,
   datasets,
   detailAxisUnitPadding,
   detailPhaseAnnotations,
-  neutralAxisTickColor,
   xRange,
 }) {
   return {
@@ -319,6 +275,7 @@ function getCompareDetailChartConfig({
         intersect: false,
       },
       plugins: {
+        theme: { tokens: colors },
         legend: { display: false },
         annotation: {
           clip: false,
@@ -337,28 +294,18 @@ function getCompareDetailChartConfig({
           type: 'linear',
           min: xRange.min,
           max: xRange.max,
-          ticks: {
-            font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-            color: neutralAxisTickColor,
-          },
-          grid: {
-            display: true,
-            color: readCssColorVar('--chart-grid', '#d4d4d4'),
-          },
+          ticks: tickStyle(colors),
+          grid: gridStyle(colors, false),
+          border: { display: true, color: colors.grid },
         },
         y: {
           type: 'linear',
           position: 'left',
           min: axisRange.min,
           max: axisRange.max,
-          ticks: {
-            font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-            color: neutralAxisTickColor,
-            callback: formatUniqueAxisTick,
-          },
-          grid: {
-            color: readCssColorVar('--chart-grid', '#d4d4d4'),
-          },
+          ticks: { ...tickStyle(colors), callback: formatUniqueAxisTick },
+          grid: gridStyle(colors),
+          border: { display: false },
         },
       },
     },
@@ -371,7 +318,6 @@ export function buildCompareDetailCharts({
   compareTargetDisplayMode,
   detailPhaseAnnotations,
   includePumpFlowWaterTooltip = false,
-  neutralAxisTickColor,
   resolvedCompareStyle,
   shotStylePreset,
   visibility,
@@ -384,7 +330,6 @@ export function buildCompareDetailCharts({
       colors,
       targetDisplayMode: compareTargetDisplayMode,
       visibility,
-      shotStylePreset,
       compareStyle: resolvedCompareStyle,
       includePumpFlowWaterTooltip,
     });
@@ -408,11 +353,11 @@ export function buildCompareDetailCharts({
       config: getCompareDetailChartConfig({
         axisRange,
         axisUnitLabel,
+        colors,
         compareModels,
         datasets,
         detailAxisUnitPadding,
         detailPhaseAnnotations,
-        neutralAxisTickColor,
         xRange,
       }),
     };

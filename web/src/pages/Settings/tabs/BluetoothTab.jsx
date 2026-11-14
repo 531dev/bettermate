@@ -1,30 +1,27 @@
-import { Icon } from '../../../components/Icon.jsx';
 import { useState, useEffect, useCallback } from 'preact/hooks';
+import { computed } from '@preact/signals';
 import { useQuery } from 'preact-fetching';
 import { machine } from '../../../services/ApiService.js';
+import { Button } from '../../../components/Button.jsx';
+import { Chip } from '../../../components/Chip.jsx';
+import { cx } from '../../../components/cx.js';
+import { Icon } from '../../../components/Icon.jsx';
+import { List, ListRow } from '../../../components/ListRow.jsx';
+import { SkeletonBlock } from '../../../components/SkeletonBlock.jsx';
 import { Spinner } from '../../../components/Spinner.jsx';
-import Section from '../../../components/Card.jsx';
-import { BluetoothTabSkeleton } from '../../../components/skeletons/SettingsSkeletons.jsx';
+import { Tile } from '../../../components/Tile.jsx';
 
-function batteryIcon(pct) {
-  if (pct >= 87) return 'gauge';
-  if (pct >= 62) return 'gauge';
-  if (pct >= 37) return 'gauge';
-  if (pct >= 12) return 'gauge';
-  return 'gauge';
-}
+const machineMode = computed(() => machine.value.status.mode);
 
-function batteryColorClass(pct) {
-  if (pct <= 9) return 'text-[var(--danger)]';
-  if (pct <= 29) return 'text-[var(--warning)]';
-  return 'text-[var(--ink-muted)]';
-}
+// A battery at or under these levels is worth a line of its own.
+const BATTERY_LOW = 29;
+const BATTERY_EMPTY = 9;
 
 export function BluetoothTab() {
   const [key, setKey] = useState(0);
   const [scaleData, setScaleData] = useState([]);
   const [isScanning, setIsScanning] = useState(false);
-  const mode = machine.value.status.mode;
+  const mode = machineMode.value;
 
   useEffect(() => {
     const intervalHandle = setInterval(() => {
@@ -44,11 +41,7 @@ export function BluetoothTab() {
     return data;
   });
 
-  const {
-    isInfoLoading,
-    isInfoError,
-    data: connectedScale = [],
-  } = useQuery(`scale-info-${key}`, async () => {
+  const { data: connectedScale = [] } = useQuery(`scale-info-${key}`, async () => {
     const response = await fetch(`/api/scales/info`);
     const data = await response.json();
     return data;
@@ -90,150 +83,118 @@ export function BluetoothTab() {
     }
   }, []);
 
-  const loading = isLoading || isInfoLoading || isScanning;
+  const awake = mode > 0;
+  // The list refreshes every ten seconds behind what it already shows; only the first look and a
+  // scan count as waiting.
+  const waiting = isScanning || (isLoading && scaleData.length === 0);
 
   return (
-    <div className='space-y-4 sm:space-y-6'>
-      <Section title='Bluetooth Devices'>
-        <div className='flex flex-col gap-4'>
-          <div className='border-base-content/5 flex flex-row items-center justify-between gap-4 border-b pb-4'>
-            <span className='text-base-content/75 text-sm'>
-              Scan for nearby Bluetooth scales to connect them to BetterMate.
-            </span>
-            <button
-              type='button'
-              className='btn btn-primary btn-sm shrink-0'
-              onClick={onScan}
-              disabled={loading || mode === 0}
-            >
-              {mode > 0 && loading ? 'Scanning...' : 'Scan for Devices'}
-              {mode > 0 && loading && <Spinner size={4} className='ml-2' />}
-            </button>
-          </div>
+    <Tile
+      title='Bluetooth devices'
+      end={
+        <Button size='sm' onClick={onScan} disabled={isScanning || !awake}>
+          {awake && waiting ? <Spinner size={4} /> : <Icon name='search' size={18} />}
+          {awake && waiting ? 'Scanning' : 'Scan'}
+        </Button>
+      }
+    >
+      <p className='bm-help'>Scan for nearby Bluetooth scales to connect them to BetterMate.</p>
 
-          <div className='w-full'>
-            {mode === 0 && (
-              <div className='border-base-content/8 rounded-xl border bg-[var(--surface-2)] py-12 text-center'>
-                <div className='flex flex-col items-center space-y-4'>
-                  <div>
-                    <h3 className='text-base-content text-lg font-medium'>System in Standby</h3>
-                    <p className='text-sm text-[var(--ink-muted)]'>
-                      Please wake up BetterMate from Standby to use Bluetooth scales.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            {mode > 0 &&
-              (loading ? (
-                <BluetoothTabSkeleton />
-              ) : (
-                <ScaleList
-                  isLoading={loading}
-                  isError={isError}
-                  isInfoError={isInfoError}
-                  scaleData={scaleData}
-                  onConnect={onConnect}
-                />
-              ))}
-            <div className='mt-4'>
-              <div className='alert alert-warning text-xs'>
-                <span>
-                  Scales are automatically refreshed every 10 seconds. Use the scan button to
-                  discover new devices.
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Section>
-    </div>
+      {!awake && (
+        <p className='bm-notice'>The machine is in standby. Wake it up to use Bluetooth scales.</p>
+      )}
+      {awake && (
+        <>
+          <ScaleList
+            waiting={waiting}
+            failed={isError}
+            scaleData={scaleData}
+            onConnect={onConnect}
+          />
+          <p className='bm-notice'>
+            Scales are refreshed every 10 seconds. Use Scan to discover new devices.
+          </p>
+        </>
+      )}
+    </Tile>
   );
 }
 
-function ScaleList(props) {
-  const { isLoading, isInfoLoading, isError, isInfoError, scaleData, onConnect } = props;
-  if (isError || isInfoError) {
+function batteryNotice(scale) {
+  if (!scale.connected || !scale.hasBattery || typeof scale.battery !== 'number') return null;
+  if (scale.battery > BATTERY_LOW) return null;
+  const empty = scale.battery <= BATTERY_EMPTY;
+  return (
+    <p
+      key={scale.uuid}
+      className={cx('bm-notice', empty ? 'bm-notice--danger' : 'bm-notice--warning')}
+    >
+      {empty
+        ? `The battery of ${scale.name || 'the scale'} is almost empty (${scale.battery}%).`
+        : `The battery of ${scale.name || 'the scale'} is low (${scale.battery}%).`}
+    </p>
+  );
+}
+
+function ScaleList({ waiting, failed, scaleData, onConnect }) {
+  if (failed) {
     return (
-      <div className='alert alert-error'>
-        <span>Error loading devices. Please try again.</span>
+      <p role='alert' className='bm-notice bm-notice--danger'>
+        The devices could not be loaded. Scan again.
+      </p>
+    );
+  }
+  if (waiting) {
+    return (
+      <div aria-hidden='true' className='bm-list'>
+        {[0, 1].map(row => (
+          <div key={row} className='bm-item'>
+            <SkeletonBlock className='rounded-pill size-10 shrink-0' />
+            <div className='flex flex-1 flex-col gap-2'>
+              <SkeletonBlock className='h-4 w-28' />
+              <SkeletonBlock className='h-3 w-40' />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
-  if (isLoading || isInfoLoading) {
-    return <BluetoothTabSkeleton />;
+  if (scaleData.length === 0) {
+    return (
+      <p className='bm-help'>No scales found. Use Scan to discover Bluetooth scales nearby.</p>
+    );
   }
   return (
     <>
-      {scaleData.length > 0 ? (
-        <div className='space-y-4'>
-          {scaleData.map(scale => (
-            <div
+      <List>
+        {scaleData.map(scale => {
+          const battery =
+            scale.connected && scale.hasBattery && typeof scale.battery === 'number'
+              ? ` · ${scale.battery}%`
+              : '';
+          return (
+            <ListRow
               key={scale.uuid}
-              className='border-base-content/10 bg-base-100 flex flex-col space-y-4 rounded-xl border p-4 md:flex-row md:items-center md:justify-between md:space-y-0'
-            >
-              <div className='flex items-center space-x-4'>
-                <div
-                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${
-                    scale.connected
-                      ? 'bg-success/20 text-[var(--success)]'
-                      : 'bg-[var(--surface-2)] text-[var(--ink-muted)]'
-                  }`}
-                >
-                  <Icon name={'scale'} />
-                </div>
-                <div>
-                  <h4 className='text-base-content font-bold'>
-                    {scale.name || 'Unknown Scale'}
-                    <span
-                      className={`ml-2 inline-block h-2 w-2 rounded-full ${
-                        scale.connected ? 'bg-success' : 'bg-base-content/20'
-                      }`}
-                    ></span>
-                  </h4>
-                  <p className='flex items-center space-x-2 text-sm text-[var(--ink-muted)]'>
-                    <span className='font-mono text-xs'>{scale.uuid}</span>
-                    {scale.connected && scale.hasBattery && typeof scale.battery === 'number' && (
-                      <span
-                        className={`flex items-center gap-1 ${batteryColorClass(scale.battery)}`}
-                      >
-                        <Icon name={batteryIcon(scale.battery)} /> {scale.battery}%
-                      </span>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className='flex items-center space-x-3'>
-                {scale.connected ? (
-                  <div className='badge badge-success gap-2'>Connected</div>
+              icon='scale'
+              current={!!scale.connected}
+              title={scale.name || 'Unknown scale'}
+              meta={`${scale.uuid}${battery}`}
+              end={
+                scale.connected ? (
+                  <Chip tone='success' dot>
+                    Connected
+                  </Chip>
                 ) : (
-                  <button
-                    type='button'
-                    className='btn btn-primary btn-sm'
-                    onClick={() => onConnect(scale.uuid)}
-                  >
+                  <Button size='sm' onClick={() => onConnect(scale.uuid)}>
                     Connect
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className='border-base-content/8 rounded-xl border bg-[var(--surface-2)] py-12 text-center'>
-          <div className='flex flex-col items-center space-y-4'>
-            <div className='text-6xl text-[var(--ink-muted)]'>
-              <Icon name={'scale'} />
-            </div>
-            <div>
-              <h3 className='text-base-content text-lg font-medium'>No scales found</h3>
-              <p className='text-sm text-[var(--ink-muted)]'>
-                Click "Scan" to discover Bluetooth scales nearby
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+                  </Button>
+                )
+              }
+            />
+          );
+        })}
+      </List>
+      {scaleData.map(batteryNotice)}
     </>
   );
 }

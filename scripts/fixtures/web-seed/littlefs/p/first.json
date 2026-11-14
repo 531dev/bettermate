@@ -1,0 +1,1 @@
+{"id": "first", "label": "First", "type": "standard", "temperature": 93, "phases": [{"name": "Brew", "phase": "brew", "valve": 1, "duration": 30, "pump": 100, "targets": [{"type": "volumetric", "operator": "gte", "value": 36}]}], "description": "Simulator review profile"}

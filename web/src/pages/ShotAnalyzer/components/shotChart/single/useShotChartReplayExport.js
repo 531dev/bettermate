@@ -24,6 +24,8 @@ import {
 import {
   buildReplayExportFilename,
   buildReplayImageFilename,
+  getLegendColorByLabel,
+  getShotChartColors,
   getVisibleLegendItemsForExport,
 } from '../helpers';
 
@@ -120,9 +122,7 @@ function setChartReplayReveal(chart, enabled, revealX) {
 export function useShotChartReplayExport({
   shotData,
   profileData,
-  exportMenuRef,
   chartRefs,
-  legendColorByLabel,
   visibility,
   hasWeightData,
   hasWeightFlowData,
@@ -602,7 +602,7 @@ export function useShotChartReplayExport({
     // Legend export should mirror the currently visible chart state rather than the
     // raw dataset list, so hidden series stay hidden in exported media too.
     return getVisibleLegendItemsForExport({
-      legendColorByLabel,
+      legendColorByLabel: getLegendColorByLabel(getShotChartColors()),
       visibility,
       hasWeightData,
       hasWeightFlowData,
@@ -862,34 +862,6 @@ export function useShotChartReplayExport({
     }
     return undefined;
   }, [replayExportStatus.error]);
-
-  useEffect(() => {
-    const browserDocument = globalThis.document;
-    if (exportMenuState.open && browserDocument) {
-      // The export menu behaves like a lightweight popover: close on outside click
-      // or Escape without pushing that responsibility back into the controls component.
-      const handlePointerDown = event => {
-        const menuNode = exportMenuRef.current;
-        if (menuNode) {
-          if (menuNode.contains(event.target)) return;
-          setExportMenuState(prev => ({ ...prev, open: false }));
-        }
-      };
-
-      const handleKeyDown = event => {
-        if (event.key !== 'Escape') return;
-        setExportMenuState(prev => ({ ...prev, open: false }));
-      };
-
-      browserDocument.addEventListener('pointerdown', handlePointerDown);
-      browserDocument.addEventListener('keydown', handleKeyDown);
-      return () => {
-        browserDocument.removeEventListener('pointerdown', handlePointerDown);
-        browserDocument.removeEventListener('keydown', handleKeyDown);
-      };
-    }
-    return undefined;
-  }, [exportMenuState.open, exportMenuRef]);
 
   useEffect(() => {
     // Keep menu state aligned with runtime format capabilities. This avoids ending

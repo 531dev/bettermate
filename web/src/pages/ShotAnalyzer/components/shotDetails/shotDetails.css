@@ -1,0 +1,19 @@
+/* Shot details: what the column beside the chart needs beyond bm.css and the lane's tool.css.
+   Tokens only. Every selector starts at a class of this folder. */
+
+@layer components {
+  /* Rating. The marks up to the rating are lit; only the chosen one is the checked radio, which
+     tool.css lights by itself. The group steps out by the inset of a mark's dot, so the last dot
+     ends where the tile's content does. */
+  .shot-details-rating {
+    margin-right: -8px;
+  }
+  .shot-details-rating .an-rating__mark[data-lit='true']::before {
+    background: var(--ink);
+  }
+  @media (pointer: coarse) {
+    .shot-details-rating {
+      margin-right: -12px;
+    }
+  }
+}

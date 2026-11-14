@@ -1,8 +1,8 @@
 /* global globalThis */
 
-// Custom hooks for StatisticsToolbar: keyboard shortcut registration
-import { useEffect } from 'preact/hooks';
-import { closeOpenToolbarDetails, isToolbarFloatingPanelTarget } from './helpers';
+// Custom hooks for StatisticsToolbar: search sync, collapse behaviour and popover state
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { isToolbarFloatingPanelOpen, isToolbarFloatingPanelTarget } from './helpers';
 
 export function useAdvancedSearchSync({
   query,
@@ -54,9 +54,11 @@ export function useDslPreviewOutsideDismiss({
   }, [shouldShowDslSelectionPreview, isToolbarExpanded, dslInputRef, setShowDslSelectionPreview]);
 }
 
+// Once statistics are built the toolbar folds into its summary row. It unfolds on demand and
+// folds again on a press outside it or on Escape. The popovers it opens close with their
+// controls: they unmount when the toolbar folds and close themselves while it is busy.
 export function useToolbarCollapseBehavior({
   isToolbarExpanded,
-  isBusy,
   shouldCollapseToolbar,
   isCollapsedStripExpanded,
   toolbarContainerRef,
@@ -65,22 +67,8 @@ export function useToolbarCollapseBehavior({
 }) {
   useEffect(() => {
     if (isToolbarExpanded) return;
-
     setShowDslSelectionPreview(false);
-    const toolbarNode = toolbarContainerRef.current;
-    if (!toolbarNode) return;
-
-    closeOpenToolbarDetails(toolbarNode);
-  }, [isToolbarExpanded, setShowDslSelectionPreview, toolbarContainerRef]);
-
-  useEffect(() => {
-    if (!isBusy) return;
-
-    const toolbarNode = toolbarContainerRef.current;
-    if (!toolbarNode) return;
-
-    closeOpenToolbarDetails(toolbarNode);
-  }, [isBusy, toolbarContainerRef]);
+  }, [isToolbarExpanded, setShowDslSelectionPreview]);
 
   useEffect(() => {
     if (!shouldCollapseToolbar) {
@@ -119,13 +107,14 @@ export function useToolbarCollapseBehavior({
       const toolbarNode = toolbarContainerRef.current;
       if (!toolbarNode) return;
 
+      // Escape closes the innermost layer first: an open popover or sheet takes this press.
+      if (isToolbarFloatingPanelOpen(globalThis.document)) return;
+
       const eventTarget = event.target instanceof Element ? event.target : null;
       const activeElement = globalThis.document?.activeElement;
       const isToolbarFocused =
         (eventTarget && toolbarNode.contains(eventTarget)) ||
-        isToolbarFloatingPanelTarget(eventTarget) ||
-        (activeElement instanceof Element && toolbarNode.contains(activeElement)) ||
-        isToolbarFloatingPanelTarget(activeElement);
+        (activeElement instanceof Element && toolbarNode.contains(activeElement));
 
       if (!isToolbarFocused) return;
 
@@ -145,54 +134,63 @@ export function useToolbarCollapseBehavior({
   ]);
 }
 
-export function useToolbarDropdownBehavior({ toolbarContainerRef, isToolbarExpanded }) {
-  useEffect(() => {
-    const toolbarNode = toolbarContainerRef.current;
-    if (!toolbarNode) return;
+// The state of one popover of the toolbar: its anchor, and a panel that closes when its control
+// is disabled (the toolbar is busy).
+export function usePopoverState(disabled = false) {
+  const anchor = useRef(null);
+  const [open, setOpen] = useState(false);
 
-    const handleClick = event => {
-      if (event.target.closest('[data-statistics-multiselect-trigger]')) {
-        closeOpenToolbarDetails(toolbarNode);
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
+
+  return {
+    anchor,
+    open: open && !disabled,
+    toggle: () => setOpen(value => !value),
+    close: () => setOpen(false),
+  };
+}
+
+// Moves focus to the element marked `data-autofocus` inside `containerRef` once a popover has
+// opened. The panel is placed a frame or two after it mounts and cannot take focus before that.
+export function useFocusOnOpen(open, containerRef, enabled = true) {
+  useEffect(() => {
+    if (!open || !enabled) return undefined;
+    const view = globalThis.window;
+    if (!view?.requestAnimationFrame) return undefined;
+
+    let frame = 0;
+    let attempts = 0;
+    const tryFocus = () => {
+      const target = containerRef.current?.querySelector?.('[data-autofocus]');
+      if (target && view.getComputedStyle(target).visibility !== 'hidden') {
+        target.focus({ preventScroll: true });
         return;
       }
-
-      const summary = event.target.closest('summary');
-      if (!summary) return;
-      const details = summary.parentElement;
-      if (details?.tagName !== 'DETAILS') return;
-      if (details.open) return;
-
-      toolbarNode.querySelectorAll('details[open]').forEach(detailsNode => {
-        if (detailsNode !== details) {
-          detailsNode.open = false;
-        }
-      });
+      attempts += 1;
+      if (attempts < 12) frame = view.requestAnimationFrame(tryFocus);
     };
+    frame = view.requestAnimationFrame(tryFocus);
+    return () => view.cancelAnimationFrame(frame);
+  }, [open, enabled, containerRef]);
+}
 
-    toolbarNode.addEventListener('click', handleClick);
-    return () => {
-      toolbarNode.removeEventListener('click', handleClick);
-    };
-  }, [toolbarContainerRef]);
+// Whether a media query matches, kept current.
+export function useMediaQuery(query) {
+  const [matches, setMatches] = useState(
+    () => globalThis.window?.matchMedia?.(query).matches || false,
+  );
 
   useEffect(() => {
-    if (!isToolbarExpanded) return;
+    const mediaQuery = globalThis.window?.matchMedia?.(query);
+    if (!mediaQuery) return undefined;
 
-    const handlePointerDown = event => {
-      const toolbarNode = toolbarContainerRef.current;
-      if (!toolbarNode) return;
-      const target = event.target instanceof Element ? event.target : null;
-      if (!target) return;
+    const handleChange = event => setMatches(event.matches);
+    setMatches(mediaQuery.matches);
+    mediaQuery.addEventListener?.('change', handleChange);
+    return () => mediaQuery.removeEventListener?.('change', handleChange);
+  }, [query]);
 
-      toolbarNode.querySelectorAll('details[data-close-on-outside][open]').forEach(detailsNode => {
-        if (detailsNode.contains(target)) return;
-        detailsNode.open = false;
-      });
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-    };
-  }, [isToolbarExpanded, toolbarContainerRef]);
+  return matches;
 }

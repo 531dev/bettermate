@@ -1,27 +1,24 @@
-import { readCssColorVar } from '../helpers/chartTheme.js';
 /**
  * createShotChartConfigs.js
  *
  * Builds the Chart.js config objects for the main and temperature charts from
  * the normalized ShotChart model.
+ *
+ * The Charts rules of the design apply to both: lines only (2.5px for pressure, 2px for the
+ * rest), no fill, no points, horizontal grid lines in chart-grid, ticks in Geist Mono 11px,
+ * no animation. Series that share a hue differ by their dash.
  */
 
-import {
-  STANDARD_LINE_WIDTH,
-  THIN_LINE_WIDTH,
-  WATER_DRAWN_PHASE_LABEL,
-  WATER_DRAWN_TOTAL_LABEL,
-} from '../constants';
+import { gridStyle, lineStyle, tickStyle } from '../../../ui/chartTokens.js';
+import { WATER_DRAWN_PHASE_LABEL, WATER_DRAWN_TOTAL_LABEL } from '../constants';
 import { shouldRenderTooltipLabel, sortTooltipItems } from '../ShotChartExternalTooltip';
 import {
   axisUnitLabelPlugin,
   createChartPointElementConfig,
-  finalWeightBadgeOverlayPlugin,
-  finalWeightCalloutLinePlugin,
   formatResponsiveXAxisTick,
   formatUniqueAxisTick,
   getAxisUnitReservedPadding,
-  getNeutralAxisTickColor,
+  getSeriesLineSpec,
   phaseBackgroundOverlayPlugin,
   phaseLabelOverlayPlugin,
   replayRevealPlugin,
@@ -31,15 +28,42 @@ import {
 const MAIN_CHART_MARKER_TOP_PADDING = 48;
 const RIGHT_AXIS_UNIT_ROW_GAP = 14;
 
+// A drawn series: its token colour, the width and dash its label asks for, a gentle curve.
+function seriesDataset({ label, data, color, yAxisID, hidden, tension = 0.2 }) {
+  return {
+    label,
+    data,
+    yAxisID,
+    hidden,
+    tension,
+    ...lineStyle(color, getSeriesLineSpec(label)),
+  };
+}
+
+// A dataset that only feeds the tooltip (or carries a legend entry): it never draws.
+function silentDataset({ label, data, color, yAxisID, hidden }) {
+  return {
+    label,
+    data,
+    yAxisID,
+    hidden,
+    borderColor: color,
+    backgroundColor: color,
+    borderWidth: 0,
+    showLine: false,
+    fill: false,
+    pointRadius: 0,
+    pointHoverRadius: 0,
+    pointHitRadius: 12,
+  };
+}
+
 export function createShotChartConfigs({
   model,
   colors,
   visibility,
   hasWeightData,
   hasWeightFlowData,
-  targetPressureFill,
-  targetFlowFill,
-  tempToTargetFill,
   updateExternalTooltip,
   showStopBadges = true,
 }) {
@@ -50,7 +74,8 @@ export function createShotChartConfigs({
   const showLiquidResistanceAxis = Boolean(
     visibility.liquidResistance && model.series.liquidResistance.length > 0,
   );
-  const neutralAxisTickColor = getNeutralAxisTickColor();
+  const ticks = tickStyle(colors);
+  const theme = { tokens: colors };
   const mainAxisUnitLabels = [
     { scaleId: 'yMain', label: 'bar / ml/s' },
     { scaleId: 'yMain', label: 'Phase', side: 'center', yOffset: 0 },
@@ -81,7 +106,6 @@ export function createShotChartConfigs({
   rightAxisUnitLabels.forEach((axisLabel, index) => {
     mainAxisUnitLabels.push({ ...axisLabel, yOffset: index * RIGHT_AXIS_UNIT_ROW_GAP });
   });
-  const mainChartInsideLabels = [];
   const tempAxisUnitLabels = [{ scaleId: 'yTemp', label: '°C', side: 'left' }];
   const mainAxisUnitPadding = getAxisUnitReservedPadding({ yLabels: mainAxisUnitLabels });
   mainAxisUnitPadding.top = Math.max(
@@ -95,219 +119,149 @@ export function createShotChartConfigs({
     reserveXLabelSpace: false,
   });
 
-  // The main chart carries all primary series plus a few hidden helper datasets
-  // that exist only for tooltip composition and replay/export consistency.
+  // A right-hand axis: ticks only, no grid of its own.
+  const rightAxis = ({ display, max, offset = true }) => ({
+    type: 'linear',
+    display,
+    position: 'right',
+    offset,
+    beginAtZero: true,
+    min: 0,
+    max,
+    ticks: { ...ticks, display, callback: formatUniqueAxisTick },
+    grid: gridStyle(colors, false),
+    border: { display: false },
+  });
+
+  // The main chart carries all primary series plus a few silent datasets that exist only
+  // for tooltip composition and replay/export consistency.
   const mainDatasets = [
-    {
+    silentDataset({
       label: 'Phases',
       data: [],
-      borderColor: colors.phaseLine,
-      backgroundColor: colors.phaseLine,
+      color: colors.phaseLine,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: STANDARD_LINE_WIDTH,
       hidden: !visibility.phaseNames,
-    },
-    {
+    }),
+    silentDataset({
       label: 'Stops',
       data: [],
-      borderColor: colors.stopLabel,
-      backgroundColor: colors.stopLabel,
+      color: colors.stopLabel,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: STANDARD_LINE_WIDTH,
       hidden: !visibility.stops,
-    },
-    {
+    }),
+    // Temperature is drawn on its own chart below; here it only answers the tooltip.
+    silentDataset({
       label: 'Temp',
       data: model.series.temp,
-      borderColor: colors.temp,
-      backgroundColor: colors.temp,
+      color: colors.temp,
       yAxisID: 'yTempOverlay',
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      pointHitRadius: 12,
-      borderWidth: 0,
-      fill: false,
       hidden: !visibility.temp,
-    },
-    {
+    }),
+    silentDataset({
       label: 'Target T',
       data: model.series.targetTemp,
-      borderColor: colors.tempTarget,
-      backgroundColor: colors.tempTarget,
-      borderDash: [4, 4],
+      color: colors.tempTarget,
       yAxisID: 'yTempOverlay',
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      pointHitRadius: 12,
-      borderWidth: 0,
-      fill: false,
       hidden: !visibility.targetTemp,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Pressure',
       data: model.series.pressure,
-      borderColor: colors.pressure,
-      backgroundColor: colors.pressure,
+      color: colors.pressure,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: STANDARD_LINE_WIDTH,
-      tension: 0.2,
       hidden: !visibility.pressure,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Target P',
       data: model.series.targetPressure,
-      borderColor: colors.pressure,
-      backgroundColor: targetPressureFill,
-      fill: false,
-      borderDash: [4, 4],
+      color: colors.pressure,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: THIN_LINE_WIDTH,
       tension: 0,
       hidden: !visibility.targetPressure,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Pump Flow',
       data: model.series.flow,
-      borderColor: colors.flow,
-      backgroundColor: colors.flow,
+      color: colors.flow,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: STANDARD_LINE_WIDTH,
-      tension: 0.2,
       hidden: !visibility.flow,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Target F',
       data: model.series.targetFlow,
-      borderColor: colors.flow,
-      backgroundColor: targetFlowFill,
-      fill: false,
-      borderDash: [4, 4],
+      color: colors.flow,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: THIN_LINE_WIDTH,
       tension: 0,
       hidden: !visibility.targetFlow,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Puck Flow',
       data: model.series.puckFlow,
-      borderColor: colors.puckFlow,
-      backgroundColor: colors.puckFlow,
-      fill: false,
+      color: colors.puckFlow,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: THIN_LINE_WIDTH,
-      tension: 0.2,
       hidden: !visibility.puckFlow,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Puck Resistance',
       data: model.series.puckResistance,
-      borderColor: colors.puckResistance,
-      backgroundColor: colors.puckResistance,
-      fill: false,
+      color: colors.puckResistance,
       yAxisID: 'yPuckResistance',
-      pointRadius: 0,
-      borderWidth: THIN_LINE_WIDTH,
-      tension: 0.2,
       hidden: !visibility.puckResistance,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Liquid Resistance',
       data: model.series.liquidResistance,
-      borderColor: colors.liquidResistance,
-      backgroundColor: colors.liquidResistance,
-      fill: false,
+      color: colors.liquidResistance,
       yAxisID: 'yLiquidResistance',
-      pointRadius: 0,
-      borderWidth: THIN_LINE_WIDTH,
-      tension: 0.2,
       hidden: !visibility.liquidResistance,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Weight',
       data: model.series.weight,
-      borderColor: colors.weight,
-      backgroundColor: colors.weight,
-      fill: false,
+      color: colors.weight,
       yAxisID: 'yWeight',
-      pointRadius: 0,
-      borderWidth: STANDARD_LINE_WIDTH,
-      tension: 0.2,
       hidden: !showWeightSeries || !visibility.weight,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Weight Flow',
       data: model.series.weightFlow,
-      borderColor: colors.weightFlow,
-      backgroundColor: colors.weightFlow,
-      fill: false,
+      color: colors.weightFlow,
       yAxisID: 'yMain',
-      pointRadius: 0,
-      borderWidth: THIN_LINE_WIDTH,
-      tension: 0.2,
       hidden: !hasWeightFlowData || !visibility.weightFlow,
-    },
-    {
+    }),
+    silentDataset({
       label: WATER_DRAWN_PHASE_LABEL,
       data: model.waterTooltipPhaseSeries,
-      borderColor: colors.puckFlow,
-      backgroundColor: colors.puckFlow,
+      color: colors.water,
       yAxisID: 'yWaterOverlay',
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      pointHitRadius: 12,
-      borderWidth: 0,
-      showLine: false,
-      fill: false,
-    },
-    {
+    }),
+    silentDataset({
       label: WATER_DRAWN_TOTAL_LABEL,
       data: model.waterTooltipTotalSeries,
-      borderColor: colors.flow,
-      backgroundColor: colors.flow,
+      color: colors.water,
       yAxisID: 'yWaterOverlay',
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      pointHitRadius: 12,
-      borderWidth: 0,
-      showLine: false,
-      fill: false,
-    },
+    }),
   ];
 
   // The temperature chart remains intentionally small: it mirrors the shared x-axis
-  // while keeping its own left/right temperature scales and fill treatment.
+  // while keeping its own left/right temperature scales.
   const tempDatasets = [
-    {
+    seriesDataset({
       label: 'Temp',
       data: model.series.temp,
-      borderColor: colors.temp,
-      backgroundColor: tempToTargetFill,
-      fill: false,
+      color: colors.temp,
       yAxisID: 'yTemp',
-      pointRadius: 0,
-      borderWidth: STANDARD_LINE_WIDTH,
-      tension: 0.2,
       hidden: !visibility.temp,
-    },
-    {
+    }),
+    seriesDataset({
       label: 'Target T',
       data: model.series.targetTemp,
-      borderColor: colors.tempTarget,
-      backgroundColor: colors.tempTarget,
-      borderDash: [4, 4],
+      color: colors.tempTarget,
       yAxisID: 'yTempRight',
-      pointRadius: 0,
-      borderWidth: THIN_LINE_WIDTH,
       tension: 0,
       hidden: !visibility.targetTemp,
-    },
+    }),
   ];
 
   return {
@@ -318,11 +272,9 @@ export function createShotChartConfigs({
         phaseBackgroundOverlayPlugin,
         // The shared HTML hover connector draws one guide across both charts.
         replayRevealPlugin,
-        finalWeightCalloutLinePlugin,
         axisUnitLabelPlugin,
         phaseLabelOverlayPlugin,
         stopIconOverlayPlugin,
-        finalWeightBadgeOverlayPlugin,
       ],
       options: {
         responsive: true,
@@ -342,6 +294,7 @@ export function createShotChartConfigs({
           intersect: false,
         },
         plugins: {
+          theme,
           legend: {
             display: false,
           },
@@ -368,21 +321,14 @@ export function createShotChartConfigs({
           phaseBackgroundOverlay: {
             ranges: model.phaseBackgroundRanges,
           },
-          finalWeightCalloutLine: {
-            callouts: [model.phaseAnnotations?.final_weight_callout_meta].filter(Boolean),
-          },
           axisUnitLabels: {
             yLabels: mainAxisUnitLabels,
-            chartLabels: mainChartInsideLabels,
           },
           phaseLabelOverlay: {
             labels: model.phaseLabelOverlays,
           },
           stopIconOverlay: {
             stops: showStopBadges ? model.stopIconOverlays : [],
-          },
-          finalWeightBadgeOverlay: {
-            labels: [model.phaseAnnotations?.final_weight].filter(Boolean),
           },
         },
         scales: {
@@ -403,15 +349,9 @@ export function createShotChartConfigs({
             position: 'left',
             min: 0,
             max: model.mainAxisMax,
-            ticks: {
-              display: true,
-              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-              color: neutralAxisTickColor,
-              callback: formatUniqueAxisTick,
-            },
-            grid: {
-              color: readCssColorVar('--chart-grid', '#d4d4d4'),
-            },
+            ticks: { ...ticks, display: true, callback: formatUniqueAxisTick },
+            grid: gridStyle(colors),
+            border: { display: false },
           },
           yTempOverlay: {
             type: 'linear',
@@ -428,61 +368,19 @@ export function createShotChartConfigs({
             display: false,
             beginAtZero: true,
             // Water values are never drawn directly; this axis only exists so their
-            // hidden helper datasets remain valid Chart.js datasets.
+            // silent datasets remain valid Chart.js datasets.
             grid: { display: false },
             ticks: { display: false },
           },
-          yWeight: {
-            type: 'linear',
-            display: showWeightAxis,
-            position: 'right',
-            offset: false,
-            beginAtZero: true,
-            min: 0,
-            max: model.weightAxisMax,
-            ticks: {
-              display: showWeightAxis,
-              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-              color: neutralAxisTickColor,
-              callback: formatUniqueAxisTick,
-            },
-            grid: { display: false },
-            border: { display: false },
-          },
-          yPuckResistance: {
-            type: 'linear',
+          yWeight: rightAxis({ display: showWeightAxis, max: model.weightAxisMax, offset: false }),
+          yPuckResistance: rightAxis({
             display: showPuckResistanceAxis,
-            position: 'right',
-            offset: true,
-            beginAtZero: true,
-            min: 0,
             max: model.puckResistanceAxisMax,
-            ticks: {
-              display: showPuckResistanceAxis,
-              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-              color: neutralAxisTickColor,
-              callback: formatUniqueAxisTick,
-            },
-            grid: { display: false },
-            border: { display: false },
-          },
-          yLiquidResistance: {
-            type: 'linear',
+          }),
+          yLiquidResistance: rightAxis({
             display: showLiquidResistanceAxis,
-            position: 'right',
-            offset: true,
-            beginAtZero: true,
-            min: 0,
             max: model.liquidResistanceAxisMax,
-            ticks: {
-              display: showLiquidResistanceAxis,
-              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-              color: neutralAxisTickColor,
-              callback: formatUniqueAxisTick,
-            },
-            grid: { display: false },
-            border: { display: false },
-          },
+          }),
         },
       },
     },
@@ -507,6 +405,7 @@ export function createShotChartConfigs({
           intersect: false,
         },
         plugins: {
+          theme,
           legend: {
             display: false,
           },
@@ -532,10 +431,9 @@ export function createShotChartConfigs({
             position: 'bottom',
             max: model.maxTime,
             ticks: {
+              ...ticks,
               display: true,
               autoSkip: false,
-              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-              color: neutralAxisTickColor,
               callback: formatResponsiveXAxisTick,
               padding: 4,
               align: 'inner',
@@ -543,13 +441,10 @@ export function createShotChartConfigs({
               maxRotation: 0,
               minRotation: 0,
             },
-            grid: {
-              display: false,
-              drawOnChartArea: false,
-            },
+            grid: gridStyle(colors, false),
             border: {
               display: true,
-              color: readCssColorVar('--chart-grid', '#d4d4d4'),
+              color: colors.grid,
             },
           },
           yTemp: {
@@ -557,28 +452,24 @@ export function createShotChartConfigs({
             position: 'left',
             min: model.tempAxisMin,
             max: model.tempAxisMax,
-            ticks: {
-              display: true,
-              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-              color: neutralAxisTickColor,
-              callback: formatUniqueAxisTick,
-            },
-            grid: {
-              color: readCssColorVar('--chart-grid', '#d4d4d4'),
-            },
+            ticks: { ...ticks, display: true, callback: formatUniqueAxisTick },
+            grid: gridStyle(colors),
+            border: { display: false },
           },
+          // Mirrors the weight axis of the main chart so both chart areas keep one width;
+          // it draws nothing.
           yTempRight: {
             type: 'linear',
             display: showWeightAxis,
             position: 'right',
             min: model.tempAxisMin,
             max: model.tempAxisMax,
-            grid: { display: false },
+            grid: gridStyle(colors, false),
             border: { display: false },
             ticks: {
+              ...ticks,
               display: showWeightAxis,
-              font: { size: 10, family: '"Jost", system-ui, sans-serif' },
-              color: 'rgba(0, 0, 0, 0)',
+              color: colors.surface1,
               callback: formatUniqueAxisTick,
             },
           },

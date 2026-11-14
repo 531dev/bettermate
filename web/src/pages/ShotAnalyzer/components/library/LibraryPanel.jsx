@@ -22,7 +22,6 @@ import {
   applyChangedShotPins,
   createLibraryProfileStatsContext,
   createPrimaryStatsHandler,
-  createSecondaryStatsHandler,
   deleteLibraryItem,
   executeProfileRowAction,
   executeShotRowActionIntent,
@@ -77,7 +76,6 @@ export function LibraryPanel({
   onProfileUnload,
   onShowStats,
   statsHref = '/statistics',
-  secondaryStatsHref = '/statistics',
   importMode = 'temp',
   onImportModeChange,
   compareMode = false,
@@ -399,11 +397,6 @@ export function LibraryPanel({
     });
   };
 
-  const handleNavigateCompareShot = request => {
-    if (!secondaryDisplayShot) return;
-    onCompareShotToggle?.(request, true);
-  };
-
   const handleClearSecondaryShot = () => {
     if (!secondaryDisplayShot) return;
     onCompareShotToggle?.(secondaryDisplayShot, false);
@@ -414,16 +407,16 @@ export function LibraryPanel({
     onCompareSwap?.();
   };
 
-  const { barStyle, barSlotHeight, barSlotStyle, dropdownStyle, desktopSectionHeight } =
-    getLibraryPanelLayoutStyles({
-      collapsed,
-      isMobileViewport,
-      isStuck,
-      barRect,
-    });
+  const { barSlotStyle, pinClassName, pinStyle, libraryStyle } = getLibraryPanelLayoutStyles({
+    collapsed,
+    isMobileViewport,
+    isStuck,
+    barRect,
+  });
 
-  useAnalyzerStickyOffset(panelRef, barSlotHeight);
+  useAnalyzerStickyOffset(panelRef, barRect.height);
 
+  const isLibraryOpenFor = target => !collapsed && librarySelectionTarget === target;
   const primaryStatusBarProps = {
     currentShot: primaryDisplayShot,
     currentProfile: primaryDisplayProfile,
@@ -433,22 +426,12 @@ export function LibraryPanel({
     onUnloadProfile: onProfileUnload,
     onExportShot: getLibraryExportHandler(primaryDisplayShot, true, handleExport),
     onExportProfile: getLibraryExportHandler(primaryDisplayProfile, false, handleExport),
-    onCompareModeToggle: handleStatusBarCompareToggle,
     onRetryProfileSearch,
     onShotPanelToggle: () => openLibraryForTarget('primaryShot'),
     onProfilePanelToggle: () => openLibraryForTarget('primaryProfile'),
-    onImport: files => handleImport(files, { slot: 'primary' }),
-    onShowStats: createPrimaryStatsHandler({
-      onShowStats,
-      primaryDisplayProfile,
-      primaryDisplayProfileName,
-      primaryDisplayShot,
-    }),
-    statsHref,
-    compareAvailable: shots.length > 0,
-    compareMode,
+    shotPanelOpen: isLibraryOpenFor('primaryShot'),
+    profilePanelOpen: isLibraryOpenFor('primaryProfile'),
     isMismatch: primaryProfileMismatch,
-    isImporting: importing,
     isSearchingProfile: isPrimaryProfileSearching,
     isShotPending: isPrimarySelectionPending,
     canRetryProfileSearch: canRetryPrimaryProfileSearch,
@@ -461,8 +444,12 @@ export function LibraryPanel({
     onCompareModeToggle: handleStatusBarCompareToggle,
     compareAvailable: shots.length > 0,
     compareMode,
-    showCompareButton: true,
-    onShowStats: primaryStatusBarProps.onShowStats,
+    onShowStats: createPrimaryStatsHandler({
+      onShowStats,
+      primaryDisplayProfile,
+      primaryDisplayProfileName,
+      primaryDisplayShot,
+    }),
     statsHref,
     statisticsAvailable: Boolean(primaryDisplayProfile || primaryProfileMismatch),
     onImport: files => handleImport(files, { slot: 'primary', targetType: 'any' }),
@@ -485,142 +472,110 @@ export function LibraryPanel({
     onShotPanelToggle: () => openLibraryForTarget(getSecondaryShotPanelTarget(primaryDisplayShot)),
     onProfilePanelToggle: () =>
       maybeOpenSecondaryProfilePanel({ openLibraryForTarget, secondaryDisplayShot }),
-    onImport: files =>
-      handleImport(files, {
-        slot: getSecondaryImportSlot(currentShot),
-      }),
-    onShowStats: createSecondaryStatsHandler({
-      onShowStats,
-      primaryDisplayShot,
-      secondaryDisplayProfile,
-      secondaryDisplayProfileName,
-      secondaryDisplayShot,
-    }),
-    statsHref: secondaryStatsHref,
-    compareAvailable: false,
-    compareMode,
+    shotPanelOpen: isLibraryOpenFor('secondaryShot'),
+    profilePanelOpen: isLibraryOpenFor('secondaryProfile'),
     isMismatch: secondaryProfileMismatch,
-    isImporting: importing,
     isSearchingProfile: isCompareProfileSearching,
     isShotPending: isCompareSelectionPending,
     canRetryProfileSearch: canRetryCompareProfileSearch,
-    showCompareButton: false,
     compareBadgeNumber: 2,
-    ghosted: true,
   };
-  const secondaryActionBarProps = {
-    currentShot: secondaryShot,
-    selectedShot: secondaryDisplayShot,
-    shotList: collapsed ? navigationShots : shots,
-    onNavigate: handleNavigateCompareShot,
-    onShowStats: secondaryStatusBarProps.onShowStats,
-    statsHref: secondaryStatsHref,
-    statisticsAvailable: Boolean(secondaryDisplayProfile || secondaryProfileMismatch),
-    onImport: files =>
-      handleImport(files, {
-        slot: getSecondaryImportSlot(currentShot),
-        targetType: 'any',
-      }),
-    isImporting: importing,
-    importMode,
-    onImportModeChange,
-    isSelectionPending: isCompareSelectionPending,
-    isProfilePending: isCompareProfileSearching,
-    showImportModeToggle: false,
-    showCompareButton: false,
-    enableKeyboardNavigation: false,
-  };
+  const handleSecondaryImport = files =>
+    handleImport(files, {
+      slot: getSecondaryImportSlot(currentShot),
+      targetType: 'any',
+    });
+
   return (
-    <div ref={panelRef} className='relative'>
+    <div ref={panelRef} className='an-libpanel'>
       <div ref={sentinelRef} className='h-0 w-full' />
 
       <div ref={barSlotRef} className='relative w-full' style={barSlotStyle}>
-        <div ref={barRef} style={barStyle}>
-          <LibraryPanelStatusSlots
-            collapsed={collapsed}
-            compareMode={compareMode}
-            primaryActionBarProps={primaryActionBarProps}
-            primaryStatusBarProps={primaryStatusBarProps}
-            secondaryActionBarProps={secondaryActionBarProps}
-            secondaryStatusBarProps={secondaryStatusBarProps}
-          />
+        <div className={pinClassName} style={pinStyle}>
+          <div ref={barRef}>
+            <LibraryPanelStatusSlots
+              collapsed={collapsed}
+              compareMode={compareMode}
+              primaryActionBarProps={primaryActionBarProps}
+              primaryStatusBarProps={primaryStatusBarProps}
+              secondaryStatusBarProps={secondaryStatusBarProps}
+              onSecondaryImport={handleSecondaryImport}
+            />
+          </div>
         </div>
       </div>
 
-      {!collapsed && (
-        <LibraryDropdown
-          dropdownStyle={dropdownStyle}
+      <LibraryDropdown
+        open={!collapsed}
+        style={libraryStyle}
+        mobileActiveSection={mobileActiveSection}
+        onClose={() => setCollapsed(true)}
+        onMobileSectionChange={setMobileActiveSection}
+      >
+        {/* SHOTS SECTION */}
+        <LibraryShotsPanelSection
+          compareMode={compareMode}
+          comparePendingKeys={comparePendingKeys}
+          compareSecondaryShotKey={compareSecondaryShotKey}
+          compareSelectedCount={compareSelectedCount}
+          compareSelectionKeys={compareSelectionKeys}
+          getEffectiveShotPinBucketKey={getEffectiveShotPinBucketKey}
+          getPinnedShotBucketKey={getPinnedShotBucketKey}
+          getShotPinDisabledReason={getShotPinDisabledReason}
+          handleDelete={handleDelete}
+          handleExport={handleExport}
+          handleShotPinToggle={handleShotPinToggle}
+          handleShotRowAction={handleShotRowAction}
+          loading={loading}
           mobileActiveSection={mobileActiveSection}
-          onClose={() => setCollapsed(true)}
-          onMobileSectionChange={setMobileActiveSection}
-        >
-          {/* SHOTS SECTION */}
-          <LibraryShotsPanelSection
-            compareMode={compareMode}
-            comparePendingKeys={comparePendingKeys}
-            compareSecondaryShotKey={compareSecondaryShotKey}
-            compareSelectedCount={compareSelectedCount}
-            compareSelectionKeys={compareSelectionKeys}
-            desktopSectionHeight={desktopSectionHeight}
-            getEffectiveShotPinBucketKey={getEffectiveShotPinBucketKey}
-            getPinnedShotBucketKey={getPinnedShotBucketKey}
-            getShotPinDisabledReason={getShotPinDisabledReason}
-            handleDelete={handleDelete}
-            handleExport={handleExport}
-            handleShotPinToggle={handleShotPinToggle}
-            handleShotRowAction={handleShotRowAction}
-            loading={loading}
-            mobileActiveSection={mobileActiveSection}
-            normalizedCurrentProfileName={normalizedCurrentProfileName}
-            onCompareShotToggle={onCompareShotToggle}
-            pinnedShotsByProfile={pinnedShotsByProfile}
-            primaryDisplayProfile={primaryDisplayProfile}
-            primaryDisplayShot={primaryDisplayShot}
-            refreshLibraries={refreshLibraries}
-            setShotsPinnedFirst={setShotsPinnedFirst}
-            setShotsSearch={setShotsSearch}
-            setShotsSort={setShotsSort}
-            setShotsSourceFilter={setShotsSourceFilter}
-            shots={shots}
-            shotsPinnedFirst={shotsPinnedFirst}
-            shotsSearch={shotsSearch}
-            shotsSort={shotsSort}
-            shotsSourceFilter={shotsSourceFilter}
-          />
+          normalizedCurrentProfileName={normalizedCurrentProfileName}
+          onCompareShotToggle={onCompareShotToggle}
+          pinnedShotsByProfile={pinnedShotsByProfile}
+          primaryDisplayProfile={primaryDisplayProfile}
+          primaryDisplayShot={primaryDisplayShot}
+          refreshLibraries={refreshLibraries}
+          setShotsPinnedFirst={setShotsPinnedFirst}
+          setShotsSearch={setShotsSearch}
+          setShotsSort={setShotsSort}
+          setShotsSourceFilter={setShotsSourceFilter}
+          shots={shots}
+          shotsPinnedFirst={shotsPinnedFirst}
+          shotsSearch={shotsSearch}
+          shotsSort={shotsSort}
+          shotsSourceFilter={shotsSourceFilter}
+        />
 
-          {/* PROFILES SECTION */}
-          <LibraryProfilesPanelSection
-            compareMode={compareMode}
-            desktopSectionHeight={desktopSectionHeight}
-            getProfilePinDisabledReason={getProfilePinDisabledReason}
-            handleDelete={handleDelete}
-            handleExport={handleExport}
-            handleLibraryProfileStatsOpen={handleLibraryProfileStatsOpen}
-            handleProfilePinToggle={handleProfilePinToggle}
-            handleProfileRowAction={handleProfileRowAction}
-            loading={loading}
-            mobileActiveSection={mobileActiveSection}
-            normalizedCompareSecondaryProfileName={normalizedCompareSecondaryProfileName}
-            pinnedProfiles={pinnedProfiles}
-            primaryDisplayProfile={primaryDisplayProfile}
-            primaryDisplayProfileName={primaryDisplayProfileName}
-            primaryDisplayShot={primaryDisplayShot}
-            profiles={profiles}
-            profilesPinnedFirst={profilesPinnedFirst}
-            profilesSearch={profilesSearch}
-            profilesSort={profilesSort}
-            profilesSourceFilter={profilesSourceFilter}
-            refreshLibraries={refreshLibraries}
-            secondaryDisplayProfile={secondaryDisplayProfile}
-            secondaryDisplayProfileName={secondaryDisplayProfileName}
-            secondaryDisplayShot={secondaryDisplayShot}
-            setProfilesPinnedFirst={setProfilesPinnedFirst}
-            setProfilesSearch={setProfilesSearch}
-            setProfilesSort={setProfilesSort}
-            setProfilesSourceFilter={setProfilesSourceFilter}
-          />
+        {/* PROFILES SECTION */}
+        <LibraryProfilesPanelSection
+          compareMode={compareMode}
+          getProfilePinDisabledReason={getProfilePinDisabledReason}
+          handleDelete={handleDelete}
+          handleExport={handleExport}
+          handleLibraryProfileStatsOpen={handleLibraryProfileStatsOpen}
+          handleProfilePinToggle={handleProfilePinToggle}
+          handleProfileRowAction={handleProfileRowAction}
+          loading={loading}
+          mobileActiveSection={mobileActiveSection}
+          normalizedCompareSecondaryProfileName={normalizedCompareSecondaryProfileName}
+          pinnedProfiles={pinnedProfiles}
+          primaryDisplayProfile={primaryDisplayProfile}
+          primaryDisplayProfileName={primaryDisplayProfileName}
+          primaryDisplayShot={primaryDisplayShot}
+          profiles={profiles}
+          profilesPinnedFirst={profilesPinnedFirst}
+          profilesSearch={profilesSearch}
+          profilesSort={profilesSort}
+          profilesSourceFilter={profilesSourceFilter}
+          refreshLibraries={refreshLibraries}
+          secondaryDisplayProfile={secondaryDisplayProfile}
+          secondaryDisplayProfileName={secondaryDisplayProfileName}
+          secondaryDisplayShot={secondaryDisplayShot}
+          setProfilesPinnedFirst={setProfilesPinnedFirst}
+          setProfilesSearch={setProfilesSearch}
+          setProfilesSort={setProfilesSort}
+          setProfilesSourceFilter={setProfilesSourceFilter}
+        />
         </LibraryDropdown>
-      )}
     </div>
   );
 }

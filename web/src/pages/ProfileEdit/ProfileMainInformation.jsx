@@ -1,98 +1,70 @@
-import Card from '../../components/Card.jsx';
+import { Setting, Switch } from '../../components/Field.jsx';
+import { Tile } from '../../components/Tile.jsx';
+import { FormField } from './form.jsx';
 
 export function ProfileMainInformation(props) {
   return (
-    <Card sm={10} title='Profile Information'>
-      <div className='form-control'>
-        <label htmlFor='label' className='mb-2 block text-sm font-medium'>
-          Title
-        </label>
-        <input
-          id='label'
-          name='label'
-          className='input input-bordered w-full'
-          value={props.data?.label}
-          onChange={props.onChangeLabel}
-          aria-label='Enter a name for this profile'
-          required
+    <Tile title='Profile'>
+      <FormField
+        id='label'
+        name='label'
+        label='Name'
+        value={props.data?.label}
+        onInput={props.onChangeLabel}
+        required
+      />
+      <FormField
+        id='description'
+        name='description'
+        label='Description'
+        multiline
+        rows={2}
+        placeholder='Optional'
+        value={props.data?.description}
+        onInput={props.onChangeDescription}
+      />
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+        <FormField
+          id='temperature'
+          name='temperature'
+          label='Temperature'
+          unit='°C'
+          type='number'
+          value={props.data?.temperature}
+          onInput={props.onChangeTemperature}
+          aria-label='Temperature in degrees Celsius'
+          min='0'
+          max='150'
+          step='0.1'
+        />
+        <FormField
+          id='dose'
+          name='dose'
+          label='Coffee dose'
+          unit='g'
+          type='number'
+          placeholder='Optional'
+          help='Shown as IN on the display. It does not set the grinder target.'
+          value={props.data?.dose ?? ''}
+          onInput={props.onChangeDose}
+          aria-label='Coffee dose in grams'
+          min='0.1'
+          max='250'
+          step='0.1'
         />
       </div>
-      <div className='form-control'>
-        <label htmlFor='description' className='mb-2 block text-sm font-medium'>
-          Description
-        </label>
-        <textarea
-          id='description'
-          name='description'
-          rows={2}
-          className='textarea textarea-bordered w-full text-wrap'
-          value={props.data?.description}
-          onChange={props.onChangeDescription}
-          aria-label='Optional description for this profile'
-        />
-      </div>
-      <div className='form-control'>
-        <label htmlFor='temperature' className='mb-2 block text-sm font-medium'>
-          Temperature
-        </label>
-        <div className='input-group'>
-          <label htmlFor='temperature' className='input w-full'>
-            <input
-              id='temperature'
-              name='temperature'
-              type='number'
-              className='grow'
-              value={props.data?.temperature}
-              onChange={props.onChangeTemperature}
-              aria-label='Temperature in degrees Celsius'
-              min='0'
-              max='150'
-              step='0.1'
-            />
-            <span aria-label='degrees Celsius'>°C</span>
-          </label>
-        </div>
-      </div>
-      <div className='form-control'>
-        <label htmlFor='dose' className='mb-2 block text-sm font-medium'>
-          Coffee dose (optional)
-        </label>
-        <label className='input w-full'>
-          <input
-            id='dose'
-            name='dose'
-            aria-label='Coffee dose in grams'
-            type='number'
-            min='0.1'
-            max='250'
-            step='0.1'
-            value={props.data?.dose ?? ''}
-            onChange={props.onChangeDose}
-            aria-describedby='dose-help'
-          />
-          <span>g</span>
-        </label>
-        <p id='dose-help' className='mt-2 text-sm text-[var(--ink-muted)]'>
-          Dry coffee shown as IN on the display. This does not set the grinder target.
-        </p>
-      </div>
-      <div className='form-control'>
-        <label
-          htmlFor='utility'
-          className='mb-2 block text-sm font-medium'
-          aria-label='Utility profile toggle'
-        >
-          Utility profile
-        </label>
-        <input
+      <Setting
+        label='Utility profile'
+        help='Listed under Utility, apart from your coffee profiles.'
+        htmlFor='utility'
+      >
+        <Switch
           id='utility'
           name='utility'
-          type='checkbox'
-          className='toggle toggle-primary'
           checked={!!props.data?.utility}
           onChange={props.onChangeUtility}
         />
-      </div>
-    </Card>
+      </Setting>
+    </Tile>
   );
 }

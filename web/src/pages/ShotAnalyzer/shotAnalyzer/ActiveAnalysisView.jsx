@@ -1,28 +1,24 @@
-import { Icon } from '../../../components/Icon.jsx';
 /** Renders the responsive chart, details, and analysis-table composition. */
 
 /* global globalThis */
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { cx } from '../../../components/cx.js';
+import { Icon } from '../../../components/Icon.jsx';
+import { List, ListRow } from '../../../components/ListRow.jsx';
+import { Tile } from '../../../components/Tile.jsx';
 import { AnalysisTable } from '../components/AnalysisTable';
 import { ShotChart } from '../components/ShotChart';
 import { ShotDetailsPanel, ShotMobilePrimaryCards } from '../components/ShotDetailsPanel';
+import { IconButton } from '../ui/IconButton.jsx';
 
 export function buildShotDetailsEntries({
   isCompareActive,
-  compareCollectionWithAccents,
+  compareCollection,
   referenceCompareEntry,
 }) {
-  if (isCompareActive) return compareCollectionWithAccents;
-  if (!referenceCompareEntry) return [];
-
-  return [
-    {
-      ...referenceCompareEntry,
-      accentColor: 'var(--color-primary)',
-      accentStrength: 1,
-    },
-  ];
+  if (isCompareActive) return compareCollection;
+  return referenceCompareEntry ? [referenceCompareEntry] : [];
 }
 
 export function resetMeasuredDesktopDetailsHeight(setDesktopSingleDetailsHeight) {
@@ -34,21 +30,18 @@ export function getDesktopSingleChartStyle(singleDesktopDetailsHeight) {
   return { height: `${singleDesktopDetailsHeight}px` };
 }
 
+// On a phone the summary, the chart and the details stack, each above the one before it, so a
+// reading that overflows a tile is covered by the next one (chartLayout.css).
 function getActiveAnalysisViewClasses(isCompareActive) {
   return {
     desktopStickyDetailsClass: isCompareActive ? 'analyzer-shot-details-sticky' : '',
-    compareShellClass: isCompareActive ? 'shot-chart-card-shell--compare' : '',
-    chartSurfaceClass: isCompareActive
-      ? ''
-      : 'app-card-surface rounded-xl px-1.5 py-2 sm:px-2 lg:h-full',
-    mobilePrimaryShellClass: isCompareActive
-      ? ''
-      : 'analyzer-mobile-stack-layer analyzer-mobile-stack-layer--primary',
-    singleShellClass: isCompareActive
-      ? ''
-      : 'analyzer-mobile-stack-layer analyzer-mobile-stack-layer--chart',
+    // A single shot's chart is one tile. In a comparison every chart is a tile of its own.
+    chartShellClass: isCompareActive
+      ? 'shot-chart-card-shell--compare'
+      : 'bm-tile analyzer-mobile-stack-layer analyzer-mobile-stack-layer--chart lg:h-full',
+    mobilePrimaryShellClass: 'analyzer-mobile-stack-layer analyzer-mobile-stack-layer--primary',
     mobileDetailsShellClass: isCompareActive
-      ? 'hidden lg:block'
+      ? 'max-lg:hidden'
       : 'analyzer-mobile-stack-layer analyzer-mobile-stack-layer--details',
   };
 }
@@ -60,45 +53,48 @@ export function getCompareDetailsKey(isCompareActive, shotDetailsEntries) {
     .join('|');
 }
 
+/** The head of a page a phone opens from the analyzer: the way back, and what the page is. */
 function MobileAnalyzerSubpageHeader({ onBack, subtitle, title }) {
   return (
-    <div className='flex items-center gap-3'>
-      <button
-        type='button'
-        className='app-card-surface text-base-content/75 hover:text-base-content flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-colors'
-        onClick={onBack}
-        aria-label='Back to analyzer'
-      >
-        <Icon name={'chevron-left'} aria-hidden='true' />
-      </button>
+    <div className='flex items-center gap-2'>
+      <IconButton icon='arrow-left' iconSize={22} label='Back to the analyzer' onClick={onBack} />
       <div className='min-w-0'>
-        <div className='text-base-content text-sm font-semibold'>{title}</div>
-        <div className='truncate text-xs text-[var(--ink-muted)]'>{subtitle}</div>
+        <h2 className='bm-sub truncate'>{title}</h2>
+        <p className='bm-help truncate'>{subtitle}</p>
       </div>
     </div>
   );
 }
 
-function MobileAnalyzerSubpageAction({ label, onClick }) {
+/** What a phone opens on a page of its own, as the rows of one tile. */
+function MobileAnalyzerSubpageLinks({ links }) {
+  if (links.length === 0) return null;
+
   return (
-    <button
-      type='button'
-      className='app-card-surface relative z-0 flex min-h-14 w-full cursor-pointer items-center justify-between rounded-xl px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]'
-      onClick={onClick}
-    >
-      <span className='text-base-content text-sm font-semibold'>{label}</span>
-      <Icon name={'chevron-right'} className='text-xs text-[var(--ink-muted)]' aria-hidden='true' />
-    </button>
+    <Tile className='analyzer-mobile-stack-layer analyzer-mobile-stack-layer--analysis lg:hidden'>
+      <List>
+        {links.map(link => (
+          <ListRow
+            key={link.page}
+            icon={link.icon}
+            title={link.title}
+            meta={link.meta}
+            end={<Icon name='chevron-right' size={20} />}
+            onClick={link.onOpen}
+          />
+        ))}
+      </List>
+    </Tile>
   );
 }
 
 function getMobileAnalyzerSubpageMeta({ isCompareActive, showMobileAnalysisPage }) {
   if (!showMobileAnalysisPage) {
-    return { subtitle: 'Compare shot details', title: 'Notes' };
+    return { subtitle: 'Details of the compared shots', title: 'Notes' };
   }
   return {
-    subtitle: isCompareActive ? 'Compare analysis table' : 'Shot analysis table',
-    title: 'Analysis Table',
+    subtitle: isCompareActive ? 'Both shots, phase by phase' : 'The shot, phase by phase',
+    title: 'Analysis table',
   };
 }
 
@@ -145,14 +141,14 @@ function scheduleAcrossLayoutFrames(callback) {
 function AnalyzerTable({
   activeColumns,
   analysisResults,
-  compareCollectionWithAccents,
+  compareCollection,
   isCompareActive,
   setActiveColumns,
 }) {
   return (
     <AnalysisTable
       results={analysisResults}
-      compareEntries={compareCollectionWithAccents}
+      compareEntries={compareCollection}
       isCompareActive={isCompareActive}
       activeColumns={activeColumns}
       onColumnsChange={setActiveColumns}
@@ -165,7 +161,7 @@ export function ActiveAnalysisView({
   analysisResults,
   analysisSectionRef,
   chartMountKey,
-  compareCollectionWithAccents,
+  compareCollection,
   compareTargetDisplayMode,
   currentShot,
   currentProfile,
@@ -179,13 +175,10 @@ export function ActiveAnalysisView({
   singleDesktopChartStyle,
   singleDesktopDetailsHeight,
 }) {
-  const alignmentClass = 'lg:items-start';
   const {
     desktopStickyDetailsClass,
-    compareShellClass,
-    chartSurfaceClass,
+    chartShellClass,
     mobilePrimaryShellClass,
-    singleShellClass,
     mobileDetailsShellClass,
   } = getActiveAnalysisViewClasses(isCompareActive);
   const [activeCompareDetailsIndex, setActiveCompareDetailsIndex] = useState(0);
@@ -235,40 +228,64 @@ export function ActiveAnalysisView({
     [analysisSectionRef, openMobileSubpage],
   );
 
+  const mobileSubpageLinks = [
+    isCompareActive && {
+      page: 'notes',
+      icon: 'square-pen',
+      title: 'Notes',
+      meta: 'Details of both shots',
+      onOpen: () => handleOpenMobileSubpage('notes'),
+    },
+    analysisResults && {
+      page: 'analysis',
+      icon: 'list',
+      title: 'Analysis table',
+      meta: 'Phase by phase',
+      onOpen: () => handleOpenMobileSubpage('analysis'),
+    },
+  ].filter(Boolean);
+
+  const analysisTable = (
+    <AnalyzerTable
+      activeColumns={activeColumns}
+      analysisResults={analysisResults}
+      compareCollection={compareCollection}
+      isCompareActive={isCompareActive}
+      setActiveColumns={setActiveColumns}
+    />
+  );
+  const shotDetailsPanel = (
+    <ShotDetailsPanel
+      entries={shotDetailsEntries}
+      isCompareActive={isCompareActive}
+      activeCompareIndex={activeCompareDetailsIndex}
+      onActiveCompareIndexChange={setActiveCompareDetailsIndex}
+    />
+  );
+
   return (
-    <div ref={analysisSectionRef} className='analyzer-mobile-scroll-target animate-fade-in mt-8'>
+    <div
+      ref={analysisSectionRef}
+      className='analyzer-mobile-scroll-target flex flex-col gap-2 lg:gap-3'
+    >
       {showMobileSubpage ? (
-        <div ref={mobileSubpageRef} className='analyzer-mobile-scroll-target space-y-3 lg:hidden'>
+        <div
+          ref={mobileSubpageRef}
+          className='analyzer-mobile-scroll-target flex flex-col gap-2 lg:hidden'
+        >
           <MobileAnalyzerSubpageHeader
             onBack={closeMobileSubpage}
             title={mobileSubpageMeta.title}
             subtitle={mobileSubpageMeta.subtitle}
           />
-          {showCompareMobileDetailsPage ? (
-            <ShotDetailsPanel
-              entries={shotDetailsEntries}
-              isCompareActive={isCompareActive}
-              activeCompareIndex={activeCompareDetailsIndex}
-              onActiveCompareIndexChange={setActiveCompareDetailsIndex}
-            />
-          ) : null}
-          {showMobileAnalysisPage ? (
-            <AnalyzerTable
-              activeColumns={activeColumns}
-              analysisResults={analysisResults}
-              compareCollectionWithAccents={compareCollectionWithAccents}
-              isCompareActive={isCompareActive}
-              setActiveColumns={setActiveColumns}
-            />
-          ) : null}
+          {showCompareMobileDetailsPage ? shotDetailsPanel : null}
+          {showMobileAnalysisPage ? analysisTable : null}
         </div>
       ) : null}
 
-      <div className={showMobileSubpage ? 'hidden lg:block' : ''}>
-        <div
-          className={`grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(14.5rem,17rem)] xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] ${alignmentClass}`}
-        >
-          <div className='order-1 min-w-0 lg:order-1'>
+      <div className={cx('flex flex-col gap-2 lg:gap-3', showMobileSubpage && 'max-lg:hidden')}>
+        <div className='grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(14.5rem,17rem)] lg:items-start lg:gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]'>
+          <div className='flex min-w-0 flex-col gap-2 lg:gap-3'>
             {!isCompareActive && shotDetailsEntries[0]?.shot ? (
               <div className={mobilePrimaryShellClass}>
                 <ShotMobilePrimaryCards entry={shotDetailsEntries[0]} />
@@ -276,14 +293,14 @@ export function ActiveAnalysisView({
             ) : null}
             <div
               key={chartMountKey}
-              className={`shot-chart-card-shell ${chartSurfaceClass} ${compareShellClass} ${singleShellClass}`}
+              className={cx('shot-chart-card-shell', chartShellClass)}
               style={singleDesktopChartStyle}
             >
               <ShotChart
                 shotData={currentShot}
                 profileData={currentProfile}
                 results={analysisResults}
-                compareEntries={compareCollectionWithAccents}
+                compareEntries={compareCollection}
                 isCompareActive={isCompareActive}
                 desktopCardHeight={singleDesktopDetailsHeight}
                 onCompareSwap={handleSwapCompareSlots}
@@ -294,45 +311,15 @@ export function ActiveAnalysisView({
           </div>
           <div
             ref={shotDetailsColumnRef}
-            className={`order-2 min-w-0 lg:order-2 ${desktopStickyDetailsClass} ${mobileDetailsShellClass}`}
+            className={cx('min-w-0', desktopStickyDetailsClass, mobileDetailsShellClass)}
           >
-            <ShotDetailsPanel
-              entries={shotDetailsEntries}
-              isCompareActive={isCompareActive}
-              activeCompareIndex={activeCompareDetailsIndex}
-              onActiveCompareIndexChange={setActiveCompareDetailsIndex}
-            />
+            {shotDetailsPanel}
           </div>
         </div>
 
-        {isCompareActive ? (
-          <div className='analyzer-mobile-stack-layer analyzer-mobile-stack-layer--details mt-3 lg:hidden'>
-            <MobileAnalyzerSubpageAction
-              label='Notes'
-              onClick={() => handleOpenMobileSubpage('notes')}
-            />
-          </div>
-        ) : null}
+        <MobileAnalyzerSubpageLinks links={mobileSubpageLinks} />
 
-        {analysisResults ? (
-          <>
-            <div className='analyzer-mobile-stack-layer analyzer-mobile-stack-layer--analysis mt-3 lg:hidden'>
-              <MobileAnalyzerSubpageAction
-                label='Analysis Table'
-                onClick={() => handleOpenMobileSubpage('analysis')}
-              />
-            </div>
-            <div className='analyzer-analysis-shell mt-4 hidden lg:block'>
-              <AnalyzerTable
-                activeColumns={activeColumns}
-                analysisResults={analysisResults}
-                compareCollectionWithAccents={compareCollectionWithAccents}
-                isCompareActive={isCompareActive}
-                setActiveColumns={setActiveColumns}
-              />
-            </div>
-          </>
-        ) : null}
+        {analysisResults ? <div className='max-lg:hidden'>{analysisTable}</div> : null}
       </div>
     </div>
   );

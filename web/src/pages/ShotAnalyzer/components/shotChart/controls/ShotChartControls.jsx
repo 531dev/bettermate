@@ -5,10 +5,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { LEGEND_ORDER } from '../constants';
 import { COMPARE_TARGET_DISPLAY_MODES } from '../../../utils/analyzerUtils';
-import {
-  ANALYZER_ACTION_ICON_BUTTON_CLASS,
-  getAnalyzerIconButtonClasses,
-} from '../../analyzerControlStyles';
 import { ChartLegendArea } from './chartLegendControls';
 import { CompareControlsRow } from './compareControls';
 import { ChartActionGroup, ReplayExportStatus } from './chartReplayControls';
@@ -40,10 +36,8 @@ function useIsMobileControls() {
 function ReplayFocusHint({ isCompareMode, shouldShowReplayFocusHint }) {
   if (!isCompareMode && shouldShowReplayFocusHint) {
     return (
-      <div className='mb-2 px-1'>
-        <div className='border-base-content/10 bg-base-100/70 inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-medium text-[var(--analyzer-warning-orange)]'>
-          Keep this window focused while the replay is being recorded.
-        </div>
+      <div className='bm-notice bm-notice--warning' role='status'>
+        Keep this window focused while the replay is being recorded.
       </div>
     );
   }
@@ -105,9 +99,6 @@ export function ShotChartControls({
   visibility,
 }) {
   const isMobile = useIsMobileControls();
-  const chartActionButtonClasses = getAnalyzerIconButtonClasses({
-    className: `${ANALYZER_ACTION_ICON_BUTTON_CLASS} border-0 bg-transparent `,
-  });
   const shouldShowCompareControls =
     isCompareMode &&
     (compareShotLegendItems.length > 0 ||
@@ -123,7 +114,7 @@ export function ShotChartControls({
   return (
     <>
       {/* Keep the control bar extracted so ShotChart.jsx can focus on chart lifecycle and replay logic. */}
-      <div className='flex flex-wrap items-center gap-2'>
+      <div className='shot-chart-controls'>
         <ChartLegendArea
           hiddenLegendLabels={hiddenLegendLabels}
           hiddenMobileLegendLabels={hiddenMobileLegendLabels}
@@ -141,7 +132,6 @@ export function ShotChartControls({
 
         <div className='flex shrink-0 flex-wrap items-center justify-end gap-2'>
           <ChartActionGroup
-            chartActionButtonClasses={chartActionButtonClasses}
             exportMenuRef={exportMenuRef}
             exportMenuState={exportMenuState}
             hasVideoExportSupport={hasVideoExportSupport}

@@ -1,5 +1,5 @@
-import { Icon } from '../../components/Icon.jsx';
-import { useCallback, useEffect, useRef, useState, useContext } from 'preact/hooks';
+import { computed } from '@preact/signals';
+import { useCallback, useEffect, useMemo, useRef, useState, useContext } from 'preact/hooks';
 import { useRoute } from 'preact-iso';
 import {
   ApiServiceContext,
@@ -16,13 +16,13 @@ import {
 import { downloadJson } from '../../utils/download.js';
 import { getStoredTheme, handleThemeChange } from '../../utils/themeManager.js';
 
+import { Menu, MenuItem } from '../../components/Menu.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import TabBar from '../../components/TabBar.jsx';
 
 import lazy from 'preact-iso/lazy';
 
-import { StickyFormFooter } from './StickyFormFooter.jsx';
 import {
   GeneralTabSkeleton,
   MachineTabSkeleton,
@@ -30,6 +30,9 @@ import {
   BluetoothTabSkeleton,
   SystemTabSkeleton,
 } from '../../components/skeletons/SettingsSkeletons.jsx';
+import { FormErrors } from './fields.jsx';
+import { ImportNotice } from './ImportNotice.jsx';
+import { PinnedSave, RestartTile } from './SaveBar.jsx';
 import { GeneralTab } from './tabs/GeneralTab.jsx';
 
 const LazyMachineTab = lazy(() => import('./tabs/MachineTab.jsx').then(m => m.MachineTab));
@@ -46,7 +49,19 @@ const loadPluginsTab = () => import('./tabs/PluginsTab.jsx');
 const loadBluetoothTab = () => import('./tabs/BluetoothTab.jsx');
 const loadSystemTab = () => import('./tabs/SystemTab.jsx');
 
-// Icons
+const SETTINGS_TABS = [
+  { id: 'general', label: 'General', icon: 'sliders-horizontal' },
+  { id: 'machine', label: 'Machine', icon: 'thermometer', preload: loadMachineTab },
+  { id: 'calibration', label: 'Calibration', icon: 'gauge', preload: loadCalibrationTab },
+  { id: 'plugins', label: 'Plugins', icon: 'settings', preload: loadPluginsTab },
+  { id: 'bluetooth', label: 'Bluetooth', icon: 'bluetooth', preload: loadBluetoothTab },
+  { id: 'system', label: 'System & updates', icon: 'refresh-cw', preload: loadSystemTab },
+];
+const FORM_TABS = ['general', 'machine', 'plugins'];
+const FORM_ID = 'settings-page-form';
+
+// The page only needs to know whether the socket is up, not every telemetry frame.
+const connected = computed(() => machine.value.connected);
 
 const CHECKBOX_KEYS = [
   'homekit',
@@ -211,23 +226,62 @@ function buildSubmitFormData(formData, autowakeupSchedules, restart) {
   return formDataToSubmit;
 }
 
+// What a save would send, as one string: two forms are the same when their strings are. The web's
+// own dashboard layout applies at once and never reaches the machine, so it does not count.
+function submitKey(formData, autowakeupSchedules) {
+  const entries = [...buildSubmitFormData(formData, autowakeupSchedules, false).entries()];
+  return JSON.stringify(entries.filter(([key]) => key !== 'dashboardLayout').sort());
+}
+
+// What an input's own constraints (type, min, max, step, minlength) reject, in the page's words.
+function problemWith(input) {
+  const validity = input.validity;
+  if (validity.valid) return null;
+  if (validity.badInput) return input.type === 'time' ? 'Enter a time.' : 'Enter a number.';
+  if (validity.valueMissing) return 'Enter a value.';
+  if (validity.tooShort) return `Use at least ${input.minLength} characters.`;
+  if (validity.tooLong) return `Use at most ${input.maxLength} characters.`;
+  if (validity.rangeUnderflow) return `Enter ${input.min} or more.`;
+  if (validity.rangeOverflow) return `Enter ${input.max} or less.`;
+  if (validity.stepMismatch) {
+    return Number(input.step || 1) === 1 ? 'Enter a whole number.' : `Use steps of ${input.step}.`;
+  }
+  return 'Enter another value.';
+}
+
+// The same check the browser runs before it submits a form, kept on the page instead of in a
+// bubble: every problem by input id, and the first input that has one.
+function findProblems(form) {
+  const problems = {};
+  let first = null;
+  for (const input of form.elements) {
+    if (!input.willValidate || !input.id) continue;
+    const problem = problemWith(input);
+    if (!problem) continue;
+    problems[input.id] = problem;
+    if (!first) first = input;
+  }
+  return { problems, first };
+}
+
 export function Settings() {
   const apiService = useContext(ApiServiceContext);
   const { params } = useRoute();
   const tab = params.tab || 'general';
-  const isFormTab = ['general', 'machine', 'plugins'].includes(tab);
+  const isFormTab = FORM_TABS.includes(tab);
 
   const [profiles, setProfiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({});
   const [currentTheme, setCurrentTheme] = useState('light');
-  const [showWifiPassword, setShowWifiPassword] = useState(false);
-  const [showApPassword, setShowApPassword] = useState(false);
   const [autowakeupSchedules, setAutoWakeupSchedules] = useState([
     { time: '07:00', days: [true, true, true, true, true, true, true] },
   ]);
 
   const [importNotice, setImportNotice] = useState(null);
+  // By input id, what the last save rejected; and how that save ended.
+  const [errors, setErrors] = useState({});
+  const [saveState, setSaveState] = useState(null);
 
   const [fetchedSettings, setFetchedSettings] = useState(() => getCachedSettings());
   const [isLoading, setIsLoading] = useState(!fetchedSettings);
@@ -246,32 +300,19 @@ export function Settings() {
     }
   }, [fetchedSettings]);
 
+  const isConnected = connected.value;
   useEffect(() => {
     const loadProfiles = async () => {
-      if (machine.value.connected) {
+      if (isConnected) {
         const response = await apiService.request({ tp: 'req:profiles:list', minimal: true });
         setProfiles(response.profiles);
       }
     };
     loadProfiles();
-  }, [machine.value.connected, apiService]);
+  }, [isConnected, apiService]);
 
   const formRef = useRef();
-  const dropdownRef = useRef(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    if (!dropdownOpen) return;
-
-    const handleOutsideClick = event => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, [dropdownOpen]);
+  const importRef = useRef();
 
   useEffect(() => {
     if (fetchedSettings) {
@@ -289,6 +330,13 @@ export function Settings() {
   useEffect(() => {
     setCurrentTheme(getStoredTheme());
   }, []);
+
+  // A problem and a "saved" belong to the tab they were found on; a save that did not arrive, or
+  // was not answered, stays until the next one.
+  useEffect(() => {
+    setErrors({});
+    setSaveState(state => (state === 'failed' || state === 'unanswered' ? state : null));
+  }, [tab]);
 
   const onChange = key => {
     return e => {
@@ -325,6 +373,15 @@ export function Settings() {
     setFormData(prev => ({ ...prev, [key]: value }));
   }, []);
 
+  // Autotune writes its gains on the machine. The form takes them too, so a later save sends the
+  // tuned values instead of the ones it loaded.
+  const onPidTuned = useCallback(pid => {
+    if (!pid) return;
+    const cached = getCachedSettings();
+    if (cached) updateSettingsCache({ ...cached, pid });
+    setFormData(prev => (Object.keys(prev).length ? { ...prev, ...splitPidString(pid) } : prev));
+  }, []);
+
   const addAutoWakeupSchedule = () => {
     setAutoWakeupSchedules([
       ...autowakeupSchedules,
@@ -357,8 +414,18 @@ export function Settings() {
   const onSubmit = useCallback(
     async (e, restart = false) => {
       if (e) e.preventDefault();
-      setSubmitting(true);
       const form = formRef.current;
+
+      const { problems, first } = findProblems(form);
+      setErrors(problems);
+      if (first) {
+        setSaveState(null);
+        first.focus({ preventScroll: true });
+        first.scrollIntoView({ block: 'center' });
+        return;
+      }
+
+      setSubmitting(true);
       const formDataToSubmit = buildSubmitFormData(formData, autowakeupSchedules, restart);
 
       try {
@@ -382,14 +449,30 @@ export function Settings() {
         updateSettingsCache(data);
         setFormData(updatedData);
         setImportNotice(null);
+        setSaveState(restart ? 'restarting' : 'saved');
       } catch (error) {
         console.error('Failed to save settings:', error);
+        // The machine restarts as soon as it has saved, and can be gone before its answer
+        // arrives: without an answer, a save with a restart is unknown, not failed.
+        setSaveState(restart ? 'unanswered' : 'failed');
       } finally {
         setSubmitting(false);
       }
     },
     [formData, autowakeupSchedules],
   );
+
+  // Editing a field takes its problem away; the next save looks again.
+  const onFormInput = useCallback(event => {
+    const id = event.target?.id;
+    if (!id) return;
+    setErrors(prev => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
 
   const onExport = useCallback(() => {
     const autowakeupSchedulesStr = serializeAutoWakeupSchedules(autowakeupSchedules);
@@ -433,183 +516,141 @@ export function Settings() {
     setImportNotice(null);
   }, [fetchedSettings]);
 
-  const settingsTabs = [
-    { id: 'general', label: 'General', icon: 'sliders-horizontal' },
-    { id: 'machine', label: 'Machine', icon: 'thermometer', preload: loadMachineTab },
-    {
-      id: 'calibration',
-      label: 'Calibration',
-      icon: 'sliders-horizontal',
-      preload: loadCalibrationTab,
-    },
-    { id: 'plugins', label: 'Plugins', icon: 'settings', preload: loadPluginsTab },
-    { id: 'bluetooth', label: 'Bluetooth', icon: 'bluetooth', preload: loadBluetoothTab },
-    { id: 'system', label: 'System & Updates', icon: 'refresh-cw', preload: loadSystemTab },
-  ];
+  // The form is loaded once it holds the machine's settings, and unsaved while a save would send
+  // something else than the machine last reported.
+  const loaded = !isLoading && Object.keys(formData).length > 0;
+  const machineSettings = getCachedSettings() ?? fetchedSettings;
+  const dirty = useMemo(() => {
+    if (!loaded || !machineSettings) return false;
+    const held = submitKey(
+      transformFetchedSettings(machineSettings),
+      parseAutoWakeupSchedules(machineSettings.autowakeupSchedules),
+    );
+    return submitKey(formData, autowakeupSchedules) !== held;
+  }, [loaded, machineSettings, formData, autowakeupSchedules]);
+
+  const importPending = !!importNotice && !importNotice.error;
+  const panel = { role: 'tabpanel', id: `panel-${tab}`, 'aria-labelledby': `tab-${tab}` };
 
   return (
-    <PageLayout>
-      <PageHeader
-        title='Settings'
-        noStack={true}
-        tabs={<TabBar tabs={settingsTabs} activeTab={tab} basePath='/settings' />}
-        actions={
-          <div
-            className={`action-dropdown relative ${dropdownOpen ? 'action-dropdown-open' : ''}`}
-            ref={dropdownRef}
-          >
-            <button
-              onClick={() => setDropdownOpen(open => !open)}
-              className='btn btn-ghost btn-circle text-base-content/85 hover:bg-base-content/10'
-              aria-label='More options'
-              aria-expanded={dropdownOpen}
-            >
-              <Icon name={'more-horizontal'} />
-            </button>
-            <ul className='menu action-dropdown-menu bg-base-100 rounded-box border-base-content/10 right-0 z-50 mt-1 w-52 border p-2'>
-              <li>
-                <button
-                  type='button'
-                  onClick={() => {
-                    onExport();
-                    setDropdownOpen(false);
-                  }}
-                  className='justify-start gap-2 font-medium'
-                  aria-label='Export settings'
-                >
-                  <Icon name={'save'} />
-                  <span>Export Settings</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  type='button'
-                  onClick={() => {
-                    document.getElementById('settingsImport')?.click();
-                    setDropdownOpen(false);
-                  }}
-                  className='justify-start gap-2 font-medium'
-                  aria-label='Import settings'
-                >
-                  <Icon name={'plus'} />
-                  <span>Import Settings</span>
-                </button>
-              </li>
-            </ul>
-            <input
-              onChange={onUpload}
-              className='hidden'
-              id='settingsImport'
-              type='file'
-              accept='.json,application/json'
-            />
-          </div>
-        }
-      />
+    <FormErrors.Provider value={errors}>
+      <PageLayout>
+        <PageHeader
+          title='Settings'
+          noStack={true}
+          tabs={<TabBar tabs={SETTINGS_TABS} activeTab={tab} basePath='/settings' />}
+          actions={
+            <>
+              <Menu label='More options'>
+                <MenuItem icon='download' onClick={onExport}>
+                  Export settings
+                </MenuItem>
+                <MenuItem icon='upload' onClick={() => importRef.current?.click()}>
+                  Import settings
+                </MenuItem>
+              </Menu>
+              <input
+                ref={importRef}
+                onChange={onUpload}
+                className='hidden'
+                id='settingsImport'
+                type='file'
+                accept='.json,application/json'
+                aria-label='Settings file to import'
+              />
+            </>
+          }
+        />
 
-      {importNotice && (
-        <div
-          role='alert'
-          className={`alert alert-vertical sm:alert-horizontal mb-4 ${importNotice.error ? 'alert-error' : 'alert-info'}`}
-        >
-          <div className='text-sm'>
-            {importNotice.error ? (
-              <span>
-                Could not import {importNotice.name}: {importNotice.message}
-              </span>
-            ) : (
-              <>
-                <span>
-                  Loaded {importNotice.count} {importNotice.count === 1 ? 'setting' : 'settings'}{' '}
-                  from {importNotice.name}. All other settings are kept. Save to apply.
-                </span>
-                {importNotice.ignored.length > 0 && (
-                  <span className='block text-xs opacity-80'>
-                    Ignored unknown entries: {importNotice.ignored.join(', ')}
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-          <div className='flex shrink-0 gap-2'>
-            {!importNotice.error && (
-              <button
-                type='button'
-                className='btn btn-sm btn-primary'
-                disabled={submitting}
-                onClick={() => onSubmit()}
-              >
-                Save Settings
-              </button>
-            )}
-            <button
-              type='button'
-              className='btn btn-sm btn-ghost'
-              onClick={importNotice.error ? () => setImportNotice(null) : onDiscardImport}
-            >
-              {importNotice.error ? 'Dismiss' : 'Discard'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <form
-        id='settings-page-form'
-        key='settings'
-        ref={formRef}
-        method='post'
-        action='/api/settings'
-        onSubmit={onSubmit}
-        className={isFormTab ? '' : 'hidden'}
-      >
-        {tab === 'general' &&
-          (isLoading ? (
-            <GeneralTabSkeleton />
-          ) : (
-            <GeneralTab
-              formData={formData}
-              onChange={onChange}
-              profiles={profiles}
-              currentTheme={currentTheme}
-              setCurrentTheme={setCurrentTheme}
-              handleThemeChange={handleThemeChange}
-              showWifiPassword={showWifiPassword}
-              setShowWifiPassword={setShowWifiPassword}
-              showApPassword={showApPassword}
-              setShowApPassword={setShowApPassword}
-            />
-          ))}
-        {tab === 'machine' &&
-          (isLoading ? (
-            <MachineTabSkeleton />
-          ) : (
-            <LazyMachineTab formData={formData} onChange={onChange} setField={setField} />
-          ))}
-        {tab === 'plugins' &&
-          (isLoading ? (
-            <PluginsTabSkeleton />
-          ) : (
-            <LazyPluginsTab
-              formData={formData}
-              onChange={onChange}
-              autowakeupSchedules={autowakeupSchedules}
-              addAutoWakeupSchedule={addAutoWakeupSchedule}
-              removeAutoWakeupSchedule={removeAutoWakeupSchedule}
-              updateAutoWakeupTime={updateAutoWakeupTime}
-              updateAutoWakeupDay={updateAutoWakeupDay}
-            />
-          ))}
-
-        {isFormTab && (
-          <StickyFormFooter submitting={submitting} onRestart={e => onSubmit(e, true)} />
+        {importNotice && (
+          <ImportNotice
+            notice={importNotice}
+            onDismiss={() => setImportNotice(null)}
+            onDiscard={onDiscardImport}
+          />
         )}
-      </form>
 
-      {tab === 'calibration' && (
-        <LazyCalibrationTab formData={formData} onChange={onChange} setField={setField} />
-      )}
-      {tab === 'bluetooth' && (isLoading ? <BluetoothTabSkeleton /> : <LazyBluetoothTab />)}
-      {tab === 'system' && (isLoading ? <SystemTabSkeleton /> : <LazySystemTab />)}
-    </PageLayout>
+        <form
+          id={FORM_ID}
+          key='settings'
+          ref={formRef}
+          method='post'
+          action='/api/settings'
+          noValidate
+          onSubmit={onSubmit}
+          onInput={onFormInput}
+          className={isFormTab ? 'flex flex-col gap-2 lg:gap-3' : 'hidden'}
+        >
+          {isFormTab && (
+            <div {...panel}>
+              {tab === 'general' &&
+                (isLoading ? (
+                  <GeneralTabSkeleton />
+                ) : (
+                  <GeneralTab
+                    formData={formData}
+                    onChange={onChange}
+                    profiles={profiles}
+                    currentTheme={currentTheme}
+                    setCurrentTheme={setCurrentTheme}
+                    handleThemeChange={handleThemeChange}
+                  />
+                ))}
+              {tab === 'machine' &&
+                (isLoading ? (
+                  <MachineTabSkeleton />
+                ) : (
+                  <LazyMachineTab formData={formData} onChange={onChange} setField={setField} />
+                ))}
+              {tab === 'plugins' &&
+                (isLoading ? (
+                  <PluginsTabSkeleton />
+                ) : (
+                  <LazyPluginsTab
+                    formData={formData}
+                    onChange={onChange}
+                    autowakeupSchedules={autowakeupSchedules}
+                    addAutoWakeupSchedule={addAutoWakeupSchedule}
+                    removeAutoWakeupSchedule={removeAutoWakeupSchedule}
+                    updateAutoWakeupTime={updateAutoWakeupTime}
+                    updateAutoWakeupDay={updateAutoWakeupDay}
+                  />
+                ))}
+            </div>
+          )}
+
+          {isFormTab && (
+            <RestartTile
+              submitting={submitting}
+              disabled={!loaded}
+              onRestart={() => onSubmit(null, true)}
+            />
+          )}
+        </form>
+
+        {tab === 'calibration' && (
+          <div {...panel}>
+            <LazyCalibrationTab formData={formData} setField={setField} onPidTuned={onPidTuned} />
+          </div>
+        )}
+        {tab === 'bluetooth' && (
+          <div {...panel}>{isLoading ? <BluetoothTabSkeleton /> : <LazyBluetoothTab />}</div>
+        )}
+        {tab === 'system' && (
+          <div {...panel}>{isLoading ? <SystemTabSkeleton /> : <LazySystemTab />}</div>
+        )}
+
+        {(isFormTab || dirty || importPending || saveState) && (
+          <PinnedSave
+            form={FORM_ID}
+            submitting={submitting}
+            disabled={!loaded}
+            invalid={Object.keys(errors).length}
+            state={!isLoading && !loaded ? 'unloaded' : saveState}
+            dirty={dirty}
+          />
+        )}
+      </PageLayout>
+    </FormErrors.Provider>
   );
 }

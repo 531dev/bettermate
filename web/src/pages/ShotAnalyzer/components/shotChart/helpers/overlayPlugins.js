@@ -1,13 +1,4 @@
-import { getNeutralAxisTickColor } from './axisPlugins';
-import {
-  CHART_LABEL_FONT_FAMILY,
-  drawPixelIcon,
-  drawRoundedRect,
-  getChartLabelScale,
-} from './canvasDrawing';
-import { readCssColorVar } from './chartTheme';
-
-const PHASE_BACKGROUND_FILL_FALLBACK = 'rgba(107, 114, 128, 0.085)';
+import { drawPixelIcon, getChartLabelScale, getChartTheme } from './canvasDrawing';
 
 const STOP_ICON_BADGE_RADIUS = 8.5;
 
@@ -19,10 +10,13 @@ const STOP_ICON_BADGE_ICON_Y_OFFSET_RATIO = -0.14;
 
 const STOP_ICON_SIZE = 12;
 
+// The time under the pointer: a hairline through the chart area.
 export const hoverGuidePlugin = {
   id: 'hoverGuide',
   afterDatasetsDraw(chart, _args, pluginOptions) {
     if (chart?.$suppressHoverGuide) return;
+    const theme = getChartTheme(chart);
+    if (!theme) return;
 
     const active = chart.getActiveElements?.() || chart.tooltip?.getActiveElements?.() || [];
     const x = Number.isFinite(chart?.$fixedTooltipPointerX)
@@ -34,12 +28,9 @@ export const hoverGuidePlugin = {
     const { top, bottom } = chart.chartArea;
     const ctx = chart.ctx;
     ctx.save();
-    // Draw the guide after datasets so it stays visible above fills and lines
-    // without needing a dedicated overlay canvas.
     ctx.beginPath();
-    ctx.strokeStyle = pluginOptions?.color || getNeutralAxisTickColor();
-    ctx.lineWidth = pluginOptions?.lineWidth || 2.5;
-    ctx.setLineDash(pluginOptions?.dash || []);
+    ctx.strokeStyle = theme.inkMuted;
+    ctx.lineWidth = 1;
     ctx.moveTo(x, Math.max(0, top - overflow));
     ctx.lineTo(x, Math.min(chart.height, bottom + overflow));
     ctx.stroke();
@@ -47,81 +38,13 @@ export const hoverGuidePlugin = {
   },
 };
 
-function resolveFinalWeightCalloutAnchor(chart, callout) {
-  const xScale = chart.scales[callout.xScaleID || 'x'];
-  const yScale = chart.scales[callout.yScaleID || 'yWeight'];
-  if (!xScale || !yScale) return null;
-
-  const xValue = Number(callout.xValue);
-  const yValue = Number(callout.yValue);
-  if (!Number.isFinite(xValue) || !Number.isFinite(yValue)) return null;
-
-  const startX = xScale.getPixelForValue(xValue);
-  const startY = yScale.getPixelForValue(yValue);
-  if (!Number.isFinite(startX) || !Number.isFinite(startY)) return null;
-
-  return { startX, startY };
-}
-
-function resolveFinalWeightCalloutEnd(callout, anchor) {
-  const xAdjust = Number(callout.xAdjust) || 0;
-  const yAdjust = Number(callout.yAdjust) || 0;
-  const length = Math.hypot(xAdjust, yAdjust);
-  if (!Number.isFinite(length) || length <= 0) return null;
-
-  const edgeInset = Number(callout.edgeInset) || 12;
-  return {
-    endX: anchor.startX + xAdjust - (xAdjust / length) * edgeInset,
-    endY: anchor.startY + yAdjust - (yAdjust / length) * edgeInset,
-  };
-}
-
-function resolveFinalWeightCalloutLine(chart, callout) {
-  if (!callout?.visible) return null;
-  const anchor = resolveFinalWeightCalloutAnchor(chart, callout);
-  if (!anchor) return null;
-  const end = resolveFinalWeightCalloutEnd(callout, anchor);
-  if (!end) return null;
-
-  return {
-    ...anchor,
-    ...end,
-    color: callout.color || '#8b5cf6',
-    lineWidth: Number(callout.lineWidth) || 2.5,
-  };
-}
-
-function drawFinalWeightCalloutLine(ctx, line) {
-  ctx.beginPath();
-  ctx.strokeStyle = line.color;
-  ctx.lineWidth = line.lineWidth;
-  ctx.lineCap = 'round';
-  ctx.moveTo(line.startX, line.startY);
-  ctx.lineTo(line.endX, line.endY);
-  ctx.stroke();
-}
-
-export const finalWeightCalloutLinePlugin = {
-  id: 'finalWeightCalloutLine',
-  afterDatasetsDraw(chart, _args, pluginOptions = {}) {
-    if (!chart?.chartArea || !chart?.scales) return;
-
-    const callouts = Array.isArray(pluginOptions.callouts) ? pluginOptions.callouts : [];
-    if (callouts.length === 0) return;
-
-    chart.ctx.save();
-    for (const callout of callouts) {
-      const line = resolveFinalWeightCalloutLine(chart, callout);
-      if (line) drawFinalWeightCalloutLine(chart.ctx, line);
-    }
-    chart.ctx.restore();
-  },
-};
-
+// Every other phase stands on a band one tone above the tile, so phases read without a line
+// between them. The band is a flat surface-2, never a tint.
 export const phaseBackgroundOverlayPlugin = {
   id: 'phaseBackgroundOverlay',
   beforeDatasetsDraw(chart, _args, pluginOptions = {}) {
-    if (!chart?.chartArea || !chart?.scales) return;
+    const theme = getChartTheme(chart);
+    if (!theme || !chart?.chartArea || !chart?.scales) return;
 
     const ranges = Array.isArray(pluginOptions.ranges) ? pluginOptions.ranges : [];
     if (ranges.length === 0) return;
@@ -131,11 +54,9 @@ export const phaseBackgroundOverlayPlugin = {
 
     const { left, right, top, bottom } = chart.chartArea;
     const ctx = chart.ctx;
-    const defaultFillStyle =
-      pluginOptions.color ||
-      readCssColorVar('--analyzer-phase-background', PHASE_BACKGROUND_FILL_FALLBACK);
 
     ctx.save();
+    ctx.fillStyle = theme.surface2;
     ranges.forEach(range => {
       if (!range?.visible || !range?.shaded) return;
 
@@ -147,7 +68,6 @@ export const phaseBackgroundOverlayPlugin = {
       const width = Math.min(right, Math.max(startX, endX)) - x;
       if (width <= 0) return;
 
-      ctx.fillStyle = range.color || defaultFillStyle;
       ctx.fillRect(x, top, width, bottom - top);
     });
     ctx.restore();
@@ -179,10 +99,12 @@ function resolveStopIconLayout(chart, stop, labelScale) {
   };
 }
 
-function drawStopIcon(ctx, stop, layout) {
+// A stop is a fact, so its pin is ink with the glyph of what ended the phase in on-ink. Only a
+// safety stop takes the warning token.
+function drawStopIcon(ctx, theme, stop, layout) {
   const { badgeHeight, badgeWidth, centerX, centerY, labelScale } = layout;
   ctx.save();
-  ctx.fillStyle = stop.backgroundColor || '#dc2626';
+  ctx.fillStyle = stop.tone === 'warning' ? theme.warning : theme.stop;
   ctx.beginPath();
   drawStopBadgeDropPath(ctx, {
     centerX,
@@ -198,14 +120,15 @@ function drawStopIcon(ctx, stop, layout) {
     x: centerX,
     y: centerY + badgeHeight * STOP_ICON_BADGE_ICON_Y_OFFSET_RATIO,
     size: (Number(stop.iconSize) || STOP_ICON_SIZE) * labelScale,
-    color: stop.color || '#dc2626',
+    color: theme.onInk,
   });
 }
 
 export const stopIconOverlayPlugin = {
   id: 'stopIconOverlay',
   afterDraw(chart, _args, pluginOptions = {}) {
-    if (!chart?.chartArea || !chart?.scales) return;
+    const theme = getChartTheme(chart);
+    if (!theme || !chart?.chartArea || !chart?.scales) return;
 
     const stops = Array.isArray(pluginOptions.stops) ? pluginOptions.stops : [];
     if (stops.length === 0) return;
@@ -218,7 +141,7 @@ export const stopIconOverlayPlugin = {
     for (const stop of [...stops].reverse()) {
       if (!shouldDrawStopIcon(stop, shouldFilterByReplayTime, stopRevealX)) continue;
       const layout = resolveStopIconLayout(chart, stop, labelScale);
-      if (layout) drawStopIcon(chart.ctx, stop, layout);
+      if (layout) drawStopIcon(chart.ctx, theme, stop, layout);
     }
   },
 };
@@ -284,103 +207,3 @@ function drawStopBadgeDropPath(ctx, { centerX, centerY, width, height }) {
   );
   ctx.closePath();
 }
-
-function getFinalWeightBadgeText(content) {
-  return Array.isArray(content) ? String(content[0] || '') : String(content || '');
-}
-
-function getFinalWeightBadgeScale(chart, scaleId, fallbackScaleId) {
-  return chart.scales[scaleId || fallbackScaleId] || null;
-}
-
-function getFinalWeightBadgeCoordinate(scale, value, adjustment) {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return null;
-
-  const coordinate = scale.getPixelForValue(numericValue) + (Number(adjustment) || 0);
-  return Number.isFinite(coordinate) ? coordinate : null;
-}
-
-function getFinalWeightBadgeStyle(chart, label) {
-  const labelScale = getChartLabelScale(chart);
-  const padding =
-    typeof label.padding === 'object' && label.padding
-      ? label.padding
-      : { x: Number(label.padding) || 6, y: Number(label.padding) || 4 };
-
-  return {
-    effectiveFontSize: (Number(label.font?.size) || 12) * labelScale,
-    fontWeight: label.font?.weight || 'bold',
-    labelScale,
-    padding,
-  };
-}
-
-function resolveFinalWeightBadgeLayout(chart, label) {
-  if (!label || label.visible === false) return null;
-
-  const xScale = getFinalWeightBadgeScale(chart, label.xScaleID, 'x');
-  const yScale = getFinalWeightBadgeScale(chart, label.yScaleID, 'yWeight');
-  if (!xScale || !yScale) return null;
-
-  const text = getFinalWeightBadgeText(label.content);
-  if (!text) return null;
-
-  const x = getFinalWeightBadgeCoordinate(xScale, label.xValue, label.xAdjust);
-  const y = getFinalWeightBadgeCoordinate(yScale, label.yValue, label.yAdjust);
-  if (x === null || y === null) return null;
-
-  return {
-    ...getFinalWeightBadgeStyle(chart, label),
-    text,
-    x,
-    y,
-  };
-}
-
-function drawFinalWeightBadge(chart, label) {
-  const layout = resolveFinalWeightBadgeLayout(chart, label);
-  if (!layout) return;
-
-  const { effectiveFontSize, fontWeight, labelScale, padding, text, x, y } = layout;
-  const ctx = chart.ctx;
-  ctx.save();
-  ctx.font = `${fontWeight} ${effectiveFontSize}px ${CHART_LABEL_FONT_FAMILY}`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  const textWidth = ctx.measureText(text).width;
-  const boxWidth = textWidth + (Number(padding.x) || 0) * 2 * labelScale;
-  const boxHeight = effectiveFontSize + (Number(padding.y) || 0) * 2 * labelScale;
-
-  ctx.fillStyle = label.backgroundColor || '#8b5cf6';
-  ctx.beginPath();
-  drawRoundedRect(ctx, {
-    x: x - boxWidth / 2,
-    y: y - boxHeight / 2,
-    width: boxWidth,
-    height: boxHeight,
-    radius: label.borderRadius || 999,
-  });
-  ctx.fill();
-
-  if (label.borderWidth) {
-    ctx.lineWidth = label.borderWidth;
-    ctx.strokeStyle = label.borderColor || '#ffffff';
-    ctx.stroke();
-  }
-
-  ctx.fillStyle = label.color || '#ffffff';
-  ctx.fillText(text, x, y);
-  ctx.restore();
-}
-
-export const finalWeightBadgeOverlayPlugin = {
-  id: 'finalWeightBadgeOverlay',
-  afterDraw(chart, _args, pluginOptions = {}) {
-    if (!chart?.chartArea || !chart?.scales) return;
-
-    const labels = Array.isArray(pluginOptions.labels) ? pluginOptions.labels : [];
-    for (const label of labels) drawFinalWeightBadge(chart, label);
-  },
-};

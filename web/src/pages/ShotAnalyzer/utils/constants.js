@@ -43,117 +43,50 @@ export const groups = {
   system: 'System Info',
 };
 
+// Transitional: callers that still import these read plain tokens. Warnings are `warning`
+// notices and Chips, a stop is a fact in ink, and a source is told by its glyph and word.
 export const utilityColors = {
-  stopRed: 'var(--analyzer-pred-stop-red)',
-  warningOrange: 'var(--analyzer-warning-orange)',
+  stopRed: 'var(--analyzer-stop)',
+  warningOrange: 'var(--warning)',
 };
 
 export const analyzerUiColors = {
-  warningOrange: 'var(--analyzer-warning-orange)',
-  warningOrangeStrong: 'var(--analyzer-warning-orange-strong)',
-  sourceBadgeGmBg: 'var(--analyzer-source-gm-badge-bg)',
-  sourceBadgeGmBorder: 'var(--analyzer-source-gm-badge-border)',
-  sourceBadgeGmText: 'var(--analyzer-source-gm-badge-text)',
-  sourceBadgeWebBg: 'var(--analyzer-source-web-badge-bg)',
-  sourceBadgeWebBorder: 'var(--analyzer-source-web-badge-border)',
-  sourceBadgeWebText: 'var(--analyzer-source-web-badge-text)',
-  brewByTimeLabelBg: 'var(--analyzer-brew-by-time-label-bg)',
-  brewByTimeLabelBorder: 'var(--analyzer-brew-by-time-label-border)',
-  brewByTimeLabelText: 'var(--analyzer-brew-by-time-label-text)',
-  brewByWeightLabelBg: 'var(--analyzer-brew-by-weight-label-bg)',
-  brewByWeightLabelBorder: 'var(--analyzer-brew-by-weight-label-border)',
-  brewByWeightLabelText: 'var(--analyzer-brew-by-weight-label-text)',
-  notesTasteBitter: 'var(--analyzer-notes-taste-bitter)',
-  notesTasteBalanced: 'var(--analyzer-notes-taste-balanced)',
-  notesTasteSour: 'var(--analyzer-notes-taste-sour)',
-  phaseLine: 'var(--analyzer-phase-line)',
-  stopLabel: 'var(--analyzer-stop-label)',
+  warningOrange: 'var(--warning)',
+  warningOrangeStrong: 'var(--warning)',
+  sourceBadgeGmBg: 'var(--surface-2)',
+  sourceBadgeGmBorder: 'var(--line)',
+  sourceBadgeGmText: 'var(--ink-muted)',
+  sourceBadgeWebBg: 'var(--surface-2)',
+  sourceBadgeWebBorder: 'var(--line)',
+  sourceBadgeWebText: 'var(--ink)',
+  brewByTimeLabelBg: 'var(--surface-2)',
+  brewByTimeLabelBorder: 'var(--line)',
+  brewByTimeLabelText: 'var(--ink-muted)',
+  brewByWeightLabelBg: 'var(--surface-2)',
+  brewByWeightLabelBorder: 'var(--line)',
+  brewByWeightLabelText: 'var(--ink-muted)',
+  notesTasteBitter: 'var(--ink)',
+  notesTasteBalanced: 'var(--ink)',
+  notesTasteSour: 'var(--ink)',
+  phaseLine: 'var(--analyzer-phase)',
+  stopLabel: 'var(--analyzer-stop)',
 };
 
-const notesTasteStyles = {
-  bitter: {
-    color: analyzerUiColors.notesTasteBitter,
-    borderColor: analyzerUiColors.notesTasteBitter,
-    selectedBackground: 'color-mix(in srgb, var(--analyzer-notes-taste-bitter) 12%, transparent)',
-  },
-  balanced: {
-    color: analyzerUiColors.notesTasteBalanced,
-    borderColor: analyzerUiColors.notesTasteBalanced,
-    selectedBackground: 'color-mix(in srgb, var(--analyzer-notes-taste-balanced) 12%, transparent)',
-  },
-  sour: {
-    color: analyzerUiColors.notesTasteSour,
-    borderColor: analyzerUiColors.notesTasteSour,
-    selectedBackground: 'color-mix(in srgb, var(--analyzer-notes-taste-sour) 12%, transparent)',
-  },
-};
+export const getNotesTasteStyle = () => null;
 
-export const getNotesTasteStyle = taste => notesTasteStyles[taste] || null;
-
+// The mark colour of each column group: a series token, or neutral ink for facts.
 export const groupColors = {
-  basics: {
-    bg: 'bg-base-content/5',
-    text: 'text-base-content',
-    anchor: '#64748b',
-  },
-  pressure: {
-    bg: 'bg-blue-500/5',
-    text: 'text-[var(--analyzer-pressure-text)]',
-    anchor: 'var(--analyzer-pressure-anchor)',
-  },
-  target_pressure: {
-    bg: 'bg-blue-500/5',
-    text: 'text-[var(--analyzer-target-pressure-text)]',
-    anchor: 'var(--analyzer-target-pressure-anchor)',
-  },
-  flow: {
-    bg: 'bg-green-500/5',
-    text: 'text-[var(--analyzer-flow-text)]',
-    anchor: 'var(--analyzer-flow-anchor)',
-  },
-  target_flow: {
-    bg: 'bg-green-500/5',
-    text: 'text-[var(--analyzer-target-flow-text)]',
-    anchor: 'var(--analyzer-target-flow-anchor)',
-  },
-  puckflow: {
-    bg: 'bg-emerald-500/5',
-    text: 'text-[var(--analyzer-puckflow-text)]',
-    anchor: 'var(--analyzer-puckflow-anchor)',
-  },
-  puckresistance: {
-    bg: 'bg-amber-500/5',
-    text: 'text-[var(--analyzer-puckresistance-text)]',
-    anchor: 'var(--analyzer-puckresistance-anchor)',
-  },
-  liquidresistance: {
-    bg: 'bg-amber-500/5',
-    text: 'text-[var(--analyzer-liquidresistance-text)]',
-    anchor: 'var(--analyzer-liquidresistance-anchor)',
-  },
-  temp: {
-    bg: 'bg-orange-500/5',
-    text: 'text-[var(--analyzer-temp-text)]',
-    anchor: 'var(--analyzer-temp-anchor)',
-  },
-  target_temp: {
-    bg: 'bg-orange-500/5',
-    text: 'text-[var(--analyzer-target-temp-text)]',
-    anchor: 'var(--analyzer-target-temp-anchor)',
-  },
-  weight: {
-    bg: 'bg-violet-500/5',
-    text: 'text-[var(--analyzer-weight-text)]',
-    anchor: 'var(--analyzer-weight-anchor)',
-  },
-  weightflow: {
-    bg: 'bg-violet-500/5',
-    text: 'text-[var(--analyzer-weightflow-text)]',
-    anchor: 'var(--analyzer-weightflow-anchor)',
-  },
-  system: {
-    bg: 'bg-base-content/5',
-    text: 'text-base-content',
-    anchor: '#475569',
-  },
+  basics: { anchor: 'var(--ink-muted)' },
+  pressure: { anchor: 'var(--analyzer-pressure)' },
+  target_pressure: { anchor: 'var(--analyzer-pressure)' },
+  flow: { anchor: 'var(--analyzer-flow)' },
+  target_flow: { anchor: 'var(--analyzer-flow)' },
+  puckflow: { anchor: 'var(--analyzer-puck-flow)' },
+  puckresistance: { anchor: 'var(--analyzer-puck-resistance)' },
+  liquidresistance: { anchor: 'var(--analyzer-liquid-resistance)' },
+  temp: { anchor: 'var(--analyzer-temperature)' },
+  target_temp: { anchor: 'var(--analyzer-temperature)' },
+  weight: { anchor: 'var(--analyzer-weight)' },
+  weightflow: { anchor: 'var(--analyzer-weight-flow)' },
+  system: { anchor: 'var(--ink-muted)' },
 };

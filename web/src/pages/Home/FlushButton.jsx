@@ -1,9 +1,9 @@
-import { Icon } from '../../components/Icon.jsx';
-import PropTypes from 'prop-types';
 import { useEffect } from 'preact/hooks';
+import { Button } from '../../components/Button.jsx';
+import { Icon } from '../../components/Icon.jsx';
 
 // Press-and-hold aware: a hold-to-flush (flush duration 0) runs until the pointer or key is released.
-export function FlushButton({ className, isFlushing, startFlush, stopFlush }) {
+export function FlushButton({ isFlushing, startFlush, stopFlush }) {
   // The release is caught on the window so it still arrives when the pointer left the button.
   useEffect(() => {
     if (!isFlushing) return undefined;
@@ -25,23 +25,18 @@ export function FlushButton({ className, isFlushing, startFlush, stopFlush }) {
     if (e.key === 'Enter' || e.key === ' ') stopFlush();
   };
   return (
-    <button
-      type='button'
-      className={`${className} ${isFlushing ? 'btn-active' : ''}`}
+    <Button
+      size='sm'
+      // While water runs, the button is what is selected on the tile: ink.
+      variant={isFlushing ? 'ink' : undefined}
       onPointerDown={startFlush}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
       aria-pressed={isFlushing}
       aria-label='Flush water'
     >
-      <Icon name={'droplet'} /> Flush
-    </button>
+      <Icon name='droplet' size={18} />
+      Flush
+    </Button>
   );
 }
-
-FlushButton.propTypes = {
-  className: PropTypes.string.isRequired,
-  isFlushing: PropTypes.bool.isRequired,
-  startFlush: PropTypes.func.isRequired,
-  stopFlush: PropTypes.func.isRequired,
-};

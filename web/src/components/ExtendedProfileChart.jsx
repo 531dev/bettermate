@@ -1,34 +1,30 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { Chart } from 'chart.js';
-import { ChartComponent } from './Chart';
+import { useMemo, useRef } from 'preact/hooks';
+import {
+  band,
+  bandColor,
+  chartOptions,
+  DASHED,
+  line,
+  niceAxis,
+  phaseLine,
+  secondsAxis,
+  valueAxis,
+} from '../utils/chartTheme.js';
+import { ChartComponent } from './Chart.jsx';
 
 const POINT_INTERVAL = 0.1; // s
 
-const skipped = (ctx, value) => (!ctx.p0.raw.target ? value : undefined);
-const pressureDatasetDefaults = {
-  label: 'Pressure',
-  borderColor: 'rgb(75, 192, 192)',
-  tension: 0.4,
-  cubicInterpolationMode: 'monotone',
-  segment: {
-    borderColor: ctx => skipped(ctx, 'rgba(75, 192, 192, 0.6)'),
-    borderDash: ctx => skipped(ctx, [6, 6]),
-  },
-  spanGaps: true,
-};
-
-const flowDatasetDefaults = {
-  label: 'Flow',
-  borderColor: 'rgb(255, 192, 192)',
-  tension: 0.4,
-  cubicInterpolationMode: 'monotone',
-  segment: {
-    borderColor: ctx => skipped(ctx, 'rgba(255, 192, 192, 0.6)'),
-    borderDash: ctx => skipped(ctx, [6, 6]),
-  },
-  spanGaps: true,
-  yAxisID: 'y1',
-};
+// Where a phase holds the other quantity, this one is only its limit: dashed like a target, and
+// 2px like every line but the pressure a phase holds.
+const limit = (ctx, value) => (ctx.p0.raw.target ? undefined : value);
+const curve = (series, label, data) =>
+  line(series, label, data, {
+    segment: {
+      borderDash: ctx => limit(ctx, DASHED.borderDash),
+      borderCapStyle: ctx => limit(ctx, DASHED.borderCapStyle),
+      borderWidth: ctx => limit(ctx, 2),
+    },
+  });
 
 function easeLinear(t) {
   return t;
@@ -99,7 +95,8 @@ function prepareData(phases, target) {
     });
     time += POINT_INTERVAL;
     phaseTime += POINT_INTERVAL;
-    if (phaseTime >= currentPhase.duration) {
+    // Also true for a duration that is not a number yet, so a half-typed phase cannot hang the loop.
+    if (!(phaseTime < currentPhase.duration)) {
       phaseTime = 0;
       phaseIndex++;
       if (phaseIndex < phases.length) {
@@ -116,233 +113,6 @@ function prepareData(phases, target) {
   return data;
 }
 
-function makeChartData(
-  data,
-  selectedPhase,
-  phaseRanges,
-  onPhaseClick,
-  isDarkMode = false,
-  showPhaseLabels = true,
-) {
-  const phases = Array.isArray(data?.phases) ? data.phases : [];
-  let duration = 0;
-  for (const phase of phases) {
-    duration += Number.parseFloat(phase.duration);
-  }
-  const chartData = {
-    type: 'line',
-    data: {
-      datasets: [
-        {
-          ...pressureDatasetDefaults,
-          data: prepareData(phases, 'pressure'),
-        },
-        {
-          ...flowDatasetDefaults,
-          data: prepareData(phases, 'flow'),
-        },
-      ],
-    },
-    options: {
-      fill: false,
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        intersect: false,
-      },
-      plugins: {
-        legend: {
-          position: 'top',
-          display: true,
-          labels: {
-            usePointStyle: true,
-            pointStyle: 'line',
-            pointStyleWidth: 20,
-            padding: 8,
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-            generateLabels: function (chart) {
-              const original = Chart.defaults.plugins.legend.labels.generateLabels;
-              const labels = original.call(this, chart);
-
-              labels.forEach((label, index) => {
-                const dataset = chart.data.datasets[index];
-                label.lineWidth = 3;
-                if (dataset.borderDash && dataset.borderDash.length > 0) {
-                  label.lineDash = dataset.borderDash;
-                }
-              });
-
-              return labels;
-            },
-          },
-        },
-        title: {
-          display: false,
-          text: 'Temperature History',
-          font: {
-            size: window.innerWidth < 640 ? 14 : 16,
-          },
-        },
-      },
-      animations: false,
-      radius: 0,
-      scales: {
-        x: {
-          type: 'linear',
-          min: 0,
-          max: duration,
-          display: true,
-          position: 'bottom',
-          title: {},
-          ticks: {
-            source: 'auto',
-            callback: (value, index, ticks) => {
-              return `${value?.toFixed()}s`;
-            },
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-            maxTicksLimit: 10,
-          },
-        },
-        y: {
-          type: 'linear',
-          display: true,
-          position: 'left',
-          title: {
-            display: true,
-            text: 'Pressure (bar)',
-          },
-          min: 0,
-          max: 12,
-          ticks: {
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-          },
-        },
-        y1: {
-          type: 'linear',
-          display: true,
-          position: 'right',
-          title: {
-            display: true,
-            text: 'Flow (ml/s)',
-          },
-          min: 0,
-          max: 10,
-          ticks: {
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-          },
-        },
-      },
-    },
-  };
-
-  // Always show phase dividers and labels
-  chartData.options.plugins.annotation = {
-    drawTime: 'afterDatasetsDraw',
-    clip: false,
-    annotations: [],
-  };
-
-  // Add highlighting box only if a phase is selected
-  if (selectedPhase !== null && phaseRanges[selectedPhase]) {
-    const start = phaseRanges[selectedPhase].start;
-    const end = phaseRanges[selectedPhase].end;
-
-    chartData.options.plugins.annotation.annotations.push({
-      id: 'box1',
-      type: 'box',
-      xMin: start + 0.1,
-      xMax: end - 0.1,
-      backgroundColor: 'rgba(0,105,255,0.2)',
-      borderColor: 'rgba(100, 100, 100, 0)',
-    });
-  }
-
-  const chartWidth = window.innerWidth;
-  const showLabels = showPhaseLabels && chartWidth >= 520;
-  const isSmall = window.innerWidth < 640;
-  // const yMax = chartData.options.scales.y.max ?? 12;
-
-  for (let i = 0; i < phases.length; i++) {
-    const phase = phases[i];
-    const phaseName = phase.name || `Phase ${i + 1}`;
-
-    chartData.options.plugins.annotation.annotations.push({
-      type: 'line',
-      xMin: phaseRanges[i].start,
-      xMax: phaseRanges[i].start,
-      borderColor: 'rgb(128,128,128)',
-      borderWidth: 1,
-      label: showLabels
-        ? {
-            display: true,
-            content: phaseName,
-            rotation: -90,
-            position: 'end', // anchor at top of line
-            xAdjust: i === 0 ? -7 : 8, // tweak first label inward to compensate for y-axis padding
-            yAdjust: 0,
-            padding: { x: 4, y: 0 },
-            color: isDarkMode ? 'rgb(255,255,255)' : 'rgb(0,0,0)',
-            backgroundColor: isDarkMode ? 'rgba(22,33,50,0.75)' : 'rgba(255,255,255,0.75)',
-            textAlign: 'start',
-            font: {
-              size: isSmall ? 9 : 11,
-              weight: 500,
-            },
-            clip: false,
-          }
-        : undefined,
-    });
-  }
-
-  // If we are in the edit profile page (we have phases and a phase is selected) set the hover effect and onPhaseClick()
-  if (selectedPhase !== null && phases.length > 0) {
-    chartData.options.plugins.annotation.interaction = {
-      intersect: false,
-      mode: 'x',
-      axis: 'x',
-    };
-
-    const hoverEnterColor = 'rgb(0 105 255 / 0.07)';
-    const hoverLeaveColor = 'rgb(0 0 0 / 0)';
-
-    for (let i = 0; i < phaseRanges.length; i++) {
-      const start = phaseRanges[i].start;
-      const end = phaseRanges[i].end;
-      chartData.options.plugins.annotation.annotations.push({
-        id: `phase${i}`,
-        type: 'box',
-        xMin: start + 0.1,
-        xMax: end - 0.1,
-        backgroundColor: hoverLeaveColor,
-        borderColor: 'rgba(100, 100, 100, 0)',
-        clip: true,
-        enter({ element }) {
-          element.options.backgroundColor = hoverEnterColor;
-          return true;
-        },
-        leave({ element }) {
-          element.options.backgroundColor = hoverLeaveColor;
-          return true;
-        },
-        click() {
-          if (onPhaseClick) onPhaseClick(i);
-          return true;
-        },
-      });
-    }
-  }
-
-  return chartData;
-}
-
 function buildPhaseRanges(phases) {
   const ranges = [];
   let start = 0;
@@ -354,13 +124,73 @@ function buildPhaseRanges(phases) {
   return ranges;
 }
 
-function getPhaseIndexForX(phaseRanges, xValue) {
-  for (let i = 0; i < phaseRanges.length; i++) {
-    if (xValue <= phaseRanges[i].end) return i;
+function makeChartData(phases, selectedPhase, showLabels, onPhaseClick) {
+  const ranges = buildPhaseRanges(phases);
+  const duration = ranges.length ? ranges[ranges.length - 1].end : 0;
+  const pressure = prepareData(phases, 'pressure');
+  const flow = prepareData(phases, 'flow');
+  // Bar and ml/s share the one axis, as they do on the shot charts.
+  const top = [...pressure, ...flow].reduce((most, point) => Math.max(most, point.y), 12);
+
+  const annotations = [];
+  // The phase being edited, or the one the machine is in.
+  if (selectedPhase !== null && ranges[selectedPhase]) {
+    annotations.push(band(ranges[selectedPhase].start, ranges[selectedPhase].end));
   }
-  return -1;
+  phases.forEach((phase, i) => {
+    annotations.push(phaseLine(ranges[i].start, phase.name || `Phase ${i + 1}`, showLabels));
+  });
+  // In the editor a phase is picked by pressing its stretch of the chart.
+  if (onPhaseClick) {
+    ranges.forEach(({ start, end }, i) => {
+      annotations.push(
+        // Inset a little, so the pointer on a boundary is over one phase only.
+        band(start + 0.1, end - 0.1, {
+          kind: 'hover',
+          backgroundColor: 'transparent',
+          enter({ element }) {
+            element.options.backgroundColor = bandColor('hover');
+            return true;
+          },
+          leave({ element }) {
+            element.options.backgroundColor = 'transparent';
+            return true;
+          },
+          click() {
+            onPhaseClick(i);
+            return true;
+          },
+        }),
+      );
+    });
+  }
+
+  const config = {
+    type: 'line',
+    data: { datasets: [curve('pressure', 'Pressure', pressure), curve('flow', 'Flow', flow)] },
+    options: chartOptions({
+      scales: {
+        x: secondsAxis(0, duration || 1),
+        y: valueAxis(niceAxis(0, top)),
+      },
+      annotations,
+      ...(onPhaseClick && { events: ['mousemove', 'mouseout', 'click', 'touchstart'] }),
+    }),
+  };
+  if (onPhaseClick) {
+    config.options.plugins.annotation.interaction = { intersect: false, mode: 'x', axis: 'x' };
+  }
+  return config;
 }
 
+/**
+ * The pressure and flow a profile asks for, over its phases.
+ *   data             the profile; its `phases` are drawn
+ *   className        the canvas: cap its height here (`max-h-36`), or size the box with `style`
+ *   selectedPhase    index of the phase to mark with a band
+ *   onPhaseClick(i)  makes the phases pressable, for the editor
+ *   showPhaseLabels  false leaves the phase names off the lines; they are off under 520px anyway
+ */
 export function ExtendedProfileChart({
   data,
   className = 'max-h-36 w-full',
@@ -369,27 +199,33 @@ export function ExtendedProfileChart({
   showPhaseLabels = true,
   style,
 }) {
-  const isDarkMode = () =>
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   const phases = Array.isArray(data?.phases) ? data.phases : [];
-  const phaseRanges = buildPhaseRanges(phases);
-  const phaseRangesRef = useRef(phaseRanges);
-  phaseRangesRef.current = phaseRanges;
-  const config = makeChartData(
-    data,
-    selectedPhase,
-    phaseRanges,
-    onPhaseClick,
-    isDarkMode(),
-    showPhaseLabels,
+  const showLabels = showPhaseLabels && window.innerWidth >= 520;
+  const pressable = !!onPhaseClick;
+  const press = useRef(onPhaseClick);
+  press.current = onPhaseClick;
+
+  // Parents render often (every keystroke in the editor, every reading on the dashboard); the
+  // chart only changes with the phases themselves.
+  const shape = JSON.stringify(phases);
+  const config = useMemo(
+    () =>
+      makeChartData(
+        JSON.parse(shape),
+        selectedPhase,
+        showLabels,
+        pressable ? index => press.current?.(index) : null,
+      ),
+    [shape, selectedPhase, showLabels, pressable],
   );
 
   return (
     <ChartComponent
       className='min-h-0 max-w-full flex-shrink flex-grow'
-      chartClassName={`${className}${onPhaseClick ? ' cursor-pointer' : ''}`}
+      chartClassName={`${className}${pressable ? ' cursor-pointer' : ''}`}
       data={config}
       style={style}
+      label='Pressure and flow over the phases of the profile'
     />
   );
 }

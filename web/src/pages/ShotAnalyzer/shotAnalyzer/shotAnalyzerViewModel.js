@@ -37,10 +37,6 @@ export function buildShotAnalyzerViewModel({
     ? getShotIdentityKey(displayCompareSecondaryShot)
     : '';
   const compareSecondaryProfile = compareSecondaryShot?.profile || null;
-  const compareSecondaryStatsHref = buildStatisticsProfileHref({
-    source: compareSecondaryProfile?.source,
-    profileName: compareSecondaryShot?.profileName,
-  });
   const referenceCompareEntry =
     currentShot && analysisResults
       ? {
@@ -72,16 +68,10 @@ export function buildShotAnalyzerViewModel({
           .filter(entry => entry.results),
       ]
     : [];
-  const compareCollectionWithAccents = compareCollection.map((entry, index) => ({
-    ...entry,
-    accentColor: 'var(--color-primary)',
-    accentStrength: index === 0 ? 1 : 0.7,
-  }));
-  const isCompareActive =
-    compareMode && compareHasSecondaryShot && compareCollectionWithAccents.length > 1;
+  const isCompareActive = compareMode && compareHasSecondaryShot && compareCollection.length > 1;
   const shotDetailsEntries = buildShotDetailsEntries({
     isCompareActive,
-    compareCollectionWithAccents,
+    compareCollection,
     referenceCompareEntry,
   });
   const chartMountKey = [
@@ -92,12 +82,11 @@ export function buildShotAnalyzerViewModel({
 
   return {
     chartMountKey,
-    compareCollectionWithAccents,
+    compareCollection,
     compareDetailsKey,
     compareHasSecondaryShot,
     compareSecondaryProfile,
     compareSecondaryShot,
-    compareSecondaryStatsHref,
     compareSelectedCount,
     compareSelectionKeys,
     displayCompareSecondaryShotKey,

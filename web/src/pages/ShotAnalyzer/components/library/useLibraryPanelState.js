@@ -8,9 +8,7 @@ import {
   buildShotNavigationItems,
   getLibraryRequestSource,
 } from './libraryData';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-
-const STATUS_BAR_CARD_GAP = 12;
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 
 export function useLibraryPanelLayoutState({ sentinelRef, barSlotRef, barRef }) {
   const [isStuck, setIsStuck] = useState(false);
@@ -61,7 +59,8 @@ export function useLibraryPanelLayoutState({ sentinelRef, barSlotRef, barRef }) 
     );
   }, [barRef, barSlotRef, sentinelRef]);
 
-  useEffect(() => {
+  // Measured before the first paint, so the slot that keeps the bar's place never jumps.
+  useLayoutEffect(() => {
     updateRect();
     globalThis.window?.addEventListener('resize', updateRect);
     return () => globalThis.window?.removeEventListener('resize', updateRect);
@@ -123,41 +122,28 @@ export function useLibraryPanelHotkeys({
   ]);
 }
 
+/**
+ * Where the bar and the library sit. The bar rests in a slot of its own height. From 1024px it
+ * pins under the top edge once the page scrolls past it, and while the library is open it is
+ * fixed at any width, with the library hanging from it. The classes are in LibraryBar.css.
+ */
 export function getLibraryPanelLayoutStyles({ collapsed, isMobileViewport, isStuck, barRect }) {
-  const shouldBeFixed = !collapsed || (!isMobileViewport && isStuck);
-  const barSlotHeight = barRect.height + (collapsed ? STATUS_BAR_CARD_GAP : 0);
-  const barSlotStyle = { height: `${barSlotHeight}px` };
-  const barStyle = shouldBeFixed
-    ? {
-        position: 'fixed',
-        top: 0,
-        left: `${barRect.left}px`,
-        width: `${barRect.width}px`,
-        zIndex: 50,
-      }
-    : {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-      };
-  const dropdownTop = barRect.height;
+  const isOpen = !collapsed;
+  const isFixed = isOpen || (!isMobileViewport && isStuck);
+  const fixedBox = { left: `${barRect.left}px`, width: `${barRect.width}px` };
 
   return {
-    barStyle,
-    barSlotHeight,
-    barSlotStyle,
-    dropdownTop,
-    dropdownStyle: {
-      position: 'fixed',
-      top: `${dropdownTop}px`,
-      left: `${barRect.left}px`,
-      width: `${barRect.width}px`,
-      zIndex: 49,
-    },
-    desktopSectionHeight: isMobileViewport
-      ? undefined
-      : `max(18rem, calc(100dvh - ${dropdownTop}px - 2rem))`,
+    barSlotStyle: { height: `${barRect.height}px` },
+    pinClassName: [
+      'an-libbar-pin',
+      isFixed ? 'is-fixed' : '',
+      isFixed && !isOpen ? 'is-stuck' : '',
+      isOpen ? 'is-open' : '',
+    ]
+      .filter(Boolean)
+      .join(' '),
+    pinStyle: isFixed ? fixedBox : undefined,
+    libraryStyle: { ...fixedBox, '--an-lib-bar': `${barRect.height}px` },
   };
 }
 
@@ -217,8 +203,9 @@ export function useCloseLibraryOnOutsideClick({ collapsed, panelRef, setCollapse
     if (collapsed) return;
     const handleOutsideClick = event => {
       const target = event.target;
-      const isLibraryActionMenuClick = target?.closest?.('[data-library-actions-menu]');
-      if (panelRef.current && !panelRef.current.contains(target) && !isLibraryActionMenuClick) {
+      // A menu or popover opened from the library renders in a portal: it is still the library.
+      const isLibraryPortalClick = target?.closest?.('.bm-menu');
+      if (panelRef.current && !panelRef.current.contains(target) && !isLibraryPortalClick) {
         setCollapsed(true);
       }
     };
@@ -227,17 +214,22 @@ export function useCloseLibraryOnOutsideClick({ collapsed, panelRef, setCollapse
   }, [collapsed, panelRef, setCollapsed]);
 }
 
-export function useAnalyzerStickyOffset(panelRef, barSlotHeight) {
+// What a column that sticks under the pinned bar has to clear: the bar's inset from the top edge,
+// the bar, and the gap between tiles.
+export function useAnalyzerStickyOffset(panelRef, barHeight) {
   useEffect(() => {
     const pageElement = panelRef.current?.closest?.('.shot-analyzer-page');
     if (!pageElement) return undefined;
 
-    pageElement.style.setProperty('--analyzer-sticky-offset', `${barSlotHeight}px`);
+    pageElement.style.setProperty(
+      '--analyzer-sticky-offset',
+      `calc(${barHeight}px + max(var(--space-3), env(safe-area-inset-top)) + var(--space-3))`,
+    );
 
     return () => {
       pageElement.style.removeProperty('--analyzer-sticky-offset');
     };
-  }, [barSlotHeight, panelRef]);
+  }, [barHeight, panelRef]);
 }
 
 export function useLibraryRefresh({

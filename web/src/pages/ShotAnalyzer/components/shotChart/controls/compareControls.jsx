@@ -1,45 +1,28 @@
-import { Icon } from '../../../../../components/Icon.jsx';
 import { Fragment } from 'preact';
+import { Button } from '../../../../../components/Button.jsx';
+import { cx } from '../../../../../components/cx.js';
+import { Select } from '../../../../../components/Field.jsx';
 import { COMPARE_TARGET_DISPLAY_MODES } from '../../../utils/analyzerUtils';
-import {
-  ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS,
-  getAnalyzerIconButtonClasses,
-  getAnalyzerSurfaceTriggerClasses,
-  getAnalyzerTextButtonClasses,
-} from '../../analyzerControlStyles';
+import { IconButton } from '../../../ui/IconButton.jsx';
+import { ShotBadge } from '../../../ui/ShotBadge.jsx';
 
+// Which shot is which: the badge of each shot with its name, and the swap between the two.
 function CompareShotLegend({ compareShotLegendItems, onCompareSwap }) {
   return (
-    <div className='flex min-w-0 flex-wrap items-center gap-2.5'>
+    <div className='flex min-w-0 flex-wrap items-center gap-2'>
       {compareShotLegendItems.map((item, index) => (
         <Fragment key={item.label}>
-          <div className='inline-flex min-w-0 items-center gap-1 text-xs font-normal text-[var(--ink-muted)]'>
-            <span
-              className={[
-                'analyzer-compare-shot-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs leading-none font-semibold tabular-nums',
-                item.shotNumber === 2 ? 'analyzer-compare-shot-badge--striped' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              style={{ '--analyzer-compare-shot-color': item.badgeColor || item.color }}
-              aria-label={`Shot ${item.shotNumber || ''}`}
-            >
-              {item.shotNumber}
-            </span>
+          <div className='shot-chart-compare-shot'>
+            <ShotBadge number={item.shotNumber} />
             <span className='truncate'>{item.label}</span>
           </div>
           {index === 0 && compareShotLegendItems.length > 1 && onCompareSwap ? (
-            <button
-              type='button'
+            <IconButton
+              icon='refresh-cw'
+              label='Swap shot 1 and shot 2'
+              size='sm'
               onClick={onCompareSwap}
-              className={getAnalyzerIconButtonClasses({
-                className: 'h-7 min-h-0 w-7 rounded-lg p-0 text-sm',
-              })}
-              title='Swap shot 1 and shot 2'
-              aria-label='Swap shot 1 and shot 2'
-            >
-              <Icon name={'refresh-cw'} className='text-sm' />
-            </button>
+            />
           ) : null}
         </Fragment>
       ))}
@@ -54,49 +37,38 @@ function CompareAnnotationToggle({
 }) {
   if (showCompareAnnotationToggle && onCompareAnnotationsToggle) {
     return (
-      <button
-        type='button'
-        onClick={onCompareAnnotationsToggle}
-        className={getAnalyzerTextButtonClasses({
-          className: `h-6 min-h-0 px-2 text-xs font-medium ${
-            compareAnnotationsEnabled
-              ? 'bg-base-content/8 text-base-content/80'
-              : 'text-[var(--ink-muted)]'
-          }`,
-        })}
+      <Button
+        size='sm'
+        variant={compareAnnotationsEnabled ? 'ink' : undefined}
         aria-pressed={compareAnnotationsEnabled}
+        onClick={onCompareAnnotationsToggle}
         title={compareAnnotationsEnabled ? 'Hide compare annotations' : 'Show compare annotations'}
       >
         Annotations
-      </button>
+      </Button>
     );
   }
 
   return null;
 }
 
+/** A small select of the compare toolbar: how the shots align, which targets show. */
 export function CompareSelect({ onChange, options, title, value, widthClass }) {
   if (onChange && options.length > 0) {
     return (
-      <div className={`relative flex ${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} items-center`}>
-        <select
-          value={value}
-          onChange={event => onChange(event.currentTarget.value)}
-          className={getAnalyzerSurfaceTriggerClasses({
-            className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} ${widthClass} appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium outline-none`,
-          })}
-          title={title}
-        >
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <span className='pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-xs text-[var(--ink-muted)]'>
-          <Icon name={'chevron-down'} />
-        </span>
-      </div>
+      <Select
+        className={cx('an-input--sm', widthClass)}
+        value={value}
+        onChange={event => onChange(event.currentTarget.value)}
+        title={title}
+        aria-label={title}
+      >
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Select>
     );
   }
 
@@ -111,13 +83,13 @@ export function CompareTargetSelect({
     <CompareSelect
       onChange={onCompareTargetDisplayModeChange}
       options={[
-        { value: COMPARE_TARGET_DISPLAY_MODES.NONE, label: 'No Targets' },
-        { value: COMPARE_TARGET_DISPLAY_MODES.PER_SHOT, label: 'Per Shot' },
-        { value: COMPARE_TARGET_DISPLAY_MODES.MAIN_SHOT_ONLY, label: 'Main Shot' },
+        { value: COMPARE_TARGET_DISPLAY_MODES.NONE, label: 'No targets' },
+        { value: COMPARE_TARGET_DISPLAY_MODES.PER_SHOT, label: 'Per shot' },
+        { value: COMPARE_TARGET_DISPLAY_MODES.MAIN_SHOT_ONLY, label: 'Main shot' },
       ]}
       title='Target display mode'
       value={compareTargetDisplayMode}
-      widthClass='w-[7rem] max-w-[7rem]'
+      widthClass='w-36'
     />
   );
 }
@@ -137,13 +109,13 @@ export function CompareControlsRow({
 }) {
   if (shouldShowCompareControls) {
     return (
-      <div className='mt-2 mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-1'>
+      <div className='flex flex-wrap items-center justify-between gap-x-4 gap-y-2'>
         <CompareShotLegend
           compareShotLegendItems={compareShotLegendItems}
           onCompareSwap={onCompareSwap}
         />
 
-        <div className='flex items-center gap-2'>
+        <div className='flex flex-wrap items-center gap-2'>
           <CompareAnnotationToggle
             compareAnnotationsEnabled={compareAnnotationsEnabled}
             onCompareAnnotationsToggle={onCompareAnnotationsToggle}
@@ -155,7 +127,7 @@ export function CompareControlsRow({
             options={compareAlignmentOptions}
             title='Compare alignment'
             value={compareAlignmentMode}
-            widthClass='w-[9rem] max-w-[9rem]'
+            widthClass='w-44'
           />
 
           <CompareTargetSelect

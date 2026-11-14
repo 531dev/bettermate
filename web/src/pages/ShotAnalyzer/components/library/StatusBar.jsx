@@ -1,364 +1,169 @@
-import { Icon } from '../../../../components/Icon.jsx';
 /**
- * StatusBar.jsx
- * * Merges seamlessly with the dropdown when expanded.
+ * One row of the library bar: the shot and its profile, each as a slot. A slot names what is
+ * loaded, opens the library for itself, and carries its own small actions (export, retry the
+ * profile search, unload). In a comparison the row starts with its shot badge.
  */
 
-import { cleanName, analyzerUiColors } from '../../utils/analyzerUtils';
-import { getAnalyzerIconButtonClasses } from '../analyzerControlStyles';
+import { cx } from '../../../../components/cx.js';
+import { Icon } from '../../../../components/Icon.jsx';
+import { Spinner } from '../../../../components/Spinner.jsx';
+import { IconButton } from '../../ui/IconButton.jsx';
+import { ShotBadge } from '../../ui/ShotBadge.jsx';
+import { cleanName } from '../../utils/analyzerUtils';
+import './LibraryBar.css';
 
-function getProfileBadgeClasses({ isMismatch, currentProfile, badgeBaseClass, loadedShadowClass }) {
-  if (isMismatch) return `${badgeBaseClass} ${loadedShadowClass} border-transparent text-white`;
-  if (currentProfile) {
-    return `${badgeBaseClass} ${loadedShadowClass} bg-primary border-primary text-primary-content`;
-  }
-  return `${badgeBaseClass} border-base-content/15 bg-transparent text-[var(--ink-muted)]  hover:bg-base-content/5`;
+const RETRY_PROFILE_SEARCH_LABEL = 'Retry automatic profile search';
+
+function isNoProfileName(profileName) {
+  return cleanName(profileName || '').toLowerCase() === 'no profile loaded';
 }
 
-function getShotBadgeClasses({ ghosted, badgeBaseClass, currentShot }) {
-  if (ghosted) {
-    return getGhostedBadgeClasses(badgeBaseClass, Boolean(currentShot));
-  }
-  if (currentShot) {
-    return `${badgeBaseClass} bg-primary border-primary text-primary-content`;
-  }
-  return `${badgeBaseClass} border-base-content/15 bg-transparent text-[var(--ink-muted)]  hover:bg-base-content/5`;
-}
-
-function getGhostedBadgeClasses(baseClasses, isActive) {
-  if (isActive) {
-    // Secondary compare slots stay visually tied to the active theme while
-    // remaining lighter than the primary bar.
-    return `${baseClasses} bg-primary/24 border-transparent text-primary hover:bg-primary/30 `;
-  }
-  return `${baseClasses} border-base-content/10 bg-transparent text-[var(--ink-muted)] hover:bg-base-content/5 `;
-}
-
-function getProfileBadgeTitle(isMismatch) {
-  if (isMismatch) {
-    return 'Profile mismatch detected. Use Import below or drop files here to import.';
-  }
-  return 'Click to open the library. Use Import below or drop files here to import.';
-}
-
-function getCompareSlotBadgeClasses({ currentShot, ghosted }) {
-  if (!currentShot) return 'bg-base-100 text-[var(--ink-muted)] ring-base-200';
-  return ghosted
-    ? 'bg-primary/70 text-primary-content ring-base-100'
-    : 'bg-primary text-primary-content ring-base-100';
-}
-
-function getShotBadgeLabel(currentShot, currentShotName) {
-  if (currentShot?.source === 'gaggimate') {
-    return `#${currentShot.id}`;
-  }
+function getShotSlotName(currentShot, currentShotName) {
+  if (!currentShot) return 'No shot loaded';
+  if (currentShot.source === 'gaggimate') return `#${currentShot.id}`;
   return cleanName(currentShotName);
 }
 
-function getMismatchProfileBadgeStyle({ isMismatch, ghosted }) {
-  if (!isMismatch) return undefined;
-
-  return {
-    backgroundColor: ghosted
-      ? `color-mix(in srgb, ${analyzerUiColors.warningOrange} 34%, transparent)`
-      : analyzerUiColors.warningOrange,
-  };
+function getProfileSlotName(currentProfileName) {
+  if (!currentProfileName || isNoProfileName(currentProfileName)) return 'No profile loaded';
+  return cleanName(currentProfileName);
 }
 
-function getStatusBarIconButtonClassSet({ compact, ghosted }) {
-  return {
-    activeBadgeIconButtonClasses: getAnalyzerIconButtonClasses({
-      className: `${compact ? 'h-5 w-5' : 'h-6 w-6'} flex-shrink-0 rounded-full text-current ${
-        ghosted
-          ? 'opacity-90 hover:bg-primary/12 hover:text-current hover:opacity-100'
-          : 'opacity-75 hover:bg-black/10 hover:text-current hover:opacity-100'
-      }`,
-    }),
-  };
+function getPanelTitle(expanded) {
+  return expanded ? 'Close the library' : 'Open the library';
 }
 
-function getStatusBarViewModel({
-  compact,
-  ghosted,
-  currentShot,
-  currentProfile,
-  isMismatch,
-  isSearchingProfile,
+function getMismatchTitle(currentShot) {
+  const expectedProfileName = cleanName(currentShot?.profile || '');
+  return expectedProfileName
+    ? `This profile is not the one the shot was pulled with (${expectedProfileName}).`
+    : 'This profile is not the one the shot was pulled with.';
+}
+
+/** The pill itself. `children` are the icon buttons at its end. */
+function Slot({
+  kind,
+  name,
+  empty = false,
+  warning = false,
+  busy = false,
+  showChevron = true,
+  expanded = false,
+  title,
+  onToggle,
+  children,
 }) {
-  const badgeBaseClass = compact
-    ? 'flex items-center justify-between flex-1 px-2 h-full rounded-md border cursor-pointer transition-all min-w-0'
-    : 'flex items-center justify-between flex-1 px-2 sm:px-3 h-full rounded-lg border cursor-pointer transition-all min-w-0';
-  const shotBadgeClasses = getShotBadgeClasses({
-    ghosted,
-    badgeBaseClass,
-    currentShot,
-  });
-
-  const mismatchProfileBadgeStyle = getMismatchProfileBadgeStyle({
-    isMismatch,
-    ghosted,
-  });
-
-  const profileBadgeClasses =
-    ghosted && !isMismatch
-      ? getGhostedBadgeClasses(badgeBaseClass, Boolean(currentProfile))
-      : getProfileBadgeClasses({
-          isMismatch,
-          currentProfile,
-          badgeBaseClass,
-          loadedShadowClass: '',
-        });
-
-  const { activeBadgeIconButtonClasses } = getStatusBarIconButtonClassSet({
-    compact,
-    ghosted,
-  });
-
-  return {
-    shotBadgeClasses,
-    mismatchProfileBadgeStyle,
-    profileBadgeClasses,
-    activeBadgeIconButtonClasses,
-    compareBadgeClasses: getCompareSlotBadgeClasses({ currentShot, ghosted }),
-    showShotChevron: true,
-    showProfileChevron: Boolean(currentProfile) || !isSearchingProfile,
-  };
-}
-
-function ProfileTrailingControl({
-  currentProfile,
-  currentProfileName,
-  isMismatch,
-  isSearchingProfile,
-  canRetryProfileSearch,
-  onRetryProfileSearch,
-  onUnloadProfile,
-  activeBadgeIconButtonClasses,
-}) {
-  const retryTitle = 'Retry automatic profile search';
-  const hasDismissibleProfileState =
-    isSearchingProfile || cleanName(currentProfileName || '').toLowerCase() !== 'no profile loaded';
-
-  if (currentProfile) {
-    const showRetry = (isMismatch || canRetryProfileSearch) && onRetryProfileSearch;
-
-    return (
-      <div className='flex items-center gap-1'>
-        {showRetry ? (
-          <button
-            type='button'
-            onClick={event => {
-              event.stopPropagation();
-              onRetryProfileSearch();
-            }}
-            className={activeBadgeIconButtonClasses}
-            title={retryTitle}
-            aria-label={retryTitle}
-            disabled={isSearchingProfile}
-          >
-            <Icon name={'refresh-cw'} className='text-xs' />
-          </button>
-        ) : null}
-
-        <button
-          type='button'
-          onClick={event => {
-            event.stopPropagation();
-            onUnloadProfile();
-          }}
-          className={activeBadgeIconButtonClasses}
-        >
-          <Icon name={'x'} />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className='flex items-center gap-1'>
-      {canRetryProfileSearch && onRetryProfileSearch ? (
-        <button
-          type='button'
-          onClick={event => {
-            event.stopPropagation();
-            onRetryProfileSearch();
-          }}
-          className={activeBadgeIconButtonClasses}
-          title={retryTitle}
-          aria-label={retryTitle}
-          disabled={isSearchingProfile}
-        >
-          <Icon name={'refresh-cw'} className='text-xs' />
-        </button>
-      ) : null}
-
-      {hasDismissibleProfileState ? (
-        <button
-          type='button'
-          onClick={event => {
-            event.stopPropagation();
-            onUnloadProfile();
-          }}
-          className={activeBadgeIconButtonClasses}
-        >
-          <Icon name={'x'} />
-        </button>
-      ) : null}
-    </div>
-  );
-}
-
-function BadgeExportControl({ available, activeBadgeIconButtonClasses, onExport, label }) {
-  if (!available || !onExport) return null;
-
-  return (
-    <button
-      type='button'
-      onClick={event => {
-        event.stopPropagation();
-        onExport();
-      }}
-      className={activeBadgeIconButtonClasses}
-      title={label}
-      aria-label={label}
+    <div
+      className={cx(
+        'an-slot an-on-cell',
+        empty && 'an-slot--empty',
+        warning && 'an-slot--warning',
+      )}
+      data-slot={kind}
     >
-      <Icon name={'save'} />
-    </button>
-  );
-}
-
-function ShotTrailingControl({ currentShot, activeBadgeIconButtonClasses, onUnloadShot }) {
-  return (
-    <div className='flex items-center gap-1'>
-      {currentShot ? (
-        <button
-          type='button'
-          onClick={event => {
-            event.stopPropagation();
-            onUnloadShot();
-          }}
-          className={activeBadgeIconButtonClasses}
-        >
-          <Icon name={'x'} />
-        </button>
-      ) : null}
+      <button
+        type='button'
+        className='an-slot__main'
+        onClick={onToggle}
+        aria-haspopup='dialog'
+        aria-expanded={expanded}
+        aria-busy={busy || undefined}
+        title={title}
+      >
+        <span className='sr-only'>{kind === 'shot' ? 'Shot: ' : 'Profile: '}</span>
+        {warning && <Icon name='triangle-alert' size={18} title='Profile mismatch' />}
+        <span className='an-slot__name'>{name}</span>
+        {busy && <Spinner size={4} />}
+        {showChevron && <Icon name='chevron-down' size={18} className='an-slot__chevron' />}
+      </button>
+      {children}
     </div>
   );
 }
 
-function ShotBadge({
+function ShotSlot({
   currentShot,
   currentShotName,
   isShotPending,
-  compact,
-  shotBadgeClasses,
-  showShotChevron,
-  handleShotPanelToggle,
-  activeBadgeIconButtonClasses,
-  onUnloadShot,
+  expanded,
+  onToggle,
   onExportShot,
+  onUnloadShot,
 }) {
   return (
-    <div
-      data-import-target='shot'
-      className={shotBadgeClasses}
-      title='Click to open the library. Use Import below or drop files here to import.'
+    <Slot
+      kind='shot'
+      name={getShotSlotName(currentShot, currentShotName)}
+      empty={!currentShot}
+      busy={isShotPending}
+      expanded={expanded}
+      title={getPanelTitle(expanded)}
+      onToggle={onToggle}
     >
-      <BadgeExportControl
-        available={Boolean(currentShot)}
-        activeBadgeIconButtonClasses={activeBadgeIconButtonClasses}
-        onExport={onExportShot}
-        label='Export current shot'
-      />
-      <button
-        type='button'
-        onClick={handleShotPanelToggle}
-        className={`mx-1.5 flex min-w-0 flex-1 items-center justify-center self-stretch overflow-hidden text-center ${compact ? 'text-xs font-medium' : 'text-sm font-semibold'}`}
-        title='Open library'
-      >
-        <span className='inline-flex max-w-full min-w-0 flex-1 items-center justify-center gap-1'>
-          <span className='min-w-0 truncate'>
-            {getShotBadgeLabel(currentShot, currentShotName)}
-          </span>
-          {isShotPending ? (
-            <Icon name={'refresh-cw'} spin className='shrink-0 text-xs opacity-60' />
-          ) : null}
-          {showShotChevron ? (
-            <Icon name={'chevron-down'} className='shrink-0 text-xs opacity-40' />
-          ) : null}
-        </span>
-      </button>
-      <ShotTrailingControl
-        currentShot={currentShot}
-        activeBadgeIconButtonClasses={activeBadgeIconButtonClasses}
-        onUnloadShot={onUnloadShot}
-      />
-    </div>
+      {currentShot && onExportShot ? (
+        <IconButton size='sm' icon='download' label='Export shot' onClick={() => onExportShot()} />
+      ) : null}
+      {currentShot ? (
+        <IconButton size='sm' icon='x' label='Unload shot' onClick={() => onUnloadShot?.()} />
+      ) : null}
+    </Slot>
   );
 }
 
-function ProfileBadge({
+function ProfileSlot({
+  currentShot,
   currentProfile,
   currentProfileName,
-  compact,
-  profileBadgeClasses,
-  mismatchProfileBadgeStyle,
   isMismatch,
-  showProfileChevron,
-  handleProfilePanelToggle,
-  activeBadgeIconButtonClasses,
   isSearchingProfile,
   canRetryProfileSearch,
+  expanded,
+  onToggle,
+  onExportProfile,
   onRetryProfileSearch,
   onUnloadProfile,
-  onExportProfile,
 }) {
-  return (
-    <div
-      data-import-target='profile'
-      className={profileBadgeClasses}
-      style={mismatchProfileBadgeStyle}
-      title={getProfileBadgeTitle(isMismatch)}
-    >
-      <BadgeExportControl
-        available={Boolean(currentProfile)}
-        activeBadgeIconButtonClasses={activeBadgeIconButtonClasses}
-        onExport={onExportProfile}
-        label='Export current profile'
-      />
-      <button
-        type='button'
-        onClick={handleProfilePanelToggle}
-        className={`mx-1.5 flex min-w-0 flex-1 items-center justify-center self-stretch overflow-hidden text-center ${compact ? 'text-xs font-medium' : 'text-sm font-semibold'}`}
-        title={getProfileBadgeTitle(isMismatch)}
-      >
-        <span className='inline-flex max-w-full min-w-0 flex-1 items-center justify-center gap-1'>
-          {isMismatch ? <Icon name={'triangle-alert'} className='mr-1 shrink-0' /> : null}
-          <span
-            className={`min-w-0 truncate ${isSearchingProfile && !currentProfile ? 'italic opacity-75' : ''}`}
-          >
-            {cleanName(currentProfileName)}
-          </span>
-          {isSearchingProfile ? (
-            <Icon name={'refresh-cw'} spin className='shrink-0 text-xs opacity-60' />
-          ) : null}
-          {showProfileChevron ? (
-            <Icon name={'chevron-down'} className='shrink-0 text-xs opacity-40' />
-          ) : null}
-        </span>
-      </button>
+  const hasProfile = Boolean(currentProfile);
+  // A named profile that has not loaded (still searched for, or not found) can be dismissed too.
+  const canUnload = hasProfile || isSearchingProfile || !isNoProfileName(currentProfileName);
+  const canRetry =
+    Boolean(onRetryProfileSearch) &&
+    (hasProfile ? isMismatch || canRetryProfileSearch : canRetryProfileSearch);
 
-      <ProfileTrailingControl
-        currentProfile={currentProfile}
-        currentProfileName={currentProfileName}
-        isMismatch={isMismatch}
-        isSearchingProfile={isSearchingProfile}
-        canRetryProfileSearch={canRetryProfileSearch}
-        onRetryProfileSearch={onRetryProfileSearch}
-        onUnloadProfile={onUnloadProfile}
-        activeBadgeIconButtonClasses={activeBadgeIconButtonClasses}
-      />
-    </div>
+  return (
+    <Slot
+      kind='profile'
+      name={getProfileSlotName(currentProfileName)}
+      empty={!hasProfile}
+      warning={Boolean(isMismatch)}
+      busy={isSearchingProfile}
+      showChevron={hasProfile || !isSearchingProfile}
+      expanded={expanded}
+      title={isMismatch ? getMismatchTitle(currentShot) : getPanelTitle(expanded)}
+      onToggle={onToggle}
+    >
+      {hasProfile && onExportProfile ? (
+        <IconButton
+          size='sm'
+          icon='download'
+          label='Export profile'
+          onClick={() => onExportProfile()}
+        />
+      ) : null}
+      {canRetry ? (
+        <IconButton
+          size='sm'
+          icon='refresh-cw'
+          label={RETRY_PROFILE_SEARCH_LABEL}
+          disabled={isSearchingProfile}
+          onClick={() => onRetryProfileSearch()}
+        />
+      ) : null}
+      {canUnload ? (
+        <IconButton size='sm' icon='x' label='Unload profile' onClick={() => onUnloadProfile?.()} />
+      ) : null}
+    </Slot>
   );
 }
 
@@ -378,81 +183,43 @@ export function StatusBar({
   onShotPanelToggle,
   onProfilePanelToggle,
   isMismatch,
-  compareMode = false,
-  isSearchingProfile = false, // Show spinner on profile badge
-  compact = false,
+  isSearchingProfile = false,
   compareBadgeNumber = null,
-  ghosted = false,
+  shotPanelOpen = false,
+  profilePanelOpen = false,
+  isDropTarget = false,
+  dropzoneProps,
 }) {
-  const handleShotPanelToggle = onShotPanelToggle || onTogglePanel;
-  const handleProfilePanelToggle = onProfilePanelToggle || onTogglePanel;
-
-  const {
-    shotBadgeClasses,
-    mismatchProfileBadgeStyle,
-    profileBadgeClasses,
-    activeBadgeIconButtonClasses,
-    compareBadgeClasses,
-    showShotChevron,
-    showProfileChevron,
-  } = getStatusBarViewModel({
-    compact,
-    ghosted,
-    currentShot,
-    compareMode,
-    currentProfile,
-    isMismatch,
-    isSearchingProfile,
-  });
-
   return (
-    <div className='relative w-full overflow-visible'>
-      {compareBadgeNumber ? (
-        <span
-          className={`pointer-events-none absolute top-0 left-1 z-10 inline-flex h-4 min-w-4 -translate-x-1/3 -translate-y-1/4 items-center justify-center rounded-full px-1 text-[10px] leading-none font-bold ring-2 ${compareBadgeClasses}`}
-        >
-          {compareBadgeNumber}
-        </span>
-      ) : null}
-      <div className={`relative ${compact ? 'px-1.5 py-0.5 sm:px-2' : 'px-1.5 py-1.5 sm:px-2'}`}>
-        <div
-          className={`grid ${compact ? 'h-7 rounded-lg' : 'h-9 min-h-9 rounded-lg'} w-full items-center gap-1 transition-all sm:gap-1.5`}
-          style={{
-            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-          }}
-        >
-          {/* --- CENTER: SHOT BADGE --- */}
-          <ShotBadge
-            currentShot={currentShot}
-            currentShotName={currentShotName}
-            isShotPending={isShotPending}
-            compact={compact}
-            shotBadgeClasses={shotBadgeClasses}
-            showShotChevron={showShotChevron}
-            handleShotPanelToggle={handleShotPanelToggle}
-            activeBadgeIconButtonClasses={activeBadgeIconButtonClasses}
-            onUnloadShot={onUnloadShot}
-            onExportShot={onExportShot}
-          />
-
-          {/* --- CENTER: PROFILE BADGE --- */}
-          <ProfileBadge
-            currentProfile={currentProfile}
-            currentProfileName={currentProfileName}
-            compact={compact}
-            profileBadgeClasses={profileBadgeClasses}
-            mismatchProfileBadgeStyle={mismatchProfileBadgeStyle}
-            isMismatch={isMismatch}
-            showProfileChevron={showProfileChevron}
-            handleProfilePanelToggle={handleProfilePanelToggle}
-            activeBadgeIconButtonClasses={activeBadgeIconButtonClasses}
-            isSearchingProfile={isSearchingProfile}
-            canRetryProfileSearch={canRetryProfileSearch}
-            onRetryProfileSearch={onRetryProfileSearch}
-            onUnloadProfile={onUnloadProfile}
-            onExportProfile={onExportProfile}
-          />
-        </div>
+    <div
+      {...dropzoneProps}
+      className={cx('an-libbar__row', isDropTarget && 'an-drop')}
+      data-slot-row={compareBadgeNumber || 1}
+    >
+      {compareBadgeNumber ? <ShotBadge number={compareBadgeNumber} /> : null}
+      <div className='an-libbar__pair'>
+        <ShotSlot
+          currentShot={currentShot}
+          currentShotName={currentShotName}
+          isShotPending={isShotPending}
+          expanded={shotPanelOpen}
+          onToggle={onShotPanelToggle || onTogglePanel}
+          onExportShot={onExportShot}
+          onUnloadShot={onUnloadShot}
+        />
+        <ProfileSlot
+          currentShot={currentShot}
+          currentProfile={currentProfile}
+          currentProfileName={currentProfileName}
+          isMismatch={isMismatch}
+          isSearchingProfile={isSearchingProfile}
+          canRetryProfileSearch={canRetryProfileSearch}
+          expanded={profilePanelOpen}
+          onToggle={onProfilePanelToggle || onTogglePanel}
+          onExportProfile={onExportProfile}
+          onRetryProfileSearch={onRetryProfileSearch}
+          onUnloadProfile={onUnloadProfile}
+        />
       </div>
     </div>
   );

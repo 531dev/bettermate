@@ -7,6 +7,7 @@ import {
   WATER_DRAWN_PHASE_LABEL,
   WATER_DRAWN_TOTAL_LABEL,
 } from '../constants';
+import { SERIES_CSS_COLOR_BY_LABEL } from '../helpers/chartTheme';
 import { getShotChartDisplayLabel } from '../labelVisuals';
 import { createHiddenExternalTooltipState } from './tooltipState';
 
@@ -87,11 +88,11 @@ function buildCompareDifferenceRow(rows) {
 }
 
 function formatWaterValue(value) {
-  return Number.isFinite(value) ? `${value.toFixed(1)} ml` : '-';
+  return Number.isFinite(value) ? `${value.toFixed(1)} ml` : '—';
 }
 
 function formatPhaseWaterValue(phaseWaterMl, phaseTotalWaterMl) {
-  if (!Number.isFinite(phaseWaterMl) || !Number.isFinite(phaseTotalWaterMl)) return '-';
+  if (!Number.isFinite(phaseWaterMl) || !Number.isFinite(phaseTotalWaterMl)) return '—';
   return `${formatWaterValue(phaseWaterMl)} → ${formatWaterValue(phaseTotalWaterMl)}`;
 }
 
@@ -157,7 +158,7 @@ function buildTooltipRowModel(tooltipItem, getHoverWaterValuesAtX, tooltipColorB
   return {
     label,
     valueText,
-    color: tooltipColorByLabel[label] || '#94a3b8',
+    color: tooltipColorByLabel?.[label] || SERIES_CSS_COLOR_BY_LABEL[label],
     spacerBefore: false,
   };
 }
@@ -218,7 +219,7 @@ function buildCompareExternalTooltipRows({ chart, xValue }) {
           phaseWaterMl,
           phaseTotalWaterMl,
           totalWaterMl,
-          color: dataset.borderColor || '#94a3b8',
+          color: SERIES_CSS_COLOR_BY_LABEL[WATER_DRAWN_PHASE_LABEL],
         });
       }
 
@@ -230,7 +231,7 @@ function buildCompareExternalTooltipRows({ chart, xValue }) {
         numericValue: value,
         displayLabel: getShotChartDisplayLabel(baseLabel),
         valueText: unit ? `${value.toFixed(1)} ${unit}` : `${value.toFixed(1)}`,
-        color: dataset.borderColor || '#94a3b8',
+        color: SERIES_CSS_COLOR_BY_LABEL[baseLabel],
       };
     })
     .filter(Boolean);
@@ -360,7 +361,6 @@ function buildPhaseTooltipSummaries({ xValue, phaseTooltipGroups, showPhaseNames
       stopType,
       shotLabel: group.shotLabel || '',
       shotNumber: group.shotNumber ?? null,
-      color: group.color || null,
     });
     return summaries;
   }, []);

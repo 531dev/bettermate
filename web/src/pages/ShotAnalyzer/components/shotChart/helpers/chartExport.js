@@ -1,18 +1,5 @@
-import {
-  LEGEND_BLOCK_LABELS,
-  LEGEND_DASHED_LABELS,
-  LEGEND_ORDER,
-  LEGEND_THIN_LINE_LABELS,
-  STANDARD_LINE_WIDTH,
-  THIN_LINE_WIDTH,
-  VISIBILITY_KEY_BY_LABEL,
-} from '../constants';
-
-function getLegendItemStyle(label) {
-  if (LEGEND_BLOCK_LABELS.has(label)) return 'block';
-  if (LEGEND_DASHED_LABELS.has(label)) return 'dashed';
-  return 'line';
-}
+import { LEGEND_DASHED_LABELS, LEGEND_ORDER, VISIBILITY_KEY_BY_LABEL } from '../constants';
+import { getShotChartDisplayLabel } from '../labelVisuals';
 
 export function getVisibleLegendItemsForExport({
   legendColorByLabel,
@@ -30,10 +17,9 @@ export function getVisibleLegendItemsForExport({
     if (key && !visibility[key]) return items;
 
     items.push({
-      label,
-      color: legendColorByLabel[label] || '#94a3b8',
-      style: getLegendItemStyle(label),
-      lineWidth: LEGEND_THIN_LINE_LABELS.has(label) ? THIN_LINE_WIDTH : STANDARD_LINE_WIDTH,
+      label: getShotChartDisplayLabel(label),
+      color: legendColorByLabel[label],
+      style: LEGEND_DASHED_LABELS.has(label) ? 'dashed' : 'dot',
     });
     return items;
   }, []);

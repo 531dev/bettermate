@@ -4,7 +4,6 @@
  */
 
 export {
-  getNeutralAxisTickColor,
   getAxisUnitReservedPadding,
   axisUnitLabelPlugin,
   phaseLabelOverlayPlugin,
@@ -12,20 +11,17 @@ export {
 
 export {
   hoverGuidePlugin,
-  finalWeightCalloutLinePlugin,
   phaseBackgroundOverlayPlugin,
   stopIconOverlayPlugin,
-  finalWeightBadgeOverlayPlugin,
 } from './helpers/overlayPlugins';
 
 export { replayRevealPlugin, buildShotChartReplayModel } from './helpers/chartReplay';
 
 export {
-  readCssColorVar,
   getShotChartColors,
   getLegendColorByLabel,
-  getTooltipColorByLabel,
-  createStripedFillPattern,
+  getSeriesLineSpec,
+  SERIES_CSS_COLOR_BY_LABEL,
 } from './helpers/chartTheme';
 
 export {
@@ -42,7 +38,6 @@ export {
 } from './helpers/chartExport';
 
 export {
-  resolveHoverPointColor,
   createChartPointElementConfig,
   computeExternalTooltipPosition,
 } from './helpers/chartInteraction';

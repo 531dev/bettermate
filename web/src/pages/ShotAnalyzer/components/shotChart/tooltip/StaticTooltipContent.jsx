@@ -21,11 +21,7 @@ function StaticTooltipPhaseSummary({ phaseSummary, index }) {
       key={`${phaseSummary.shotLabel || ''}-${phaseSummary.phaseLabel}-${index}`}
       className='shot-chart-tooltip__static-phase-line'
     >
-      <TooltipShotBadge
-        shotNumber={phaseSummary.shotNumber}
-        color={phaseSummary.color}
-        className='shot-chart-tooltip__phase-badge'
-      />
+      <TooltipShotBadge shotNumber={phaseSummary.shotNumber} />
       {phaseSummary.shotLabel ? (
         <span className='shot-chart-tooltip__phase-shot'>{phaseSummary.shotLabel}</span>
       ) : null}
@@ -43,7 +39,7 @@ function StaticTooltipStopSummary({ phaseSummary, index }) {
   return (
     <div
       key={`${phaseSummary.shotLabel || ''}-${phaseSummary.phaseLabel}-${index}`}
-      className='shot-chart-tooltip__static-wide-card shot-chart-tooltip__static-stop-card'
+      className='shot-chart-tooltip__static-wide-card'
     >
       <div className='shot-chart-tooltip__static-stop-value'>
         {!phaseSummary.phaseLabel && phaseSummary.skipNotice ? (
@@ -74,7 +70,7 @@ function StaticTooltipMetricRow({ row, index }) {
   return (
     <div
       key={`${row.shotLabel || ''}-${row.label}-${row.valueText}-${index}`}
-      className='shot-chart-static-metrics__card shot-chart-tooltip__static-metric-card'
+      className='shot-chart-static-metrics__card'
     >
       {rowIcon ? (
         <div
@@ -82,7 +78,7 @@ function StaticTooltipMetricRow({ row, index }) {
           style={{ color: row.color }}
           aria-hidden='true'
         >
-          <Icon name={rowIcon} />
+          <Icon name={rowIcon} size={20} />
         </div>
       ) : null}
       <div className='shot-chart-static-metrics__body'>
@@ -134,7 +130,7 @@ function StaticCompactMetricRow({ hideShotLabel = false, row, index }) {
           style={{ color: row.color }}
           aria-hidden='true'
         >
-          <Icon name={rowIcon} />
+          <Icon name={rowIcon} size={14} />
         </span>
       ) : null}
       <span className='shot-chart-tooltip__compact-metric-label'>
@@ -242,7 +238,7 @@ function CompactDifferenceContent({ differenceRow }) {
       </>
     );
   }
-  return <span>Difference -</span>;
+  return <span>Difference —</span>;
 }
 
 function buildStopLineText(summary) {
@@ -260,11 +256,7 @@ function CompactStopLine({ summary, index }) {
       key={`${summary.shotLabel || ''}-${summary.phaseLabel || ''}-${index}`}
       className='shot-chart-tooltip__compact-stop-line'
     >
-      <TooltipShotBadge
-        shotNumber={summary.shotNumber}
-        color={summary.color}
-        className='shot-chart-tooltip__compact-stop-badge'
-      />
+      <TooltipShotBadge shotNumber={summary.shotNumber} />
       <span className='shot-chart-tooltip__compact-stop-text'>
         {summary.skipNotice ? (
           <span className='shot-chart-tooltip__phase-skip-notice'>{summary.skipNotice}</span>
@@ -300,7 +292,7 @@ function CompactStopContent({ differenceRow, isSingleLineVariant, stopSummary, s
     );
   }
 
-  return <span>Stop -</span>;
+  return <span>Stop —</span>;
 }
 
 function getCompareShotSlots(items = []) {
@@ -323,7 +315,7 @@ function CompareCompactPhaseGrid({ phaseSummaries }) {
           key={`phase-${summary?.shotNumber || index}`}
           className='shot-chart-tooltip__compare-compact-phase'
         >
-          {summary?.phaseLabel || '-'}
+          {summary?.phaseLabel || '—'}
         </div>
       ))}
     </div>
@@ -340,7 +332,7 @@ function CompareCompactStopColumn({ summary }) {
         {summary?.skipNotice ? (
           <span className='shot-chart-tooltip__phase-skip-notice'>{summary.skipNotice}</span>
         ) : null}
-        {stopText ? <span className={getStopReasonClassName(summary)}>{stopText}</span> : '-'}
+        {stopText ? <span className={getStopReasonClassName(summary)}>{stopText}</span> : '—'}
       </div>
       <div className='shot-chart-tooltip__compare-compact-stop-target'>
         {targetText ? `Target ${targetText}` : ''}
@@ -369,9 +361,9 @@ function CompareCompactStopGrid({ stopSummaries }) {
 
 function splitCompareMetricValue(row) {
   const unit = UNIT_BY_LABEL[row?.label] || '';
-  const valueText = row?.valueText || '-';
+  const valueText = row?.valueText || '—';
 
-  if (!unit || valueText === '-') {
+  if (!unit || valueText === '—') {
     return { unit: '', value: valueText };
   }
 
@@ -427,7 +419,7 @@ function CompareLargeMetricValue({ row, showIcon = true }) {
           style={{ color: row.color }}
           aria-hidden='true'
         >
-          <Icon name={metricIcon} />
+          <Icon name={metricIcon} size={18} />
         </span>
       ) : null}
       <div className='analyzer-icon-metric__content'>
@@ -457,13 +449,13 @@ function SinglePagedContext({ state }) {
         {timeLabel ? <span>{timeLabel}</span> : null}
       </div>
       <div className='shot-chart-tooltip__single-paged-phase'>
-        {phaseSummary?.phaseLabel || '-'}
+        {phaseSummary?.phaseLabel || '—'}
       </div>
       <div className='shot-chart-tooltip__single-paged-stop'>
         {phaseSummary?.skipNotice ? (
           <span className='shot-chart-tooltip__phase-skip-notice'>{phaseSummary.skipNotice}</span>
         ) : null}
-        {stopText ? <span className={getStopReasonClassName(phaseSummary)}>{stopText}</span> : '-'}
+        {stopText ? <span className={getStopReasonClassName(phaseSummary)}>{stopText}</span> : '—'}
       </div>
       <div className='shot-chart-tooltip__single-paged-target'>
         {targetText ? `Target ${targetText}` : ''}

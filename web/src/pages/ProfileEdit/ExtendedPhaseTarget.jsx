@@ -1,4 +1,6 @@
+import { Button } from '../../components/Button.jsx';
 import { Icon } from '../../components/Icon.jsx';
+import { FormField } from './form.jsx';
 
 export const TargetTypes = [
   {
@@ -44,44 +46,33 @@ export function ExtendedPhaseTarget({ onChange, target, index, onRemove }) {
     TargetTypes.find(tt => tt.type === target.type && tt.operator === (target.operator || 'gte')) ||
     TargetTypes[0];
   return (
-    <>
-      <div className='grid grid-cols-1 gap-4'>
-        <div className='form-control'>
-          <label htmlFor={`phase-${index}-target-value`} className='mb-2 block text-sm font-medium'>
-            {targetType.label}
-          </label>
-          <div className='flex flex-row gap-2'>
-            <div className='input-group flex-grow'>
-              <label htmlFor={`phase-${index}-target-value`} className='input w-full'>
-                <input
-                  id={`phase-${index}-target-value`}
-                  className='grow'
-                  type='number'
-                  value={target.value || 0}
-                  onChange={e =>
-                    onChange({
-                      ...target,
-                      value: parseFloat(e.target.value),
-                    })
-                  }
-                  aria-label={`Target value in ${targetType.unit}`}
-                  min='0'
-                  step='0.1'
-                />
-                <span aria-label={targetType.unit}>{targetType.unit}</span>
-              </label>
-            </div>
-            <button
-              type='button'
-              className={`join-item btn btn-outline text-[var(--danger)]`}
-              aria-label='Remove target'
-              onClick={() => onRemove()}
-            >
-              <Icon name={'trash-2'} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
+    <div className='flex items-start gap-2'>
+      <FormField
+        className='min-w-0 flex-1'
+        id={`phase-${index}-target-value`}
+        label={targetType.label}
+        unit={targetType.unit}
+        type='number'
+        value={target.value || 0}
+        onInput={e =>
+          onChange({
+            ...target,
+            value: parseFloat(e.target.value),
+          })
+        }
+        aria-label={`${targetType.label} in ${targetType.unit}`}
+        min='0'
+        step='0.1'
+      />
+      {/* The label above the input is 24px tall with its gap: the button lines up with the input. */}
+      <Button
+        iconOnly
+        className='mt-6 shrink-0'
+        aria-label='Remove target'
+        onClick={() => onRemove()}
+      >
+        <Icon name='x' />
+      </Button>
+    </div>
   );
 }

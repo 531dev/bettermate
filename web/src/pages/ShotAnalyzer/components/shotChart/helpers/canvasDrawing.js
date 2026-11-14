@@ -1,7 +1,5 @@
 import { iconPaths } from '../../../../../design/iconPaths.js';
 
-export const CHART_LABEL_FONT_FAMILY = '"Jost", system-ui, sans-serif';
-
 export function getChartLabelScale(chart) {
   const width = Number(chart?.width) || 0;
   if (width > 0 && width < 420) return 0.82;
@@ -9,6 +7,15 @@ export function getChartLabelScale(chart) {
   return 1;
 }
 
+/**
+ * The colours and fonts a chart was built with (`options.plugins.theme`), for the plugins that
+ * draw on its canvas. A plugin never reads the document: the chart is rebuilt on a theme change.
+ */
+export function getChartTheme(chart) {
+  return chart?.config?.options?.plugins?.theme?.tokens || null;
+}
+
+/** A glyph of the stroke set on a canvas: 1.6 wide on its 24 unit grid, round caps and joins. */
 export function drawPixelIcon(ctx, { iconDef, x, y, size, color }) {
   const pathData = iconPaths[iconDef];
   if (!pathData) return;
@@ -17,7 +24,6 @@ export function drawPixelIcon(ctx, { iconDef, x, y, size, color }) {
   const height = 24;
   const scale = size / Math.max(width, height);
 
-  // The glyphs are strokes on a 24 unit grid: 1.6 wide, round caps and joins.
   ctx.save();
   ctx.strokeStyle = color;
   ctx.lineWidth = 1.6;

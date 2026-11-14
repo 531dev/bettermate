@@ -1,13 +1,9 @@
-import { Icon } from '../../../../../components/Icon.jsx';
-import {
-  ANALYZER_ACTION_GROUP_CLASSES,
-  ANALYZER_ACTION_ICON_BUTTON_CLASS,
-  ANALYZER_ACTION_ICON_CLASS,
-  ANALYZER_ACTION_ICON_STYLE,
-  getAnalyzerIconButtonClasses,
-  getAnalyzerSurfaceTriggerClasses,
-  getAnalyzerTextButtonClasses,
-} from '../../analyzerControlStyles';
+import { useRef } from 'preact/hooks';
+import { Button } from '../../../../../components/Button.jsx';
+import { cx } from '../../../../../components/cx.js';
+import { Checkbox, Radio, Setting, Switch } from '../../../../../components/Field.jsx';
+import { IconButton } from '../../../ui/IconButton.jsx';
+import { Popover } from '../../../ui/Popover.jsx';
 
 function getReplayActionLabel({ isReplaying, isReplayPaused }) {
   if (isReplaying) return 'Pause replay';
@@ -16,9 +12,13 @@ function getReplayActionLabel({ isReplaying, isReplayPaused }) {
 }
 
 function ChartActionDivider() {
-  return <span className='bg-base-content/15 mx-1 h-4 w-px shrink-0' aria-hidden='true' />;
+  return <span className='shot-chart-action-divider' aria-hidden='true' />;
 }
 
+/**
+ * The export button and its panel: what to export (a replay video, an image of the chart, or the
+ * shot and profile files) and how. The panel is a Popover, so a press outside or Escape closes it.
+ */
 function ShotMediaExportMenu({
   exportMenuRef,
   exportMenuState,
@@ -34,11 +34,10 @@ function ShotMediaExportMenu({
   onIncludeLegendChange,
   shouldLockWebmToggle,
   shouldShowWebmToggle,
-  buttonClassName,
-  buttonIconClassName = ANALYZER_ACTION_ICON_CLASS,
-  buttonIconStyle = ANALYZER_ACTION_ICON_STYLE,
-  menuClassName = 'absolute top-full right-0 z-[70] mt-2',
+  placement = 'bottom-end',
 }) {
+  const localAnchorRef = useRef(null);
+  const anchorRef = exportMenuRef || localAnchorRef;
   const fileExportTypes = ['shot', 'profile'].filter(type =>
     exportMenuState.exportType?.includes(type),
   );
@@ -51,279 +50,121 @@ function ShotMediaExportMenu({
   };
 
   return (
-    <div ref={exportMenuRef} className='relative flex'>
-      <button
-        type='button'
+    <>
+      <IconButton
+        ref={anchorRef}
+        icon='download'
+        label='Export'
         onClick={onExportMenuToggle}
-        className={`${buttonClassName} ${exportMenuState.open ? 'text-base-content/90' : ''}`}
         disabled={isControlsLocked}
-        aria-label='Share'
         aria-expanded={exportMenuState.open}
-        title='Share'
+        aria-haspopup='dialog'
+      />
+      <Popover
+        open={exportMenuState.open}
+        onClose={onCloseExportMenu}
+        anchor={anchorRef}
+        placement={placement}
+        label='Export'
+        width='min(92vw, 17rem)'
       >
-        <Icon name={'monitor'} className={buttonIconClassName} style={buttonIconStyle} />
-      </button>
-      {exportMenuState.open ? (
-        <div
-          className={`bg-base-100/95 border-base-content/10 w-[min(92vw,15rem)] rounded-xl border p-3 text-[12px] ${menuClassName}`}
-        >
-          <div className='mb-2 text-xs font-medium opacity-60'>Export Chart</div>
-          <div className='space-y-1'>
-            {[
-              {
-                value: 'video',
-                label: hasVideoExportSupport ? 'Video' : 'Video (unsupported)',
-                disabled: !hasVideoExportSupport,
-              },
-              { value: 'image', label: 'Image' },
-            ].map(option => (
-              <label
-                key={option.value}
-                className={`${
-                  option.disabled
-                    ? 'cursor-not-allowed opacity-50'
-                    : getAnalyzerSurfaceTriggerClasses({
-                        className: 'flex cursor-pointer items-center gap-2 px-2 py-1.5',
-                      })
-                }`}
-              >
-                <input
-                  type='radio'
-                  name='shot-chart-export-type'
-                  className='radio radio-xs'
-                  checked={exportMenuState.exportType === option.value}
-                  disabled={option.disabled}
-                  onChange={() => onExportTypeChange(option.value)}
-                />
-                <span className='text-sm'>{option.label}</span>
-              </label>
-            ))}
-          </div>
-          <label
-            className={getAnalyzerSurfaceTriggerClasses({
-              className: 'mt-2 flex cursor-pointer items-center gap-2 px-2 py-1.5',
-            })}
-          >
-            <input
-              type='checkbox'
-              className='toggle toggle-primary toggle-xs'
+        <div className='shot-chart-export__group'>
+          <span className='bm-eyebrow'>Export chart</span>
+          <Radio
+            name='shot-chart-export-type'
+            label={hasVideoExportSupport ? 'Video' : 'Video (not supported here)'}
+            checked={exportMenuState.exportType === 'video'}
+            disabled={!hasVideoExportSupport}
+            onChange={() => onExportTypeChange('video')}
+          />
+          <Radio
+            name='shot-chart-export-type'
+            label='Image'
+            checked={exportMenuState.exportType === 'image'}
+            onChange={() => onExportTypeChange('image')}
+          />
+          <Setting label='Include legend' htmlFor='shot-chart-export-legend'>
+            <Switch
+              id='shot-chart-export-legend'
               checked={exportMenuState.includeLegend}
-              onChange={event => onIncludeLegendChange(event.currentTarget.checked)}
+              onChange={onIncludeLegendChange}
             />
-            <span className='text-sm'>Include legend</span>
-          </label>
-          <div className='mt-3 mb-2 text-xs font-medium opacity-60'>Export File</div>
-          {[
-            { value: 'shot', label: 'Shot', disabled: false },
-            { value: 'profile', label: 'Profile', disabled: !profileExportAvailable },
-          ].map(option => (
-            <label
-              key={option.value}
-              className={getAnalyzerSurfaceTriggerClasses({
-                className: `flex w-full items-center gap-2 px-2 py-1.5 ${
-                  option.disabled ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'
-                }`,
-              })}
-            >
-              <input
-                type='checkbox'
-                className='checkbox checkbox-xs'
-                checked={fileExportTypes.includes(option.value)}
-                disabled={option.disabled}
-                onChange={() => handleFileExportTypeToggle(option.value)}
-              />
-              <span className='text-sm'>{option.label}</span>
-            </label>
-          ))}
+          </Setting>
           {exportMenuState.exportType === 'video' && shouldShowWebmToggle ? (
-            <div
-              className={getAnalyzerSurfaceTriggerClasses({
-                className: 'mt-1 px-2 py-1.5',
-              })}
-            >
-              <div className='flex items-center gap-2'>
-                <label className='flex min-w-0 flex-1 cursor-pointer items-center gap-2'>
-                  <input
-                    type='checkbox'
-                    className='toggle toggle-primary toggle-xs'
+            <>
+              <Setting label='Export as WebM' htmlFor='shot-chart-export-webm'>
+                <span className='flex items-center gap-1'>
+                  <IconButton
+                    icon='info'
+                    label='Explain WebM export'
+                    size='sm'
+                    onClick={onExportFormatInfoToggle}
+                    aria-expanded={exportMenuState.showFormatInfo}
+                  />
+                  <Switch
+                    id='shot-chart-export-webm'
                     checked={exportMenuState.exportFormat === 'webm'}
                     disabled={shouldLockWebmToggle}
-                    onChange={event =>
-                      onExportFormatChange(event.currentTarget.checked ? 'webm' : 'mp4')
-                    }
+                    onChange={next => onExportFormatChange(next ? 'webm' : 'mp4')}
                   />
-                  <span className='text-sm'>Export as WebM</span>
-                </label>
-                <button
-                  type='button'
-                  onClick={onExportFormatInfoToggle}
-                  className={getAnalyzerIconButtonClasses({
-                    className: 'h-6 min-h-0 w-6 p-0',
-                  })}
-                  aria-label='Explain WebM export'
-                  aria-expanded={exportMenuState.showFormatInfo}
-                  title='Explain WebM export'
-                >
-                  <Icon name={'info'} className='text-xs opacity-70' />
-                </button>
-              </div>
+                </span>
+              </Setting>
               {exportMenuState.showFormatInfo ? (
-                <p className='mt-2 pr-1 text-xs leading-relaxed text-[var(--ink-muted)]'>
+                <p className='bm-help'>
                   {shouldLockWebmToggle
                     ? 'This browser records replay video as WebM natively.'
                     : 'WebM is the recommended replay video format in browsers with native WebM recording support.'}
                 </p>
               ) : null}
-            </div>
+            </>
           ) : null}
-          <div className='mt-3 flex items-center justify-end gap-2'>
-            <button
-              type='button'
-              onClick={onCloseExportMenu}
-              className={getAnalyzerTextButtonClasses({
-                className: 'h-7 min-h-0 px-2.5 text-xs font-medium',
-              })}
-            >
-              Cancel
-            </button>
-            <button
-              type='button'
-              onClick={onExportAction}
-              className='btn btn-primary btn-xs h-7 min-h-0 px-2.5'
-            >
-              Export
-            </button>
-          </div>
         </div>
-      ) : null}
-    </div>
-  );
-}
-
-function ReplayActionButton({
-  chartActionButtonClasses,
-  isControlsLocked,
-  isReplayPaused,
-  isReplaying,
-  onReplayToggle,
-}) {
-  const replayActionLabel = getReplayActionLabel({ isReplaying, isReplayPaused });
-
-  return (
-    <button
-      type='button'
-      onClick={onReplayToggle}
-      className={chartActionButtonClasses}
-      disabled={isControlsLocked}
-      aria-label={replayActionLabel}
-      title={replayActionLabel}
-    >
-      <Icon
-        name={isReplaying ? 'pause' : 'play'}
-        className={ANALYZER_ACTION_ICON_CLASS}
-        style={ANALYZER_ACTION_ICON_STYLE}
-      />
-    </button>
-  );
-}
-
-function StopReplayButton({
-  chartActionButtonClasses,
-  isReplayExporting,
-  isVideoExportActive,
-  onStop,
-}) {
-  const stopLabel = isVideoExportActive ? 'Cancel replay export' : 'Stop replay and restore chart';
-
-  return (
-    <button
-      type='button'
-      onClick={onStop}
-      className={chartActionButtonClasses}
-      disabled={isReplayExporting && !isVideoExportActive}
-      aria-label={stopLabel}
-      title={stopLabel}
-    >
-      <Icon
-        name={'stop'}
-        className={ANALYZER_ACTION_ICON_CLASS}
-        style={ANALYZER_ACTION_ICON_STYLE}
-      />
-    </button>
-  );
-}
-
-function ReplayAndExportActions({
-  chartActionButtonClasses,
-  exportMenuRef,
-  exportMenuState,
-  hasVideoExportSupport,
-  isControlsLocked,
-  isReplayPaused,
-  isReplaying,
-  isReplayExporting,
-  isVideoExportActive,
-  onCloseExportMenu,
-  onExportAction,
-  onExportMenuToggle,
-  profileExportAvailable,
-  onExportTypeChange,
-  onExportFormatChange,
-  onExportFormatInfoToggle,
-  onIncludeLegendChange,
-  onReplayToggle,
-  onStop,
-  shouldLockWebmToggle,
-  shouldShowWebmToggle,
-  showExportButton,
-  showReplayButton,
-  showStopButton,
-}) {
-  const shouldShowReplayDivider = showReplayButton || showStopButton;
-
-  return (
-    <>
-      {showReplayButton ? (
-        <ReplayActionButton
-          chartActionButtonClasses={chartActionButtonClasses}
-          isControlsLocked={isControlsLocked}
-          isReplayPaused={isReplayPaused}
-          isReplaying={isReplaying}
-          onReplayToggle={onReplayToggle}
-        />
-      ) : null}
-      {showStopButton ? (
-        <StopReplayButton
-          chartActionButtonClasses={chartActionButtonClasses}
-          isReplayExporting={isReplayExporting}
-          isVideoExportActive={isVideoExportActive}
-          onStop={onStop}
-        />
-      ) : null}
-      {shouldShowReplayDivider ? <ChartActionDivider /> : null}
-      {showExportButton ? (
-        <>
-          <ShotMediaExportMenu
-            exportMenuRef={exportMenuRef}
-            exportMenuState={exportMenuState}
-            hasVideoExportSupport={hasVideoExportSupport}
-            isControlsLocked={isControlsLocked}
-            onCloseExportMenu={onCloseExportMenu}
-            onExportAction={onExportAction}
-            onExportMenuToggle={onExportMenuToggle}
-            profileExportAvailable={profileExportAvailable}
-            onExportTypeChange={onExportTypeChange}
-            onExportFormatChange={onExportFormatChange}
-            onExportFormatInfoToggle={onExportFormatInfoToggle}
-            onIncludeLegendChange={onIncludeLegendChange}
-            shouldLockWebmToggle={shouldLockWebmToggle}
-            shouldShowWebmToggle={shouldShowWebmToggle}
-            buttonClassName={chartActionButtonClasses}
+        <div className='shot-chart-export__group'>
+          <span className='bm-eyebrow'>Export file</span>
+          <Checkbox
+            label='Shot'
+            checked={fileExportTypes.includes('shot')}
+            onChange={() => handleFileExportTypeToggle('shot')}
           />
-          <ChartActionDivider />
-        </>
-      ) : null}
+          <Checkbox
+            label='Profile'
+            checked={fileExportTypes.includes('profile')}
+            disabled={!profileExportAvailable}
+            onChange={() => handleFileExportTypeToggle('profile')}
+          />
+        </div>
+        <div className='flex items-center justify-end gap-2'>
+          <Button size='sm' onClick={onCloseExportMenu}>
+            Cancel
+          </Button>
+          <Button size='sm' variant='primary' onClick={onExportAction}>
+            Export
+          </Button>
+        </div>
+      </Popover>
     </>
+  );
+}
+
+function ReplayActionButton({ isControlsLocked, isReplayPaused, isReplaying, onReplayToggle }) {
+  return (
+    <IconButton
+      icon={isReplaying ? 'pause' : 'play'}
+      label={getReplayActionLabel({ isReplaying, isReplayPaused })}
+      onClick={onReplayToggle}
+      disabled={isControlsLocked}
+    />
+  );
+}
+
+function StopReplayButton({ isReplayExporting, isVideoExportActive, onStop }) {
+  return (
+    <IconButton
+      icon='stop'
+      label={isVideoExportActive ? 'Cancel replay export' : 'Stop replay and restore chart'}
+      onClick={onStop}
+      disabled={isReplayExporting && !isVideoExportActive}
+    />
   );
 }
 
@@ -352,22 +193,16 @@ export function ShotChartMobileReplayActions({
   shouldLockWebmToggle,
   shouldShowWebmToggle,
 }) {
-  const chartActionButtonClasses = getAnalyzerIconButtonClasses({
-    className: `${ANALYZER_ACTION_ICON_BUTTON_CLASS} border-0 bg-transparent `,
-  });
-
   return (
     <div className='shot-chart-mobile-actions'>
       <div className='shot-chart-mobile-actions__group'>
         <ReplayActionButton
-          chartActionButtonClasses={chartActionButtonClasses}
           isControlsLocked={isControlsLocked}
           isReplayPaused={isReplayPaused}
           isReplaying={isReplaying}
           onReplayToggle={onReplayToggle}
         />
         <StopReplayButton
-          chartActionButtonClasses={chartActionButtonClasses}
           isReplayExporting={isReplayExporting}
           isVideoExportActive={isVideoExportActive}
           onStop={onStop}
@@ -390,8 +225,7 @@ export function ShotChartMobileReplayActions({
           onIncludeLegendChange={onIncludeLegendChange}
           shouldLockWebmToggle={shouldLockWebmToggle}
           shouldShowWebmToggle={shouldShowWebmToggle}
-          buttonClassName={chartActionButtonClasses}
-          menuClassName='absolute right-0 bottom-full z-[70] mb-2'
+          placement='top-end'
         />
       </div>
 
@@ -406,32 +240,19 @@ export function ShotChartMobileReplayActions({
   );
 }
 
-function FullDisplayButton({
-  chartActionButtonClasses,
-  isControlsLocked,
-  isFullDisplay,
-  onFullDisplayToggle,
-}) {
+function FullDisplayButton({ isControlsLocked, isFullDisplay, onFullDisplayToggle }) {
   return (
-    <button
-      type='button'
+    <IconButton
+      icon={isFullDisplay ? 'x' : 'monitor'}
+      label={isFullDisplay ? 'Close full display' : 'Open full display'}
       onClick={onFullDisplayToggle}
-      className={chartActionButtonClasses}
       disabled={isControlsLocked}
-      aria-label={isFullDisplay ? 'Close full display' : 'Open full display'}
-      title={isFullDisplay ? 'Close full display' : 'Open full display'}
-    >
-      <Icon
-        name={isFullDisplay ? 'panel-left-close' : 'panel-left-close'}
-        className={ANALYZER_ACTION_ICON_CLASS}
-        style={ANALYZER_ACTION_ICON_STYLE}
-      />
-    </button>
+    />
   );
 }
 
+/** Replay, stop, export and full display: the actions at the right of a chart's head row. */
 export function ChartActionGroup({
-  chartActionButtonClasses,
   exportMenuRef,
   exportMenuState,
   hasVideoExportSupport,
@@ -462,20 +283,33 @@ export function ChartActionGroup({
   showStopButton,
 }) {
   const shouldShowFullDisplayButton = showFullDisplayButton && !isMobile;
+  const showsReplay = !isCompareMode && (showReplayButton || showStopButton);
+  const showsExport = !isCompareMode && showExportButton;
 
   return (
-    <div className={ANALYZER_ACTION_GROUP_CLASSES}>
-      {isCompareMode ? null : (
-        <ReplayAndExportActions
-          chartActionButtonClasses={chartActionButtonClasses}
+    <div className='flex items-center gap-1'>
+      {showsReplay && showReplayButton ? (
+        <ReplayActionButton
+          isControlsLocked={isControlsLocked}
+          isReplayPaused={isReplayPaused}
+          isReplaying={isReplaying}
+          onReplayToggle={onReplayToggle}
+        />
+      ) : null}
+      {showsReplay && showStopButton ? (
+        <StopReplayButton
+          isReplayExporting={isReplayExporting}
+          isVideoExportActive={isVideoExportActive}
+          onStop={onStop}
+        />
+      ) : null}
+      {showsReplay && (showsExport || shouldShowFullDisplayButton) ? <ChartActionDivider /> : null}
+      {showsExport ? (
+        <ShotMediaExportMenu
           exportMenuRef={exportMenuRef}
           exportMenuState={exportMenuState}
           hasVideoExportSupport={hasVideoExportSupport}
           isControlsLocked={isControlsLocked}
-          isReplayPaused={isReplayPaused}
-          isReplaying={isReplaying}
-          isReplayExporting={isReplayExporting}
-          isVideoExportActive={isVideoExportActive}
           onCloseExportMenu={onCloseExportMenu}
           onExportAction={onExportAction}
           onExportMenuToggle={onExportMenuToggle}
@@ -484,18 +318,12 @@ export function ChartActionGroup({
           onExportFormatChange={onExportFormatChange}
           onExportFormatInfoToggle={onExportFormatInfoToggle}
           onIncludeLegendChange={onIncludeLegendChange}
-          onReplayToggle={onReplayToggle}
-          onStop={onStop}
           shouldLockWebmToggle={shouldLockWebmToggle}
           shouldShowWebmToggle={shouldShowWebmToggle}
-          showExportButton={showExportButton}
-          showReplayButton={showReplayButton}
-          showStopButton={showStopButton}
         />
-      )}
+      ) : null}
       {shouldShowFullDisplayButton ? (
         <FullDisplayButton
-          chartActionButtonClasses={chartActionButtonClasses}
           isControlsLocked={isControlsLocked}
           isFullDisplay={isFullDisplay}
           onFullDisplayToggle={onFullDisplayToggle}
@@ -505,29 +333,20 @@ export function ChartActionGroup({
   );
 }
 
+/** What the export is doing, as a line of text; a failure is set in the danger colour. */
 export function ReplayExportStatus({
   replayExportStatus,
   replayExportStatusHint,
   replayExportStatusLabel,
 }) {
-  if (replayExportStatusLabel) {
-    return (
-      <div className='min-w-[10rem] text-right'>
-        <div
-          className={`text-xs font-medium ${
-            replayExportStatus.error ? 'text-[var(--danger)]' : 'text-[var(--ink-muted)]'
-          }`}
-        >
-          {replayExportStatusLabel}
-        </div>
-        {replayExportStatusHint ? (
-          <div className='mt-0.5 text-[9px] leading-relaxed text-[var(--ink-muted)]'>
-            {replayExportStatusHint}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
+  if (!replayExportStatusLabel) return null;
 
-  return null;
+  return (
+    <div className='shot-chart-export-status' role='status'>
+      <div className={cx('an-caption', replayExportStatus.error && 'text-(--danger)')}>
+        {replayExportStatusLabel}
+      </div>
+      {replayExportStatusHint ? <div className='an-caption'>{replayExportStatusHint}</div> : null}
+    </div>
+  );
 }

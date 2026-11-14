@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import Chart from 'chart.js/auto';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { getLegendColorByLabel, getNeutralAxisTickColor, getShotChartColors } from '../helpers';
+import { useThemeVersion } from '../../../ui/chartTokens.js';
+import { getShotChartColors, SERIES_CSS_COLOR_BY_LABEL } from '../helpers';
 import {
   buildCompareDetailCharts,
   getAxisRange,
@@ -111,14 +112,14 @@ export function CompareShotCharts({
     ? getMobileCompareVisibility(visibility)
     : visibility;
 
+  // Every render reads the tokens again, and a theme switch forces one: the configs below are
+  // rebuilt with them and each canvas recreates its chart.
+  useThemeVersion();
   const colors = getShotChartColors();
-  const legendColorByLabel = getLegendColorByLabel(colors);
+  const legendColorByLabel = SERIES_CSS_COLOR_BY_LABEL;
   const resolvedCompareStyle = getResolvedCompareStyle(shotStylePreset);
   const compareShotLegendItems = getCompareShotLegendItems({
-    colors,
     compareEntries,
-    resolvedCompareStyle,
-    shotStylePreset,
     showCompareShotLegend,
   });
   const compareEntriesKey = getCompareEntriesKey(compareEntries);
@@ -139,6 +140,16 @@ export function CompareShotCharts({
   useEffect(() => {
     setDetailMetricPageByChartId({});
   }, [compareEntriesKey]);
+
+  // Full display has no scrim to press: Escape and its close button leave it.
+  useEffect(() => {
+    if (!isFullDisplay) return undefined;
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') setIsFullDisplay(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullDisplay]);
 
   const { compareAlignmentOptions, compareModels, resolvedCompareAlignmentMode } = getCompareModels(
     {
@@ -176,7 +187,6 @@ export function CompareShotCharts({
     colors,
     visibility: effectiveVisibility,
     targetDisplayMode: compareTargetDisplayMode,
-    shotStylePreset,
     compareStyle: resolvedCompareStyle,
     showWeightInMainChart,
     showWeightFlowInMainChart,
@@ -201,7 +211,6 @@ export function CompareShotCharts({
     mainAxisRange,
     compareModelCount: compareModels.length,
   });
-  const neutralAxisTickColor = getNeutralAxisTickColor();
   const showWeightAxis = Boolean(
     hasWeightData && showWeightInMainChart && effectiveVisibility.weight,
   );
@@ -230,14 +239,13 @@ export function CompareShotCharts({
   });
 
   const mainChartConfig = getCompareMainChartConfig({
+    colors,
     compareModels,
-    compareShotLegendItems,
     mainAnnotations,
     mainAxisRange,
     mainAxisUnitLabels,
     mainAxisUnitPadding,
     mainDatasets,
-    neutralAxisTickColor,
     puckResistanceAxisRange,
     liquidResistanceAxisRange,
     showStopAnnotations,
@@ -261,7 +269,6 @@ export function CompareShotCharts({
     compareTargetDisplayMode,
     detailPhaseAnnotations,
     includePumpFlowWaterTooltip: shouldUseAnalyzerMobileCompareLayout,
-    neutralAxisTickColor,
     resolvedCompareStyle,
     shotStylePreset,
     visibility: effectiveVisibility,
@@ -306,9 +313,10 @@ export function CompareShotCharts({
     />
   );
 
+  // Each chart of the comparison is a tile of its own.
   const chartCardClass = [
+    'bm-tile',
     shotStylePreset === 'statistics' ? 'shot-chart-statistics-card' : '',
-    'app-card-surface rounded-xl px-1.5 py-2 sm:px-2',
   ]
     .filter(Boolean)
     .join(' ');
@@ -409,12 +417,5 @@ export function CompareShotCharts({
     />
   );
 
-  return (
-    <CompareChartsShell
-      charts={charts}
-      controls={controls}
-      isFullDisplay={isFullDisplay}
-      onCloseFullDisplay={() => setIsFullDisplay(false)}
-    />
-  );
+  return <CompareChartsShell charts={charts} controls={controls} isFullDisplay={isFullDisplay} />;
 }

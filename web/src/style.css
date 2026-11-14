@@ -50,68 +50,22 @@
 /* Card.jsx builds its grid spans from props, where the scanner cannot see them. */
 @source inline("{,sm:,md:,lg:,xl:}col-span-{1..12}");
 
-/* Analyzer/statistics keep their existing API and read the shared color tokens. */
+/* Analyzer and Statistics: one token per series of a shot. A derived series takes the hue of the
+   reading it comes from and differs by its line pattern; resistance is neutral. These colour marks
+   (lines, legend dots, glyphs); the words beside them stay ink. */
 :root {
-  --analyzer-brew-by-time-label-bg: var(--surface-2);
-  --analyzer-brew-by-time-label-border: var(--chart-grid);
-  --analyzer-brew-by-time-label-text: var(--ink-muted);
-  --analyzer-brew-by-weight-label-bg: var(--surface-2);
-  --analyzer-brew-by-weight-label-border: var(--chart-grid);
-  --analyzer-brew-by-weight-label-text: var(--series-weight);
-  --analyzer-flow-anchor: var(--series-flow);
-  --analyzer-flow-text: var(--series-flow);
-  --analyzer-hover-tooltip-bg: var(--surface-2);
-  --analyzer-hover-tooltip-border: var(--chart-grid);
-  --analyzer-hover-tooltip-text: var(--ink-muted);
-  --analyzer-liquidresistance-anchor: var(--heat-text);
-  --analyzer-liquidresistance-text: var(--heat-text);
-  --analyzer-notes-taste-balanced: var(--success);
-  --analyzer-notes-taste-bitter: var(--heat-text);
-  --analyzer-notes-taste-sour: var(--warning);
-  --analyzer-phase-line: var(--chart-grid);
-  --analyzer-pred-info-blue: var(--series-pressure);
-  --analyzer-pred-stop-red: var(--danger);
-  --analyzer-pressure-anchor: var(--series-pressure);
-  --analyzer-pressure-text: var(--series-pressure);
-  --analyzer-puckflow-anchor: var(--series-flow);
-  --analyzer-puckflow-text: var(--series-flow);
-  --analyzer-puckresistance-anchor: var(--heat-text);
-  --analyzer-puckresistance-text: var(--heat-text);
-  --analyzer-source-gm-badge-bg: var(--surface-2);
-  --analyzer-source-gm-badge-border: var(--chart-grid);
-  --analyzer-source-gm-badge-text: var(--ink-muted);
-  --analyzer-source-web-badge-bg: var(--primary-soft);
-  --analyzer-source-web-badge-border: var(--line);
-  --analyzer-source-web-badge-text: var(--primary-text);
-  --analyzer-stop-label: var(--danger);
-  --analyzer-target-flow-anchor: var(--series-flow);
-  --analyzer-target-flow-text: var(--series-flow);
-  --analyzer-target-pressure-anchor: var(--series-pressure);
-  --analyzer-target-pressure-text: var(--series-pressure);
-  --analyzer-target-temp-anchor: var(--series-temperature);
-  --analyzer-target-temp-text: var(--series-temperature);
-  --analyzer-temp-anchor: var(--series-temperature);
-  --analyzer-temp-text: var(--series-temperature);
-  --analyzer-warning-orange: var(--warning);
-  --analyzer-warning-orange-strong: var(--warning);
-  --analyzer-weight-anchor: var(--series-weight);
-  --analyzer-weight-det-anchor: var(--series-weight);
-  --analyzer-weight-det-text: var(--series-weight);
-  --analyzer-weight-text: var(--series-weight);
-  --analyzer-weightflow-anchor: var(--series-weight);
-  --analyzer-weightflow-text: var(--series-weight);
-  --statistics-summary-border: var(--chart-grid);
-  --statistics-summary-duration: var(--ink-muted);
-  --statistics-summary-shots-brown: var(--heat-text);
-  --statistics-summary-surface-muted: var(--surface-2);
-  --statistics-summary-surface-strong: var(--surface-2);
-  --statistics-summary-water: var(--series-pressure);
-  --statistics-trend-axis-tick: var(--ink-muted);
-  --statistics-trend-duration: var(--ink-muted);
-  --statistics-trend-grid: var(--chart-grid);
-  --statistics-trend-shots-brown: var(--heat-text);
-  --statistics-trend-tooltip-bg: var(--surface-2);
-  --statistics-trend-water: var(--series-pressure);
+  --analyzer-pressure: var(--series-pressure);
+  --analyzer-flow: var(--series-flow);
+  --analyzer-puck-flow: var(--series-flow);
+  --analyzer-water: var(--series-flow);
+  --analyzer-temperature: var(--series-temperature);
+  --analyzer-weight: var(--series-weight);
+  --analyzer-weight-flow: var(--series-weight);
+  --analyzer-puck-resistance: var(--ink);
+  --analyzer-liquid-resistance: var(--ink-muted);
+  --analyzer-duration: var(--ink-muted);
+  --analyzer-phase: var(--line-strong);
+  --analyzer-stop: var(--ink);
 }
 
 @layer base {

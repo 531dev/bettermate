@@ -1,15 +1,22 @@
 /* global globalThis */
 
 import { REPLAY_TARGET_FPS } from '../components/shotChart/constants';
+import { canvasFont, readChartTokens } from '../ui/chartTokens.js';
 
 const EXPORT_FPS = REPLAY_TARGET_FPS;
 const EXPORT_PADDING = 24;
 const EXPORT_SECTION_GAP = 18;
 const EXPORT_CARD_PADDING = 12;
-const EXPORT_CARD_RADIUS = 18;
-const EXPORT_LEGEND_GAP = 10;
-const EXPORT_LEGEND_ITEM_GAP = 18;
-const EXPORT_LEGEND_ROW_GAP = 12;
+// The exported frame is the chart's tile on the page ground: radius-xl, no border, no shadow.
+const EXPORT_CARD_RADIUS = 28;
+// The legend is a row of chips, as on the page: a series mark and its name in the chip style.
+const EXPORT_LEGEND_FONT_SIZE = 11;
+const EXPORT_LEGEND_CHIP_HEIGHT = 24;
+const EXPORT_LEGEND_CHIP_PADDING = 8;
+const EXPORT_LEGEND_MARK_WIDTH = 12;
+const EXPORT_LEGEND_GAP = 6;
+const EXPORT_LEGEND_ITEM_GAP = 6;
+const EXPORT_LEGEND_ROW_GAP = 6;
 const EXPORT_OVERLAY_LANDSCAPE = { width: 1920, height: 1080 };
 const EXPORT_OVERLAY_PORTRAIT = { width: 1080, height: 1920 };
 
@@ -105,24 +112,16 @@ function makeEven(value) {
   return rounded % 2 === 0 ? rounded : rounded + 1;
 }
 
-function readCssVar(variableName, fallback) {
-  const browserWindow = getBrowserWindow();
-  const documentElement = browserWindow?.document?.documentElement;
-  if (!documentElement) return fallback;
-  const value = browserWindow
-    .getComputedStyle(documentElement)
-    .getPropertyValue(variableName)
-    .trim();
-  return value || fallback;
-}
-
-function getExportThemeColors() {
+// The colours and fonts of the frame, read from the tokens when the export starts, so a frame
+// matches the theme the page is in.
+function getExportTheme() {
+  const tokens = readChartTokens();
   return {
-    pageBackground: readCssVar('--color-base-100', '#ffffff'),
-    pageText: readCssVar('--color-base-content', '#0f172a'),
-    surface: readCssVar('--statistics-summary-surface-muted', 'rgba(255, 255, 255, 0.96)'),
-    surfaceStrong: readCssVar('--statistics-summary-surface-strong', 'rgba(255, 255, 255, 0.985)'),
-    border: readCssVar('--statistics-summary-border', 'rgba(15, 23, 42, 0.08)'),
+    tokens,
+    pageBackground: tokens.surface0,
+    card: tokens.surface1,
+    chip: tokens.surface2,
+    text: tokens.ink,
   };
 }
 
@@ -144,11 +143,8 @@ function createRoundedRectPath(ctx, x, y, width, height, radius) {
 function drawCard(ctx, x, y, width, height, colors) {
   ctx.save();
   createRoundedRectPath(ctx, x, y, width, height, EXPORT_CARD_RADIUS);
-  ctx.fillStyle = colors.surfaceStrong;
+  ctx.fillStyle = colors.card;
   ctx.fill();
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = colors.border;
-  ctx.stroke();
   ctx.restore();
 }
 
@@ -159,6 +155,17 @@ function getChartStackSize(mainCanvas, tempCanvas) {
   };
 }
 
+function setLegendFont(ctx, colors) {
+  ctx.font = canvasFont(colors.tokens, EXPORT_LEGEND_FONT_SIZE, { weight: 600 });
+  // the chip style: uppercase mono, set a little apart
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '0.88px';
+}
+
+function getLegendChipWidth(ctx, item) {
+  const textWidth = ctx.measureText(item.label.toUpperCase()).width;
+  return EXPORT_LEGEND_CHIP_PADDING * 2 + EXPORT_LEGEND_MARK_WIDTH + EXPORT_LEGEND_GAP + textWidth;
+}
+
 function measureLegendRows(ctx, legendItems, maxWidth) {
   if (!legendItems.length) return [];
 
@@ -167,9 +174,7 @@ function measureLegendRows(ctx, legendItems, maxWidth) {
   let currentWidth = 0;
 
   for (const item of legendItems) {
-    const textWidth = ctx.measureText(item.label).width;
-    const swatchWidth = item.style === 'block' ? 18 : 22;
-    const itemWidth = swatchWidth + EXPORT_LEGEND_GAP + textWidth;
+    const itemWidth = getLegendChipWidth(ctx, item);
     const nextWidth =
       currentRow.length === 0 ? itemWidth : currentWidth + EXPORT_LEGEND_ITEM_GAP + itemWidth;
 
@@ -188,50 +193,58 @@ function measureLegendRows(ctx, legendItems, maxWidth) {
   return rows;
 }
 
-function drawLegendSwatch(ctx, item, x, y) {
+// The mark of a series: a dot, or a short dashed stroke for a series that draws dashed.
+function drawLegendMark(ctx, item, x, y) {
   ctx.save();
   ctx.strokeStyle = item.color;
   ctx.fillStyle = item.color;
-  ctx.lineWidth = item.lineWidth || 3;
-
-  if (item.style === 'block') {
-    createRoundedRectPath(ctx, x, y - 6, 18, 12, 4);
-    ctx.fill();
-    ctx.restore();
-    return 18;
-  }
 
   if (item.style === 'dashed') {
-    ctx.setLineDash([6, 5]);
+    ctx.lineWidth = 2;
+    ctx.setLineDash([3, 2]);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + EXPORT_LEGEND_MARK_WIDTH, y);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.arc(x + EXPORT_LEGEND_MARK_WIDTH / 2, y, 4, 0, Math.PI * 2);
+    ctx.fill();
   }
-
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + 22, y);
-  ctx.stroke();
   ctx.restore();
-  return 22;
+}
+
+function getLegendHeight(rowCount) {
+  return rowCount * EXPORT_LEGEND_CHIP_HEIGHT + Math.max(0, rowCount - 1) * EXPORT_LEGEND_ROW_GAP;
 }
 
 function drawLegend(ctx, legendItems, bounds, colors) {
   if (!legendItems.length) return;
 
   ctx.save();
-  ctx.font = '500 14px "Jost", system-ui, sans-serif';
+  setLegendFont(ctx, colors);
   ctx.textBaseline = 'middle';
   const rows = measureLegendRows(ctx, legendItems, bounds.width);
 
-  let currentY = bounds.y + 14;
+  let chipY = bounds.y;
   for (const row of rows) {
-    let currentX = bounds.x;
+    let chipX = bounds.x;
     for (const item of row) {
-      const swatchWidth = drawLegendSwatch(ctx, item, currentX, currentY);
-      currentX += swatchWidth + EXPORT_LEGEND_GAP;
-      ctx.fillStyle = colors.pageText;
-      ctx.fillText(item.label, currentX, currentY);
-      currentX += ctx.measureText(item.label).width + EXPORT_LEGEND_ITEM_GAP;
+      const chipWidth = getLegendChipWidth(ctx, item);
+      const centerY = chipY + EXPORT_LEGEND_CHIP_HEIGHT / 2;
+      createRoundedRectPath(ctx, chipX, chipY, chipWidth, EXPORT_LEGEND_CHIP_HEIGHT, 8);
+      ctx.fillStyle = colors.chip;
+      ctx.fill();
+      drawLegendMark(ctx, item, chipX + EXPORT_LEGEND_CHIP_PADDING, centerY);
+      ctx.fillStyle = colors.text;
+      ctx.fillText(
+        item.label.toUpperCase(),
+        chipX + EXPORT_LEGEND_CHIP_PADDING + EXPORT_LEGEND_MARK_WIDTH + EXPORT_LEGEND_GAP,
+        centerY + 0.5,
+      );
+      chipX += chipWidth + EXPORT_LEGEND_ITEM_GAP;
     }
-    currentY += 14 + EXPORT_LEGEND_ROW_GAP;
+    chipY += EXPORT_LEGEND_CHIP_HEIGHT + EXPORT_LEGEND_ROW_GAP;
   }
   ctx.restore();
 }
@@ -298,19 +311,16 @@ function resolveChartFrame({
 function resolveCompositionLayout({ config, mainCanvas, tempCanvas, legendItems }) {
   const chartStackSize = getChartStackSize(mainCanvas, tempCanvas);
   const baseCanvasSize = getOverlayCanvasSize(config.layoutPreset, chartStackSize);
-  const colors = getExportThemeColors();
+  const colors = getExportTheme();
   let legendSectionHeight = 0;
   if (config.includeLegend && legendItems.length > 0) {
     const measurementCanvas = createExportCanvas();
     const measurementCtx = measurementCanvas.getContext('2d');
     if (measurementCtx) {
-      measurementCtx.font = '500 14px "Jost", system-ui, sans-serif';
+      setLegendFont(measurementCtx, colors);
       const maxLegendWidth = baseCanvasSize.width - EXPORT_PADDING * 2 - EXPORT_CARD_PADDING * 2;
       const legendRows = measureLegendRows(measurementCtx, legendItems, maxLegendWidth);
-      legendSectionHeight =
-        EXPORT_CARD_PADDING * 2 +
-        legendRows.length * 14 +
-        Math.max(0, legendRows.length - 1) * EXPORT_LEGEND_ROW_GAP;
+      legendSectionHeight = EXPORT_CARD_PADDING * 2 + getLegendHeight(legendRows.length);
     }
   }
   const outputWidth = makeEven(baseCanvasSize.width);

@@ -1,6 +1,7 @@
 /** Stable public entry point for shot-chart controls and legend constants. */
 
 export {
+  LegendDisclosure,
   SHOT_CHART_PRIMARY_LEGEND_LABELS,
   SHOT_CHART_SERIES_LEGEND_LABELS,
   ShotChartLegendToggles,

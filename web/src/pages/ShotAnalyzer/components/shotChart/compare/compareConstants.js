@@ -1,14 +1,3 @@
-export const SHOT_STYLE_PRESETS = {
-  analyzer: {
-    opacities: [1, 0.46, 0.34, 0.26, 0.2, 0.15],
-    lineWidths: [3.4, 3, 2.65, 2.3, 2.05, 1.8],
-  },
-  statistics: {
-    opacities: [0.58, 0.46, 0.34, 0.28, 0.24, 0.22],
-    lineWidths: [3.05, 2.85, 2.6, 2.4, 2.2, 2.05],
-  },
-};
-
 export const DETAIL_CHART_HEIGHT_SMALL = 180;
 
 export const DETAIL_CHART_HEIGHT_BIG = 220;

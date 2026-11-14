@@ -9,7 +9,7 @@ export function getShotNotesKey(shot) {
 }
 
 export function getShotDateTimeLabel(timestamp) {
-  if (!timestamp) return '-';
+  if (!timestamp) return '—';
   const date = new Date(timestamp * 1000);
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -20,10 +20,10 @@ export function getShotDateTimeLabel(timestamp) {
 }
 
 export function getAnalyzerShotDisplayName(currentShot, currentShotName = '') {
-  if (!currentShot) return 'No Shot Loaded';
-  if (currentShot.source === 'gaggimate') return `#${currentShot.id || currentShotName || '-'}`;
+  if (!currentShot) return 'No shot loaded';
+  if (currentShot.source === 'gaggimate') return `#${currentShot.id || currentShotName || '—'}`;
   return cleanName(
-    currentShotName || currentShot.name || currentShot.storageKey || currentShot.id || '-',
+    currentShotName || currentShot.name || currentShot.storageKey || currentShot.id || '—',
   );
 }
 

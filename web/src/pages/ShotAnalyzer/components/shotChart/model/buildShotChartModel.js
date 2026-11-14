@@ -18,14 +18,7 @@ import {
   createHoverWaterValueGetter,
 } from './waterValues';
 
-export function buildShotChartModel({
-  shotData,
-  results,
-  visibility,
-  colors,
-  brewModeMeta,
-  usePhaseNumbers,
-}) {
+export function buildShotChartModel({ shotData, results, visibility, colors, usePhaseNumbers }) {
   const samples = Array.isArray(shotData?.samples) ? shotData.samples : [];
   const { maxTime, shotStartSec, sampleTimesSec, cumulativeWaterTotalBySample } =
     buildSampleTimeline(samples);
@@ -98,7 +91,5 @@ export function buildShotChartModel({
     getHoverWaterValuesAtX,
     waterTooltipPhaseSeries,
     waterTooltipTotalSeries,
-    brewLabel: brewModeMeta?.label || null,
-    brewIconDef: brewModeMeta?.iconDef || null,
   };
 }

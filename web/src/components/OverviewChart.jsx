@@ -1,403 +1,267 @@
+import { effect } from '@preact/signals';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { machine } from '../services/ApiService.js';
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { Chart } from 'chart.js';
+import {
+  applyChartTheme,
+  chartOptions,
+  line,
+  niceAxis,
+  phaseLine,
+  secondsAxis,
+  secondsStep,
+  valueAxis,
+} from '../utils/chartTheme.js';
 import { ChartComponent } from './Chart.jsx';
-import { niceAxis, phaseMarkerColors } from '../utils/chartTheme.js';
 
-// Global state to track phase transitions during brewing
-let phaseTransitions = [];
-let lastKnownPhase = null;
-let brewStartTime = null;
-let lastProcessState = null;
-let initialPhaseName = null; // Store the first phase name
+// The live chart. It appends each reading to the lines it already holds and never rebuilds them.
+// A shot grows from 0 s at the left edge and what is drawn stays where it is; between shots the
+// last minute is a strip on the clock that moves on a quarter of a minute at a time.
 
-// Function to clear phase transitions (can be called from outside)
+const STRIP = 60; // seconds of readings between shots
+const STRIP_STEP = 15; // how far the strip moves on when a reading passes its right edge
+const SHOT = 30; // the shortest time axis of a shot
+const SHOT_STEP = 15; // what a longer plan, or a shot that runs on, adds to it
+
+// ── The shot on the machine ────────────────────────────────────────────────────────────────
+// Tracked for as long as this module is loaded, so the chart can come and go (Simple mounts it
+// with the shot) and still draw the whole shot. Times are the browser's clock, in ms.
+let shot = null; // { start, end, phases: [{ at, name }] }
+
+// Kept for callers of the earlier chart: forgets the shot, and the chart returns to the strip.
 export const clearPhaseTransitions = () => {
-  phaseTransitions = [];
-  lastKnownPhase = null;
-  brewStartTime = null;
-  lastProcessState = null;
-  initialPhaseName = null;
+  shot = null;
 };
 
-function getChartData(data) {
-  // Stabilize the end time by rounding to the nearest second to prevent jiggling
-  let end = new Date();
-  end.setMilliseconds(0); // Round to nearest second for stability
-
-  // Track phase transitions for brew process
-  const currentProcess = machine.value.status.process;
-  const isBrewActive =
-    currentProcess &&
-    currentProcess.s &&
-    (currentProcess.s === 'brew' || currentProcess.s === 'infusion') &&
-    currentProcess.a;
-
-  // Determine time window based on brewing state
-  let timeWindowMs;
-  let timeUnit = 'second';
-  let maxTicksLimit = 5;
-
-  if (isBrewActive) {
-    // During brewing: start with 30s window, grow to 45s and 60s for longer shots
-    const brewElapsedMs = currentProcess.e || 0;
-    const brewElapsedSeconds = brewElapsedMs / 1000;
-
-    if (brewElapsedSeconds < 30) {
-      // First 30 seconds: show 30s window
-      timeWindowMs = 30000;
-    } else if (brewElapsedSeconds < 45) {
-      // 30-45 seconds: show 45s window
-      timeWindowMs = 45000;
-    } else {
-      // After 45 seconds: show 60s window
-      timeWindowMs = 60000;
-    }
-
-    maxTicksLimit = 8; // More ticks for better resolution
-  } else if (phaseTransitions.length > 0) {
-    // Recently finished brewing: show a bit more context
-    timeWindowMs = 60000; // 1 minute
-    maxTicksLimit = 6;
-  } else {
-    // Normal mode: show 1 minute
-    timeWindowMs = 60000;
-    maxTicksLimit = 5;
+function trackShot(status) {
+  const process = status.process;
+  // A flush is a brew process too, but not a shot.
+  const brewing = process && !process.u && (process.s === 'brew' || process.s === 'infusion');
+  if (!brewing || !status.timestamp) {
+    shot = null;
+    return;
   }
-
-  let start = new Date(end.getTime() - timeWindowMs);
-  // Stabilize start time by rounding to nearest second for consistency
-  start.setMilliseconds(0);
-
-  // Filter data to the current time window for auto-scaling
-  const filteredData = data.filter(item => item.timestamp >= start && item.timestamp <= end);
-
-  // Calculate auto-scale ranges from visible data
-  let tempValues = filteredData.map(i => i.currentTemperature);
-  tempValues = tempValues.concat(filteredData.map(i => i.targetTemperature));
-
-  let pressureFlowValues = filteredData.map(i => i.currentPressure);
-  pressureFlowValues = pressureFlowValues.concat(filteredData.map(i => i.targetPressure));
-  pressureFlowValues = pressureFlowValues.concat(filteredData.map(i => i.currentFlow));
-
-  // Calculate ranges with some padding and round to integers for clean scales
-  const tempAxis =
-    tempValues.length > 0
-      ? niceAxis(Math.max(0, Math.min(...tempValues) - 5), Math.max(...tempValues) + 5)
-      : niceAxis(0, 160);
-  const pressureFlowAxis =
-    pressureFlowValues.length > 0
-      ? niceAxis(0, Math.max(...pressureFlowValues) + 2)
-      : niceAxis(0, 16);
-
-  // Create a state key to detect when a new brew starts
-  const processState = currentProcess
-    ? `${currentProcess.s}_${currentProcess.a}_${currentProcess.e || 0}`
-    : null;
-
-  // Detect brew start/restart - check if we transitioned to active or if process restarted
-  if (isBrewActive && (!brewStartTime || processState !== lastProcessState)) {
-    // If elapsed time is very small (< 2 seconds), this is likely a new brew
-    if (!currentProcess.e || currentProcess.e < 2000) {
-      brewStartTime = new Date();
-      phaseTransitions = [];
-      lastKnownPhase = null;
-      initialPhaseName = currentProcess.l; // Capture the initial phase name
-    }
+  if (!process.a) {
+    // Finished: the shot keeps its place until the process is cleared.
+    if (shot && shot.end == null) shot.end = shot.start + (process.e || 0);
+    return;
   }
-
-  // Detect brew end - process stopped being active
-  if (!isBrewActive && brewStartTime) {
-    // Don't immediately clear - let the user see the phase markers for a while
-    // They will be cleared when a new brew starts
+  const now = status.timestamp.getTime();
+  const elapsed = process.e || 0;
+  if (!shot || shot.end != null || now - elapsed - shot.start > 2000) {
+    shot = { start: now - elapsed, end: null, phases: [] };
   }
-
-  // Track phase changes during brewing
-  if (isBrewActive && currentProcess.l && brewStartTime) {
-    const currentPhase = currentProcess.l;
-    const currentPhaseType = currentProcess.s;
-
-    // Only add transition if phase name actually changed and we're not on the first phase
-    if (lastKnownPhase !== null && lastKnownPhase !== currentPhase) {
-      // Check if we already have this transition (avoid duplicates)
-      const existingTransition = phaseTransitions.find(t => t.phaseName === currentPhase);
-      if (!existingTransition) {
-        phaseTransitions.push({
-          timestamp: new Date(),
-          phaseName: currentPhase,
-          phaseType: currentPhaseType,
-        });
-      }
-    }
-    lastKnownPhase = currentPhase;
+  if (process.l && shot.phases[shot.phases.length - 1]?.name !== process.l) {
+    // The first phase starts with the shot. Met in the middle, its start is unknown: no line.
+    const at = shot.phases.length ? (now - shot.start) / 1000 : elapsed < 2000 ? 0 : null;
+    shot.phases.push({ at, name: process.l });
   }
+}
 
-  lastProcessState = processState;
+effect(() => trackShot(machine.value.status));
 
-  // Create phase annotations for Chart.js
-  const phaseAnnotations = {};
-  const isSmall = window.innerWidth < 640;
-  const marker = phaseMarkerColors();
-  // Add phase transition lines
-  phaseTransitions.forEach((transition, index) => {
-    const transitionTime = transition.timestamp.getTime();
-    const chartStart = start.getTime();
-    const chartEnd = end.getTime();
+// ── One chart ──────────────────────────────────────────────────────────────────────────────
 
-    // Only show transitions within chart timeframe
-    if (transitionTime >= chartStart && transitionTime <= chartEnd) {
-      phaseAnnotations[`phase_line_${index}`] = {
-        type: 'line',
-        xMin: transition.timestamp.toISOString(),
-        xMax: transition.timestamp.toISOString(),
-        borderColor: marker.line,
-        borderWidth: 1, // Thinner line
-        label: {
-          display: true,
-          content: transition.phaseName,
-          rotation: -90,
-          position: 'end', // anchor at top of line
-          xAdjust: -10, // tweak first label inward to compensate for y-axis padding
-          yAdjust: 0,
-          padding: { x: 6, y: 0 },
-          color: marker.text,
-          backgroundColor: marker.background,
-          textAlign: 'start',
-          font: {
-            size: isSmall ? 9 : 11,
-            weight: 500,
-          },
-          clip: false,
-        },
-      };
-    }
-  });
+const LINES = [
+  { name: 'Pressure', series: 'pressure', axis: 'y1', field: 'currentPressure' },
+  { name: 'Flow', series: 'flow', axis: 'y1', field: 'currentFlow' },
+  { name: 'Temp', series: 'temperature', axis: 'y', field: 'currentTemperature' },
+  { name: 'Weight', series: 'weight', axis: 'y2', field: 'currentWeight' },
+  { series: 'pressure', axis: 'y1', field: 'targetPressure', kind: 'target' },
+  { series: 'temperature', axis: 'y', field: 'targetTemperature', kind: 'target' },
+  { series: 'weight', axis: 'y2', field: 'activeTargetWeight', kind: 'target' },
+];
 
-  // Add brew start line if within timeframe
-  if (brewStartTime) {
-    const brewStartMs = brewStartTime.getTime();
-    const chartStart = start.getTime();
-    const chartEnd = end.getTime();
+const hasWeight = status => !!(status.volumetricAvailable && status.brewTarget);
 
-    if (brewStartMs >= chartStart && brewStartMs <= chartEnd) {
-      phaseAnnotations['brew_start'] = {
-        type: 'line',
-        xMin: brewStartTime.toISOString(),
-        xMax: brewStartTime.toISOString(),
-        borderColor: marker.line,
-        borderWidth: 1,
-        label: {
-          display: true,
-          content: initialPhaseName || 'Start',
-          rotation: -90,
-          position: 'end', // anchor at top of line
-          xAdjust: -10, // tweak first label inward to compensate for y-axis padding
-          yAdjust: 0,
-          padding: { x: 6, y: 0 },
-          color: marker.text,
-          backgroundColor: marker.background,
-          textAlign: 'start',
-          font: {
-            size: isSmall ? 9 : 11,
-            weight: 500,
-          },
-          clip: false,
-        },
-      };
-    }
-  }
+const shotTick = (value, index) => (index ? value : `${value} s`);
 
-  const latestData = data[data.length - 1];
-  const showWeights = latestData && latestData.volumetricAvailable && latestData.brewTarget;
-  const datasets = [
-    {
-      label: 'Current Temperature',
-      borderColor: '#F0561D',
-      pointStyle: false,
-      data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.currentTemperature })),
-    },
-    {
-      label: 'Target Temperature',
-      borderColor: '#731F00',
-      borderDash: [6, 6],
-      pointStyle: false,
-      data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.targetTemperature })),
-    },
-    {
-      label: 'Current Pressure',
-      borderColor: '#0066CC',
-      pointStyle: false,
-      yAxisID: 'y1',
-      data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.currentPressure })),
-    },
-    {
-      label: 'Target Pressure',
-      borderColor: '#003366',
-      borderDash: [6, 6],
-      pointStyle: false,
-      yAxisID: 'y1',
-      data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.targetPressure })),
-    },
-    {
-      label: 'Current Flow',
-      borderColor: '#63993D',
-      pointStyle: false,
-      yAxisID: 'y1',
-      data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.currentFlow })),
-    },
-  ];
-  if (showWeights) {
-    datasets.push({
-      label: 'Current Weight',
-      borderColor: '#8B5CF6',
-      pointStyle: false,
-      yAxisID: 'y2',
-      data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.currentWeight || 0 })),
-    });
-    datasets.push({
-      label: 'Target Weight',
-      borderColor: '#4C1D95',
-      borderDash: [6, 6],
-      pointStyle: false,
-      yAxisID: 'y2',
-      data: data.map(i => ({ x: i.timestamp.toISOString(), y: i.activeTargetWeight || 0 })),
-    });
-  }
+const clock = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' });
+// 9:41 on the minute and :15 between, so the strip reads like a clock.
+function clockTick(ms) {
+  const date = new Date(ms);
+  if (date.getSeconds()) return `:${String(date.getSeconds()).padStart(2, '0')}`;
+  const parts = clock.formatToParts(date);
+  const part = type => parts.find(p => p.type === type)?.value;
+  return `${part('hour')}:${part('minute')}`;
+}
 
-  return {
+function createLiveChart(withWeight) {
+  // `points` are the arrays the chart draws; a reading is pushed onto each and nothing else changes.
+  const tracks = LINES.filter(track => withWeight || track.series !== 'weight').map(track => ({
+    ...track,
+    points: [],
+  }));
+  const config = {
     type: 'line',
     data: {
-      datasets: datasets,
+      datasets: tracks.map(({ series, name, points, kind, axis }) =>
+        line(series, name, points, { kind, yAxisID: axis }),
+      ),
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          display: true,
-          labels: {
-            usePointStyle: true,
-            pointStyle: 'line',
-            pointStyleWidth: 20,
-            padding: 8,
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-            generateLabels: function (chart) {
-              const original = Chart.defaults.plugins.legend.labels.generateLabels;
-              // Targets are the dashed line in the same color, so the legend names each series once.
-              return original
-                .call(this, chart)
-                .filter(label => !label.text.startsWith('Target'))
-                .map(label => ({
-                  ...label,
-                  text: label.text.replace('Current ', ''),
-                  lineWidth: 3,
-                }));
-            },
-          },
-        },
-        annotation: {
-          annotations: phaseAnnotations,
-        },
-      },
-      animation: false,
+    options: chartOptions({
       scales: {
-        y: {
-          type: 'linear',
-          min: tempAxis.min,
-          max: tempAxis.max,
-          ticks: {
-            stepSize: tempAxis.step,
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-            callback: value => {
-              return `${Math.round(value)}°`; // Round displayed values to integers
-            },
-          },
-        },
-        y1: {
-          type: 'linear',
-          min: pressureFlowAxis.min,
-          max: pressureFlowAxis.max,
+        x: secondsAxis(0, SHOT, shotTick),
+        y: valueAxis(niceAxis(80, 100), { format: value => `${Math.round(value)}°` }),
+        y1: valueAxis(niceAxis(0, 12), {
           position: 'right',
-          title: { display: true, text: 'bar, ml/s' },
-          // One set of grid lines: the two axes' ticks rarely line up.
-          grid: { drawOnChartArea: false },
-          ticks: {
-            stepSize: pressureFlowAxis.step,
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-            callback: value => {
-              return Math.round(value * 10) / 10; // Units are shown once beside the axis.
-            },
-          },
-        },
-        ...(showWeights && {
-          y2: {
-            type: 'linear',
-            display: false,
-            min: 0,
-            max: 100,
-          },
+          grid: false,
+          format: value => Math.round(value * 10) / 10,
         }),
-        x: {
-          type: 'time',
-          min: start,
-          max: end,
-          grid: { display: false },
-          time: {
-            unit: timeUnit,
-            stepSize: 1, // Force consistent step size
-            displayFormats: {
-              second: isBrewActive ? 'mm:ss' : 'HH:mm:ss',
-            },
-          },
-          ticks: {
-            source: 'auto',
-            autoSkip: true,
-            autoSkipPadding: 0,
-            callback: (value, index, ticks) => {
-              if (isBrewActive) {
-                // For brewing: show relative time from chart end in a clean format
-                const chartEnd = end.getTime();
-                const diffSeconds = Math.ceil((chartEnd - value) / 1000);
-                if (diffSeconds < 60) {
-                  return `${diffSeconds}s`;
-                } else {
-                  const minutes = Math.floor(diffSeconds / 60);
-                  const seconds = diffSeconds % 60;
-                  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }
-              } else {
-                // For normal view: show time ago from chart end
-                const chartEnd = end.getTime();
-                const diff = Math.ceil((chartEnd - value) / 1000);
-                return `-${diff}s`;
-              }
-            },
-            font: {
-              size: window.innerWidth < 640 ? 10 : 12,
-            },
-            maxTicksLimit: maxTicksLimit,
-          },
-        },
+        y2: valueAxis(niceAxis(0, 60), { hidden: true }),
       },
-    },
+    }),
   };
+
+  // What is on the chart now: which shot or the strip, its clock, and how far it has been read.
+  const view = { key: null, origin: 0, read: 0, start: 0, phases: -1 };
+
+  const extent = axis => {
+    let low = Infinity;
+    let high = -Infinity;
+    for (const track of tracks) {
+      if (track.axis !== axis) continue;
+      for (const { y } of track.points) {
+        if (y === null) continue;
+        if (y < low) low = y;
+        if (y > high) high = y;
+      }
+    }
+    return [low, high];
+  };
+
+  /**
+   * Brings the lines, the axes and the phase marks up to date with the machine, in the config the
+   * chart reads. Returns whether anything changed, so the caller knows to draw: 'marks' when the
+   * phase marks are new and still need their colors.
+   */
+  function sync({ status, history }) {
+    trackShot(status);
+    const latest = history[history.length - 1];
+    if (!latest) return false;
+
+    const key = shot ? shot.start : 'strip';
+    const fresh = key !== view.key;
+    if (fresh) {
+      // A minute on the clock, so the strip's ticks fall on :00, :15, :30 and :45.
+      const origin = shot ? shot.start : Math.floor(latest.timestamp / 60000) * 60000;
+      Object.assign(view, { key, origin, read: 0, start: -Infinity, phases: -1 });
+      for (const track of tracks) track.points.length = 0;
+    }
+    const seconds = timestamp => (timestamp - view.origin) / 1000;
+
+    // The strip moves on when the newest reading has passed its right edge.
+    let moved = false;
+    if (!shot) {
+      const start = Math.ceil((seconds(latest.timestamp) - STRIP) / STRIP_STEP) * STRIP_STEP;
+      moved = start > view.start;
+      if (moved) {
+        view.start = start;
+        for (const { points } of tracks) {
+          // One reading before the edge stays, so the lines still reach it.
+          let gone = 0;
+          while (gone < points.length - 1 && points[gone + 1].x <= start) gone++;
+          if (gone) points.splice(0, gone);
+        }
+      }
+    }
+
+    // Append what has arrived since the last reading drawn.
+    const from = shot ? -0.25 : view.start - STRIP_STEP;
+    const until = shot?.end != null ? shot.end + 250 : Infinity;
+    let next = history.length;
+    while (next > 0 && history[next - 1].timestamp > view.read) next--;
+    let added = 0;
+    for (; next < history.length; next++) {
+      const entry = history[next];
+      const x = seconds(entry.timestamp);
+      if (x < from || entry.timestamp > until) continue;
+      for (const track of tracks) {
+        const y = entry[track.field] || 0;
+        // A target of zero is no target: its line breaks there.
+        track.points.push({ x, y: track.kind === 'target' && y <= 0 ? null : y });
+      }
+      added++;
+    }
+    view.read = latest.timestamp.getTime();
+
+    const phases = shot ? shot.phases.length : 0;
+    if (!added && !moved && !fresh && phases === view.phases) return false;
+
+    // Chart.js swaps in its own merged `scales` when it builds and updates, so read them here.
+    const { scales, plugins } = config.options;
+
+    if (shot) {
+      // From 0 s for as long as the profile plans, and longer in steps if the shot runs on. The
+      // last second past a step only stretches the axis to the reading itself.
+      const drawn = tracks[0].points;
+      const reached = drawn.length ? drawn[drawn.length - 1].x : 0;
+      const planned = Math.ceil((status.brewTargetDuration || 0) / SHOT_STEP) * SHOT_STEP;
+      const steps = Math.ceil((reached - 1) / SHOT_STEP) * SHOT_STEP;
+      const end = Math.max(SHOT, planned, steps);
+      Object.assign(scales.x, { min: 0, max: Math.max(end, reached) });
+      scales.x.ticks.stepSize = secondsStep(end);
+      scales.x.ticks.callback = shotTick;
+    } else {
+      Object.assign(scales.x, { min: view.start, max: view.start + STRIP });
+      scales.x.ticks.stepSize = STRIP_STEP;
+      scales.x.ticks.callback = value => clockTick(view.origin + value * 1000);
+    }
+
+    // The value axes hold everything on the chart, so they only change when a reading leaves them.
+    const [coolest, hottest] = extent('y');
+    if (coolest <= hottest)
+      Object.assign(scales.y, niceAxis(Math.max(0, coolest - 2), hottest + 2));
+    Object.assign(scales.y1, niceAxis(0, Math.max(12, extent('y1')[1])));
+    if (scales.y2) Object.assign(scales.y2, niceAxis(0, Math.max(10, extent('y2')[1])));
+
+    if (phases !== view.phases) {
+      view.phases = phases;
+      const marks = {};
+      shot?.phases.forEach((phase, i) => {
+        if (phase.at != null) marks[`phase${i}`] = phaseLine(phase.at, phase.name);
+      });
+      plugins.annotation.annotations = marks;
+      return 'marks';
+    }
+    return true;
+  }
+
+  return { config, sync };
 }
 
 export function OverviewChart() {
-  const chartData = getChartData(machine.value.history);
+  const [withWeight, setWithWeight] = useState(() => hasWeight(machine.peek().status));
+  const live = useMemo(() => {
+    const created = createLiveChart(withWeight);
+    created.sync(machine.peek());
+    return created;
+  }, [withWeight]);
+  const chart = useRef(null);
+
+  // Readings reach the chart here, without rendering this component again.
+  useEffect(
+    () =>
+      effect(() => {
+        const state = machine.value;
+        const weight = hasWeight(state.status);
+        if (weight !== withWeight) setWithWeight(weight);
+        else {
+          const changed = live.sync(state);
+          if (!changed || !chart.current) return;
+          if (changed === 'marks') applyChartTheme(live.config, chart.current.canvas);
+          chart.current.update('none');
+        }
+      }),
+    [live, withWeight],
+  );
 
   return (
     <ChartComponent
       className='h-full min-h-0 w-full flex-1'
       chartClassName='h-full w-full'
-      data={chartData}
+      data={live.config}
+      chartRef={chart}
+      label='Live readings'
     />
   );
 }

@@ -2,7 +2,6 @@
 
 import { INITIAL_VISIBILITY, MAIN_CHART_HEIGHT_DEFAULT } from '../constants';
 import { buildShotChartModel } from '../buildShotChartModel';
-import { getShotChartBrewModeMeta } from '../labelVisuals';
 import { isStaticMobileTooltipViewport } from '../scrubberUtils';
 import { COMPARE_TARGET_DISPLAY_MODES } from '../../../utils/analyzerUtils';
 import {
@@ -204,7 +203,6 @@ export function getCompareModels({
       results: entry.results,
       visibility,
       colors,
-      brewModeMeta: getShotChartBrewModeMeta(entry.results, colors),
       usePhaseNumbers: true,
     }),
   }));
@@ -463,13 +461,11 @@ export function prefixCompareAnnotations(
       const isPhaseSeparator =
         key === 'shot_start' || key === 'shot_end' || key.startsWith('phase_line_');
 
+      // Shot 1 marks its phases with a solid hairline, shot 2 with a dashed one.
       if (isPhaseSeparator && nextAnnotation) {
         nextAnnotation.display = true;
-        nextAnnotation.borderWidth = nextAnnotation.borderWidth || 1;
-        nextAnnotation.borderColor =
-          nextAnnotation.borderColor === 'transparent' || !nextAnnotation.borderColor
-            ? 'rgba(107, 114, 128, 0.5)'
-            : nextAnnotation.borderColor;
+        nextAnnotation.borderWidth = 1;
+        nextAnnotation.borderDash = ghosted ? [6, 4] : [];
       }
 
       if (key === 'shot_start' && startLabelSuffix && nextAnnotation?.label?.content) {

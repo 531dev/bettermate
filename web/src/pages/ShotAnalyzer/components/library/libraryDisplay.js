@@ -374,18 +374,3 @@ export function createPrimaryStatsHandler({
       profileName: primaryDisplayProfileName,
     });
 }
-
-export function createSecondaryStatsHandler({
-  onShowStats,
-  primaryDisplayShot,
-  secondaryDisplayProfile,
-  secondaryDisplayProfileName,
-  secondaryDisplayShot,
-}) {
-  return () =>
-    onShowStats?.({
-      shotSource: secondaryDisplayShot?.source || primaryDisplayShot?.source || 'both',
-      profileSource: secondaryDisplayProfile?.source || 'both',
-      profileName: secondaryDisplayProfileName,
-    });
-}

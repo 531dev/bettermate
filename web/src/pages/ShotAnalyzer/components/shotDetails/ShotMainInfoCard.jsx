@@ -1,8 +1,13 @@
+import { useRef } from 'preact/hooks';
+import { Chip } from '../../../../components/Chip.jsx';
 import { Icon } from '../../../../components/Icon.jsx';
+import { Spinner } from '../../../../components/Spinner.jsx';
+import { Tile } from '../../../../components/Tile.jsx';
 import { cleanName } from '../../utils/analyzerUtils';
 import { SourceMarker } from '../SourceMarker';
 import { getAnalyzerShotDisplayName, getShotDateTimeLabel } from '../useShotNotesState';
 import { ShotSummaryMetricsRow } from './ShotMetricCards';
+import './shotDetails.css';
 
 const WEEKDAY_LABELS = [
   'Sunday',
@@ -13,6 +18,8 @@ const WEEKDAY_LABELS = [
   'Friday',
   'Saturday',
 ];
+
+const RATING_VALUES = [1, 2, 3, 4, 5];
 
 function getRelativeDayLabel(timestamp) {
   if (!timestamp) return '';
@@ -56,24 +63,62 @@ function getRelativeDayLabel(timestamp) {
   return `${diffYears} years ago`;
 }
 
+/** The profile the shot was pulled with, or nothing when none is known. */
+function getProfileLabel(entry) {
+  const label = cleanName(
+    entry?.shot?.profile || entry?.profileName || entry?.profile?.label || '',
+  );
+  return /^no profile loaded$/i.test(label) ? '' : label;
+}
+
+/**
+ * Five marks, lit up to the rating. A radio group: the arrow keys move the rating, and only the
+ * chosen mark is the checked radio.
+ */
 function RatingControl({ rating, onChange }) {
+  const current = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+  const marks = useRef([]);
+
+  const onKeyDown = event => {
+    const focused = marks.current.indexOf(event.target) + 1 || current || 1;
+    const next = {
+      ArrowRight: focused + 1,
+      ArrowUp: focused + 1,
+      ArrowLeft: focused - 1,
+      ArrowDown: focused - 1,
+      Home: 1,
+      End: 5,
+    }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    const value = Math.max(1, Math.min(5, next));
+    if (value !== current) onChange(value);
+    marks.current[value - 1]?.focus();
+  };
+
   return (
-    <div className='flex min-h-8 items-center gap-0.5 lg:min-h-7 xl:min-h-8'>
-      {[1, 2, 3, 4, 5].map(value => (
+    <div
+      className='an-rating shot-details-rating'
+      role='radiogroup'
+      aria-label='Rating'
+      onKeyDown={onKeyDown}
+    >
+      {RATING_VALUES.map(value => (
         <button
           key={value}
+          ref={element => {
+            marks.current[value - 1] = element;
+          }}
           type='button'
-          className={`rounded-sm px-0.5 text-lg leading-none transition-colors ${
-            value <= Number(rating || 0)
-              ? 'text-yellow-400 hover:text-yellow-300'
-              : 'text-base-content/25 hover:text-yellow-300'
-          }`}
-          onClick={() => onChange(value)}
+          role='radio'
+          className='an-rating__mark'
+          aria-checked={value === current}
+          aria-label={`${value} of 5`}
           title={`${value}/5`}
-          aria-label={`Set rating to ${value} of 5`}
-        >
-          ★
-        </button>
+          data-lit={value <= current ? 'true' : undefined}
+          tabIndex={value === (current || 1) ? 0 : -1}
+          onClick={() => onChange(value)}
+        />
       ))}
     </div>
   );
@@ -81,56 +126,30 @@ function RatingControl({ rating, onChange }) {
 
 export function ShotMainInfoCard({
   entry,
-  isCompare = false,
   notes,
   loading = false,
   onRatingChange = () => {},
   showSummaryMetrics = true,
-  className = '',
+  className,
 }) {
   const shotLabel = getAnalyzerShotDisplayName(entry?.shot, entry?.shotName || entry?.label);
-  const shotProfileLabel = cleanName(entry?.shot?.profile || '');
-  const profileLabel = cleanName(
-    shotProfileLabel || entry?.profileName || entry?.profile?.label || '-',
-  );
+  const subtitle = [getRelativeDayLabel(entry?.shot?.timestamp), getProfileLabel(entry)]
+    .filter(Boolean)
+    .join(' · ');
   const dateLabel = getShotDateTimeLabel(entry?.shot?.timestamp);
-  const compareAccentColor = entry?.accentColor || 'var(--color-primary)';
-  const compareAccentStrength = Number.isFinite(Number(entry?.accentStrength))
-    ? Number(entry.accentStrength)
-    : 1;
-  const compareSolidAccent =
-    compareAccentStrength >= 1
-      ? compareAccentColor
-      : `color-mix(in srgb, ${compareAccentColor} ${Math.round(compareAccentStrength * 100)}%, transparent)`;
-  const compareCardStyle = isCompare
-    ? {
-        '--shot-details-accent-color': compareAccentColor,
-        '--shot-details-statusbar-surface': compareSolidAccent,
-      }
-    : undefined;
-  const displayClass = className || 'flex';
+  const completionLabel = entry?.results?.completionLabel || entry?.results?.brewModeLabel;
 
   return (
-    <div
-      className={`app-card-surface min-w-0 flex-col rounded-xl p-3 lg:p-2.5 xl:p-3 ${displayClass}`}
-      style={compareCardStyle}
-    >
-      <div className='flex min-w-0 items-start gap-2'>
-        <div className='min-w-0 flex-1'>
-          <div className='text-base-content truncate text-sm font-semibold'>
-            {shotLabel}
-            <span className='ml-1.5 text-xs font-normal text-[var(--ink-muted)]'>
-              · {getRelativeDayLabel(entry?.shot?.timestamp)}
-            </span>
-          </div>
-          <div className='truncate text-xs text-[var(--ink-muted)]'>{profileLabel}</div>
+    <Tile className={className}>
+      <div className='bm-tile__head items-start'>
+        <div className='min-w-0'>
+          <h2 className='bm-sub truncate'>{shotLabel}</h2>
+          {subtitle ? <p className='bm-help truncate'>{subtitle}</p> : null}
         </div>
         <div className='flex shrink-0 items-center gap-2'>
-          {loading ? (
-            <Icon name={'refresh-cw'} spin className='text-xs text-[var(--ink-muted)]' />
-          ) : null}
+          {loading ? <Spinner size={4} /> : null}
           {entry?.shot?.source === 'temp' ? (
-            <Icon name={'search'} className='text-xs text-[var(--ink-muted)]' />
+            <Icon name='search' size={20} title='Temporary view' />
           ) : (
             <SourceMarker source={entry?.shot?.source} variant='library' />
           )}
@@ -139,24 +158,19 @@ export function ShotMainInfoCard({
 
       {showSummaryMetrics ? <ShotSummaryMetricsRow total={entry?.results?.total} /> : null}
 
-      <div className='mt-3 flex justify-center'>
+      <div className='flex items-center justify-between gap-3'>
+        <span className='bm-eyebrow'>Rating</span>
         <RatingControl rating={notes?.rating} onChange={onRatingChange} />
       </div>
 
-      <div className='mt-3 flex items-center justify-between'>
-        <span className='text-xs text-[var(--ink-muted)] italic'>{dateLabel}</span>
-        <span className='text-xs text-[var(--ink-muted)] italic'>
-          <span
-            style={
-              entry?.results?.completionTone === 'warning'
-                ? { color: 'var(--analyzer-warning-orange)' }
-                : undefined
-            }
-          >
-            {entry?.results?.completionLabel || entry?.results?.brewModeLabel}
-          </span>
-        </span>
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <span className='an-caption'>{dateLabel}</span>
+        {completionLabel ? (
+          <Chip tone={entry?.results?.completionTone === 'warning' ? 'warning' : undefined}>
+            {completionLabel}
+          </Chip>
+        ) : null}
       </div>
-    </div>
+    </Tile>
   );
 }

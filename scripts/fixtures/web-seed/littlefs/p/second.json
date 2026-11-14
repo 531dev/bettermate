@@ -1,0 +1,1 @@
+{"id": "second", "label": "Second", "type": "standard", "temperature": 95, "phases": [{"name": "Brew", "phase": "brew", "valve": 1, "duration": 30, "pump": 100}], "description": "Simulator review profile"}

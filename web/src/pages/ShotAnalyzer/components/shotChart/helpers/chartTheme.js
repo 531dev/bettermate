@@ -1,89 +1,67 @@
-/* global globalThis */
-
 import {
-  CHART_COLOR_FALLBACKS,
-  CHART_COLOR_TOKEN_MAP,
-  WATER_DRAWN_PHASE_LABEL,
-  WATER_DRAWN_TOTAL_LABEL,
-} from '../constants';
+  DASH_DERIVED,
+  DASH_TARGET,
+  LINE_WIDTH,
+  PRESSURE_LINE_WIDTH,
+  readChartTokens,
+} from '../../../ui/chartTokens.js';
+import { LEGEND_DASHED_LABELS, SERIES_TOKEN_BY_LABEL } from '../constants';
 
-export function readCssColorVar(variableName, fallback) {
-  const rootElement = globalThis.window?.document?.documentElement;
-  if (rootElement) {
-    const value = globalThis.window
-      .getComputedStyle(rootElement)
-      .getPropertyValue(variableName)
-      .trim();
-    return value || fallback;
-  }
-  return fallback;
-}
-
+/**
+ * Every colour and font a shot chart draws with, resolved from the tokens for the current theme.
+ * Charts call this when they build and again when the theme changes; nothing here is cached.
+ * The series also answer to the names the chart code has always used.
+ */
 export function getShotChartColors() {
-  // Resolve all chart colors from CSS variables in one place so the rest of the
-  // chart stack can work with concrete values instead of repeatedly touching the DOM.
-  return Object.keys(CHART_COLOR_FALLBACKS).reduce((acc, key) => {
-    acc[key] = readCssColorVar(CHART_COLOR_TOKEN_MAP[key], CHART_COLOR_FALLBACKS[key]);
-    return acc;
-  }, {});
+  const tokens = readChartTokens();
+  return {
+    ...tokens,
+    temp: tokens.temperature,
+    tempTarget: tokens.temperature,
+    phaseLine: tokens.phase,
+    stopLabel: tokens.stop,
+  };
 }
 
+const COLOR_KEY_BY_LABEL = {
+  Phases: 'phase',
+  Stops: 'stop',
+  Temp: 'temperature',
+  'Target T': 'temperature',
+  Pressure: 'pressure',
+  'Target P': 'pressure',
+  'Pump Flow': 'flow',
+  'Target F': 'flow',
+  'Puck Flow': 'puckFlow',
+  'Puck Resistance': 'puckResistance',
+  'Liquid Resistance': 'liquidResistance',
+  Weight: 'weight',
+  'Weight Flow': 'weightFlow',
+};
+
+/** Resolved series colours by legend label, for a canvas (the exported legend). */
 export function getLegendColorByLabel(colors) {
-  return {
-    Phases: colors.phaseLine,
-    Stops: colors.stopLabel,
-    Temp: colors.temp,
-    'Target T': colors.tempTarget,
-    Pressure: colors.pressure,
-    'Target P': colors.pressure,
-    'Pump Flow': colors.flow,
-    'Target F': colors.flow,
-    'Puck Flow': colors.puckFlow,
-    'Puck Resistance': colors.puckResistance,
-    'Liquid Resistance': colors.liquidResistance,
-    Weight: colors.weight,
-    'Weight Flow': colors.weightFlow,
-  };
+  return Object.fromEntries(
+    Object.entries(COLOR_KEY_BY_LABEL).map(([label, key]) => [label, colors[key]]),
+  );
 }
 
-export function getTooltipColorByLabel(colors) {
+/**
+ * Series colours by label as `var(--token)`, for marks in the DOM: legend dots and the glyphs of
+ * tooltip rows. They follow a theme switch by themselves.
+ */
+export const SERIES_CSS_COLOR_BY_LABEL = Object.fromEntries(
+  Object.entries(SERIES_TOKEN_BY_LABEL).map(([label, token]) => [label, `var(${token})`]),
+);
+
+/** How the line of a series is drawn: 2.5px for pressure, 2px otherwise; dashed or dotted by kind. */
+export function getSeriesLineSpec(label) {
+  const isTarget = label === 'Target T' || label === 'Target P' || label === 'Target F';
+  let dash = [];
+  if (isTarget) dash = DASH_TARGET;
+  else if (LEGEND_DASHED_LABELS.has(label)) dash = DASH_DERIVED;
   return {
-    ...getLegendColorByLabel(colors),
-    [WATER_DRAWN_PHASE_LABEL]: 'color-mix(in srgb, var(--statistics-summary-water) 84%, black)',
-    [WATER_DRAWN_TOTAL_LABEL]: 'var(--statistics-summary-water)',
+    width: label === 'Pressure' ? PRESSURE_LINE_WIDTH : LINE_WIDTH,
+    dash,
   };
-}
-
-export function createStripedFillPattern(canvasCtx, color, options = {}) {
-  if (!canvasCtx || globalThis.window === undefined) return color;
-
-  const size = options.size ?? 8;
-  const lineWidth = options.lineWidth ?? 1;
-  const baseAlpha = options.baseAlpha ?? 0.02;
-  const stripeAlpha = options.stripeAlpha ?? 0.1;
-
-  const patternCanvas = globalThis.window.document.createElement('canvas');
-  patternCanvas.width = size;
-  patternCanvas.height = size;
-
-  const patternCtx = patternCanvas.getContext('2d');
-  if (!patternCtx) return color;
-
-  // Use a tiny offscreen canvas so fills can share one repeatable striped pattern
-  // without depending on large gradient objects or per-point drawing.
-  patternCtx.clearRect(0, 0, size, size);
-  patternCtx.fillStyle = color;
-  patternCtx.globalAlpha = baseAlpha;
-  patternCtx.fillRect(0, 0, size, size);
-
-  patternCtx.strokeStyle = color;
-  patternCtx.globalAlpha = stripeAlpha;
-  patternCtx.lineWidth = lineWidth;
-  patternCtx.lineCap = 'butt';
-  patternCtx.beginPath();
-  patternCtx.moveTo(0, size);
-  patternCtx.lineTo(size, 0);
-  patternCtx.stroke();
-
-  return canvasCtx.createPattern(patternCanvas, 'repeat') || color;
 }

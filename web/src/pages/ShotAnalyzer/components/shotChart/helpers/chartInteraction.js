@@ -4,11 +4,8 @@ import {
   EXTERNAL_TOOLTIP_VERTICAL_OFFSET,
 } from '../constants';
 
-export function resolveHoverPointColor(context) {
-  const datasetColor = context?.dataset?.borderColor;
-  return typeof datasetColor === 'string' && datasetColor.length > 0 ? datasetColor : '#94a3b8';
-}
-
+// Charts draw lines only: no point is ever painted, at rest or under the pointer. The hit radius
+// keeps the nearest sample selectable for the tooltip.
 export function createChartPointElementConfig() {
   return {
     radius: 0,
@@ -16,10 +13,6 @@ export function createChartPointElementConfig() {
     hitRadius: 12,
     borderWidth: 0,
     hoverBorderWidth: 0,
-    backgroundColor: resolveHoverPointColor,
-    hoverBackgroundColor: resolveHoverPointColor,
-    borderColor: resolveHoverPointColor,
-    hoverBorderColor: resolveHoverPointColor,
   };
 }
 

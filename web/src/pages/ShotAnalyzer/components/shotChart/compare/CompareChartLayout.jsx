@@ -1,7 +1,8 @@
-import { Icon } from '../../../../../components/Icon.jsx';
 /* global globalThis */
 
 import { createPortal } from 'preact/compat';
+import { Button } from '../../../../../components/Button.jsx';
+import { Icon } from '../../../../../components/Icon.jsx';
 import {
   SHOT_CHART_PRIMARY_LEGEND_LABELS,
   SHOT_CHART_SERIES_LEGEND_LABELS,
@@ -212,14 +213,15 @@ function getVisibleCompareDetailCharts({
 }
 
 function getCompareChartsBodyClassName(isFullDisplay) {
-  return isFullDisplay ? 'min-h-0 flex-1 overflow-y-auto pr-1' : 'w-full';
+  return isFullDisplay ? 'an-scroll min-h-0 flex-1 overflow-y-auto' : 'w-full';
 }
 
 function getCompareChartsStackClassName({
   isMobileCompareCollapsed,
   shouldUseAnalyzerMobileCompareLayout,
 }) {
-  let stackClassName = 'space-y-3';
+  // The charts of a comparison are tiles on the bento gap.
+  let stackClassName = 'flex flex-col gap-2 lg:gap-3';
   if (shouldUseAnalyzerMobileCompareLayout) {
     stackClassName = 'shot-chart-compare-mobile-stack';
   }
@@ -240,19 +242,15 @@ function CompareDetailChartsToggle({
   if (!shouldCollapseDetailCharts) return null;
 
   return (
-    <button
-      type='button'
-      className='shot-chart-compare-detail-toggle app-card-surface transition-colors hover:bg-[var(--surface-2)]'
+    <Button
+      block
+      className='shot-chart-compare-detail-toggle'
       onClick={() => setIsMobileDetailExpanded(expanded => !expanded)}
       aria-expanded={isMobileDetailExpanded}
     >
-      <span>{isMobileDetailExpanded ? 'Hide detail charts' : 'Show detail charts'}</span>
-      <Icon
-        name={isMobileDetailExpanded ? 'minus' : 'plus'}
-        className='text-xs text-[var(--ink-muted)]'
-        aria-hidden='true'
-      />
-    </button>
+      {isMobileDetailExpanded ? 'Hide detail charts' : 'Show detail charts'}
+      <Icon name={isMobileDetailExpanded ? 'chevron-up' : 'chevron-down'} size={18} />
+    </Button>
   );
 }
 
@@ -339,7 +337,7 @@ function CompareMainChartCard({
           legendColorByLabel={legendColorByLabel}
           onLegendToggle={onLegendToggle}
           visibility={visibility}
-          className='shot-chart-scrubber-legend shot-chart-scrubber-legend--desktop'
+          className='an-legend shot-chart-scrubber-legend shot-chart-scrubber-legend--desktop'
         />
       ) : null}
       {mobileCompareLegend}
@@ -482,16 +480,16 @@ export function CompareChartsBody({
   );
 }
 
-export function CompareChartsShell({ charts, controls, isFullDisplay, onCloseFullDisplay }) {
+export function CompareChartsShell({ charts, controls, isFullDisplay }) {
   if (isFullDisplay && globalThis.document !== undefined) {
     return createPortal(
-      <div className='shot-chart-full-display select-none'>
-        <button
-          type='button'
-          className='shot-chart-full-display__backdrop'
-          onClick={onCloseFullDisplay}
-          aria-label='Close full display'
-        />
+      <div
+        className='shot-chart-full-display'
+        data-tool-portal='chart'
+        role='dialog'
+        aria-modal='true'
+        aria-label='Compared shots'
+      >
         <div className='shot-chart-full-display__panel'>
           {controls}
           {charts}
@@ -501,5 +499,5 @@ export function CompareChartsShell({ charts, controls, isFullDisplay, onCloseFul
     );
   }
 
-  return <div className='w-full select-none'>{charts}</div>;
+  return <div className='shot-chart-compare-root'>{charts}</div>;
 }

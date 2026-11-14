@@ -1,7 +1,14 @@
-import { Icon } from '../../../../components/Icon.jsx';
+/**
+ * The library bar: one tile that names the loaded shot and its profile (two rows in a
+ * comparison) and holds the actions on them. Each row takes dropped files for its own shot.
+ */
+
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { cx } from '../../../../components/cx.js';
+import { Tile } from '../../../../components/Tile.jsx';
 import { AnalyzerActionBar } from '../AnalyzerActionBar';
 import { StatusBar } from './StatusBar';
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import './LibraryBar.css';
 
 function hasFileDrag(event) {
   const types = event?.dataTransfer?.types;
@@ -11,13 +18,15 @@ function hasFileDrag(event) {
   return false;
 }
 
-function AnalyzerPanelSlot({ statusBarProps, actionBarProps, showActionBar = true }) {
+/**
+ * A place that takes dropped files. `isDropzoneActive` is true while a file is dragged over the
+ * window, so the place can show itself before the file reaches it.
+ */
+function useFileDropzone({ onImport, isImporting = false }) {
   const dragDepthRef = useRef(0);
   const dragResetTimerRef = useRef(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isWindowFileDragActive, setIsWindowFileDragActive] = useState(false);
-  const isImporting = Boolean(actionBarProps?.isImporting);
-  const onImport = actionBarProps?.onImport;
   const isDropzoneActive = !isImporting && (isDragActive || isWindowFileDragActive);
 
   const clearDragResetTimer = useCallback(() => {
@@ -93,64 +102,48 @@ function AnalyzerPanelSlot({ statusBarProps, actionBarProps, showActionBar = tru
     };
   }, [armDragResetTimer, clearDragResetTimer, clearDragState, isImporting]);
 
-  const handleDragEnter = event => {
-    if (isImporting || !hasFileDrag(event)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    dragDepthRef.current += 1;
-    setIsDragActive(true);
-    armDragResetTimer();
+  const dropzoneProps = {
+    onDragEnter: event => {
+      if (isImporting || !hasFileDrag(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      dragDepthRef.current += 1;
+      setIsDragActive(true);
+      armDragResetTimer();
+    },
+    onDragOver: event => {
+      if (isImporting || !hasFileDrag(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer.dropEffect = 'copy';
+      if (!isDragActive) setIsDragActive(true);
+      armDragResetTimer();
+    },
+    onDragLeave: event => {
+      if (isImporting || !isDragActive) return;
+      event.preventDefault();
+      event.stopPropagation();
+      dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+      if (dragDepthRef.current === 0) setIsDragActive(false);
+    },
+    onDrop: event => {
+      if (isImporting || !hasFileDrag(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      clearDragState();
+      const files = Array.from(event.dataTransfer.files || []);
+      if (files.length > 0) onImport?.(files);
+    },
   };
 
-  const handleDragOver = event => {
-    if (isImporting || !hasFileDrag(event)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer.dropEffect = 'copy';
-    if (!isDragActive) setIsDragActive(true);
-    armDragResetTimer();
-  };
+  return { isDropzoneActive, dropzoneProps };
+}
 
-  const handleDragLeave = event => {
-    if (isImporting || !isDragActive) return;
-    event.preventDefault();
-    event.stopPropagation();
-    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
-    if (dragDepthRef.current === 0) setIsDragActive(false);
-  };
+/** The second shot of a comparison: its row is a dropzone of its own. */
+function SecondaryStatusRow({ statusBarProps, onImport, isImporting }) {
+  const { isDropzoneActive, dropzoneProps } = useFileDropzone({ onImport, isImporting });
 
-  const handleDrop = event => {
-    if (isImporting || !hasFileDrag(event)) return;
-    event.preventDefault();
-    event.stopPropagation();
-    clearDragState();
-    const files = Array.from(event.dataTransfer.files || []);
-    if (files.length > 0) onImport?.(files);
-  };
-
-  return (
-    <section
-      className={`relative transition-all ${
-        isDropzoneActive ? 'bg-primary/8 ring-primary/30 rounded-lg ring-2' : ''
-      }`}
-      aria-label='Shot and profile import dropzone'
-      onDragEnter={handleDragEnter}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      {isDropzoneActive ? (
-        <div className='border-primary/55 bg-base-100/90 text-primary pointer-events-none absolute inset-0 z-[30] flex items-center justify-center rounded-lg border-2 border-dashed'>
-          <div className='border-primary/25 bg-base-100/90 flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium'>
-            <Icon name={'plus'} className='text-sm' />
-            <span>Drop shot or profile JSON here</span>
-          </div>
-        </div>
-      ) : null}
-      <StatusBar {...statusBarProps} />
-      {showActionBar ? <AnalyzerActionBar {...actionBarProps} /> : null}
-    </section>
-  );
+  return <StatusBar {...statusBarProps} isDropTarget={isDropzoneActive} dropzoneProps={dropzoneProps} />;
 }
 
 export function LibraryPanelStatusSlots({
@@ -158,36 +151,38 @@ export function LibraryPanelStatusSlots({
   compareMode,
   primaryActionBarProps,
   primaryStatusBarProps,
-  secondaryActionBarProps,
   secondaryStatusBarProps,
+  onSecondaryImport,
 }) {
+  const isImporting = Boolean(primaryActionBarProps?.isImporting);
+  // The first shot's row and the action row under it take files for the first shot.
+  const { isDropzoneActive, dropzoneProps } = useFileDropzone({
+    onImport: primaryActionBarProps?.onImport,
+    isImporting,
+  });
+
   return (
-    <div
-      className={`app-card-surface ${compareMode ? 'overflow-visible' : 'overflow-hidden'} rounded-xl transition-all duration-200 ${
-        collapsed ? '' : 'library-panel-statusbar-surface--open rounded-b-none'
-      }`}
-    >
-      {compareMode ? (
-        <div>
-          <AnalyzerPanelSlot
-            statusBarProps={{
-              ...primaryStatusBarProps,
-              compareBadgeNumber: 1,
-            }}
-            actionBarProps={primaryActionBarProps}
-          />
-          <AnalyzerPanelSlot
-            statusBarProps={secondaryStatusBarProps}
-            actionBarProps={secondaryActionBarProps}
-            showActionBar={false}
-          />
-        </div>
-      ) : (
-        <AnalyzerPanelSlot
-          statusBarProps={primaryStatusBarProps}
-          actionBarProps={primaryActionBarProps}
+    <Tile className={cx('an-libbar', !collapsed && 'is-open')} aria-label='Loaded shot and profile'>
+      <div className='an-libbar__rows'>
+        <StatusBar
+          {...primaryStatusBarProps}
+          compareBadgeNumber={compareMode ? 1 : null}
+          isDropTarget={isDropzoneActive}
+          dropzoneProps={dropzoneProps}
         />
-      )}
-    </div>
+        {compareMode ? (
+          <SecondaryStatusRow
+            statusBarProps={secondaryStatusBarProps}
+            onImport={onSecondaryImport}
+            isImporting={isImporting}
+          />
+        ) : null}
+      </div>
+      <AnalyzerActionBar
+        {...primaryActionBarProps}
+        isFileDragActive={isDropzoneActive}
+        dropzoneProps={dropzoneProps}
+      />
+    </Tile>
   );
 }

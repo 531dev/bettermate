@@ -1,31 +1,36 @@
-import { Icon } from '../../../components/Icon.jsx';
 /**
- * EmptyState.jsx
- * * Empty state component for Shot Analyzer.
- * Explains the dual-source system to users.
+ * What the analyzer shows before a shot is loaded: where shots and profiles can come from, how
+ * to import one, and the keys that drive the tool.
  */
-import { analyzerUiColors } from '../utils/analyzerUtils.js';
+import { Chip } from '../../../components/Chip.jsx';
+import { Icon } from '../../../components/Icon.jsx';
 import { Spinner } from '../../../components/Spinner.jsx';
-import { SourceMarker } from './SourceMarker.jsx';
-import DeepDiveLogoRaw from '../assets/deepdive.svg?raw';
+import { Tile } from '../../../components/Tile.jsx';
+import '../ui/tool.css';
 
-const deepDiveLogoMarkup = DeepDiveLogoRaw.replace(
-  '<svg width="2048" height="2048" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg">',
-  '<svg width="100%" height="100%" viewBox="0 0 2048 2048" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="display:block;">',
-).replaceAll('fill="#ffffff"', 'fill="currentColor"');
+const SOURCES = [
+  {
+    icon: 'coffee',
+    title: 'On the machine',
+    text: 'Shots and profiles the machine has saved.',
+  },
+  {
+    icon: 'eye',
+    title: 'Opened for now',
+    text: 'With View, an imported file opens for this visit and is not saved.',
+  },
+  {
+    icon: 'monitor',
+    title: 'In this browser',
+    text: 'With Save, an imported file is kept in this browser on this device. Other browsers and devices do not see it.',
+  },
+];
 
-function DeepDiveLogoMark() {
-  // Inline the original SVG markup from the asset file so the logo renders on
-  // first paint without a second request and without manually duplicating its paths.
-  return (
-    <div
-      className='mx-auto h-24 w-24 opacity-20 [&>svg]:h-full [&>svg]:w-full'
-      style={{ color: 'var(--color-base-content)' }}
-      dangerouslySetInnerHTML={{ __html: deepDiveLogoMarkup }}
-      aria-hidden='true'
-    />
-  );
-}
+const KEYS = [
+  { keys: 'X', text: 'Open or close the library.' },
+  { keys: 'C', text: 'Start or end a comparison.' },
+  { keys: '← →', text: 'Go to the previous or next shot.' },
+];
 
 export function EmptyState({ loading }) {
   if (loading) {
@@ -35,115 +40,43 @@ export function EmptyState({ loading }) {
       </div>
     );
   }
+
   return (
-    <div className='flex min-h-[60vh] items-start justify-center pb-8'>
-      <div className='w-full space-y-6 text-center'>
-        {/* Info Box */}
-        <div className='app-card-surface w-full space-y-6 rounded-xl p-8 text-left'>
-          <div className='border-base-content/10 space-y-2 border-b pb-4 text-center'>
-            <h2 className='text-base-content text-2xl font-bold'>No Shot Loaded</h2>
-            <p className='text-base-content text-sm opacity-70'>
-              Import a shot file or select one from your library to start analyzing.
-            </p>
-          </div>
-
-          {/* GM Section */}
-          <div className='flex items-start gap-4'>
-            <div className='flex h-8 w-10 flex-shrink-0 items-center justify-center'>
-              <SourceMarker source='gaggimate' variant='large' />
-            </div>
-
-            <div className='flex-1'>
-              {/* REMOVED HOVER EFFECT */}
-              <h3 className='text-base-content mb-1 text-sm font-bold'>BetterMate (GM)</h3>
-              <p className='text-base-content text-xs leading-relaxed'>
-                Your saved shots and profiles directly from the BetterMate internal storage.
-              </p>
-            </div>
-          </div>
-
-          {/* Divider - Subtle */}
-          <div className='bg-base-content/5 h-px w-full'></div>
-
-          {/* VIEW Section */}
-          <div className='flex items-start gap-4'>
-            <div className='flex h-8 w-10 flex-shrink-0 items-center justify-center text-[var(--ink-muted)]'>
-              <Icon name={'search'} className='text-lg' />
-            </div>
-
-            <div className='flex-1'>
-              <h3 className='text-base-content mb-1 text-sm font-bold'>Temporary View (VIEW)</h3>
-              <p className='text-base-content text-xs leading-relaxed'>
-                Opens imported external shots and profiles temporarily without saving them to the
-                browser library.
-              </p>
-            </div>
-          </div>
-
-          {/* Divider - Subtle */}
-          <div className='bg-base-content/5 h-px w-full'></div>
-
-          {/* WEB Section */}
-          <div className='flex items-start gap-4'>
-            <div className='flex h-8 w-10 flex-shrink-0 items-center justify-center'>
-              <SourceMarker source='browser' variant='large' />
-            </div>
-
-            <div className='flex-1'>
-              {/* REMOVED HOVER EFFECT */}
-              <h3 className='text-base-content mb-1 text-sm font-bold'>
-                Local Browser Storage (WEB)
-              </h3>
-              <div className='text-base-content text-xs leading-relaxed'>
-                Stores imported external shots and profiles locally in this browser on this device.
-                They are not automatically available in other browsers or on other devices.
-              </div>
-            </div>
-          </div>
-
-          <div className='text-base-content text-xs leading-relaxed'>
-            <span className='block'>
-              Drag and drop files onto the status bar or use the import icons in the shot and
-              profile badges.
-            </span>
-            <span className='mt-1 block'>
-              Use the status bar toggle to switch between{' '}
-              <span className='text-base-content font-bold'>View temporarily</span> and{' '}
-              <span className='font-bold' style={{ color: analyzerUiColors.sourceBadgeWebText }}>
-                Save to Browser
-              </span>{' '}
-              before importing.
-            </span>
-            <span className='mt-1 block'>Bulk upload and download are supported.</span>
-          </div>
-
-          <div className='bg-base-content/5 h-px w-full'></div>
-
-          <div className='grid gap-2 text-xs leading-relaxed sm:grid-cols-3'>
-            <div className='text-base-content'>
-              <span className='bg-base-content/8 border-base-content/10 mr-2 inline-flex min-w-6 items-center justify-center rounded-md border px-1.5 py-0.5 font-bold'>
-                X
-              </span>{' '}
-              Open or close the library.
-            </div>
-            <div className='text-base-content'>
-              <span className='bg-base-content/8 border-base-content/10 mr-2 inline-flex min-w-6 items-center justify-center rounded-md border px-1.5 py-0.5 font-bold'>
-                C
-              </span>{' '}
-              Start or end compare mode.
-            </div>
-            <div className='text-base-content'>
-              <span className='bg-base-content/8 border-base-content/10 mr-2 inline-flex min-w-12 items-center justify-center rounded-md border px-1.5 py-0.5 font-bold'>
-                ← →
-              </span>{' '}
-              Switch between shots.
-            </div>
-          </div>
-        </div>
-        <div className='mx-auto max-w-2xl'>
-          <DeepDiveLogoMark />
-        </div>
+    <Tile>
+      <div className='flex flex-col gap-1'>
+        <h2 className='bm-heading'>No shot loaded</h2>
+        <p className='bm-help'>Pick a shot from the library above, or import a shot file.</p>
       </div>
-    </div>
+
+      <div className='bm-list'>
+        {SOURCES.map(source => (
+          <div key={source.title} className='bm-item'>
+            <span className='bm-item__icon'>
+              <Icon name={source.icon} size={20} />
+            </span>
+            <span className='bm-item__body'>
+              <span className='bm-item__title block'>{source.title}</span>
+              <span className='bm-help block'>{source.text}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <p className='bm-help'>
+        Drop files on the bar above or press Import. Several files at once work too. Choose View or
+        Save beside Import before you bring a file in.
+      </p>
+
+      <hr className='an-rule' />
+
+      <div className='grid gap-x-5 gap-y-2 sm:grid-cols-3'>
+        {KEYS.map(item => (
+          <div key={item.keys} className='flex items-center gap-3'>
+            <Chip>{item.keys}</Chip>
+            <span className='bm-help'>{item.text}</span>
+          </div>
+        ))}
+      </div>
+    </Tile>
   );
 }

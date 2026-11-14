@@ -1,12 +1,5 @@
 export const TARGET_FLOW_MAX = 12;
 export const TARGET_PRESSURE_MAX = 16;
-export const STANDARD_LINE_WIDTH = 4;
-export const THIN_LINE_WIDTH = STANDARD_LINE_WIDTH / 2;
-
-export const BREW_BY_TIME_LABEL = '\u23F1';
-export const BREW_BY_WEIGHT_LABEL = '\u2696';
-export const BREW_BY_TIME_TEXT = 'Brewed by Time';
-export const BREW_BY_WEIGHT_TEXT = 'Brewed by Weight';
 
 export const SINGLE_METRIC_PAGE_KEYS = {
   BASICS: 'basics',
@@ -69,49 +62,37 @@ export const EXTERNAL_TOOLTIP_POINTER_GAP = 10;
 export const EXTERNAL_TOOLTIP_BOUNDS_PADDING = 4;
 export const EXTERNAL_TOOLTIP_VERTICAL_OFFSET = 0;
 
-export const CHART_COLOR_FALLBACKS = {
-  temp: '#F0561D',
-  tempTarget: '#731F00',
-  pressure: '#0066CC',
-  flow: '#63993D',
-  puckFlow: '#059669',
-  puckResistance: '#8B5E3C',
-  liquidResistance: '#B06E3C',
-  weight: '#8B5CF6',
-  weightFlow: '#6d28d9',
-  phaseLine: 'rgba(107, 114, 128, 0.5)',
-  stopLabel: 'rgba(220, 38, 38, 0.85)',
-  warning: '#f59e0b',
-};
-
-export const CHART_COLOR_TOKEN_MAP = {
-  temp: '--analyzer-temp-anchor',
-  tempTarget: '--analyzer-target-temp-anchor',
-  pressure: '--analyzer-pressure-anchor',
-  flow: '--analyzer-flow-anchor',
-  puckFlow: '--analyzer-puckflow-anchor',
-  puckResistance: '--analyzer-puckresistance-anchor',
-  liquidResistance: '--analyzer-liquidresistance-anchor',
-  weight: '--analyzer-weight-anchor',
-  weightFlow: '--analyzer-weightflow-anchor',
-  phaseLine: '--analyzer-phase-line',
-  stopLabel: '--analyzer-stop-label',
-  warning: '--analyzer-warning-orange',
-};
-
 export const WATER_DRAWN_PHASE_LABEL = 'Pumped Water (Phase)';
 export const WATER_DRAWN_TOTAL_LABEL = 'Pumped Water (Total)';
 
-export const LEGEND_BLOCK_LABELS = new Set(['Phases', 'Stops']);
-export const LEGEND_DASHED_LABELS = new Set(['Target T', 'Target P', 'Target F']);
-export const LEGEND_THIN_LINE_LABELS = new Set([
+// The series token of every legend and tooltip entry. A token colours the mark; the word beside
+// it stays ink.
+export const SERIES_TOKEN_BY_LABEL = {
+  Phases: '--analyzer-phase',
+  Stops: '--analyzer-stop',
+  Temp: '--analyzer-temperature',
+  'Target T': '--analyzer-temperature',
+  Pressure: '--analyzer-pressure',
+  'Target P': '--analyzer-pressure',
+  'Pump Flow': '--analyzer-flow',
+  'Target F': '--analyzer-flow',
+  'Puck Flow': '--analyzer-puck-flow',
+  'Puck Resistance': '--analyzer-puck-resistance',
+  'Liquid Resistance': '--analyzer-liquid-resistance',
+  Weight: '--analyzer-weight',
+  'Weight Flow': '--analyzer-weight-flow',
+  [WATER_DRAWN_PHASE_LABEL]: '--analyzer-water',
+  [WATER_DRAWN_TOTAL_LABEL]: '--analyzer-water',
+};
+
+// Series that share a hue differ by their line: a target is dashed, a series derived from
+// another reading is dotted. The legend draws the same mark.
+export const LEGEND_DASHED_LABELS = new Set([
   'Target T',
   'Target P',
   'Target F',
   'Puck Flow',
-  'Puck Resistance',
   'Liquid Resistance',
-  'Weight',
   'Weight Flow',
 ]);
 

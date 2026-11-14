@@ -1,0 +1,90 @@
+/* What Statistics needs beyond bm.css and the lane's tool.css. Every value is a token of
+   tokens.css: no shadow, no gradient, no blur, no colour of its own. The rules sit in Tailwind's
+   `components` layer, so a layout utility on the same element wins, and every selector starts at
+   an `st-` class of this page: the file stays in the document after navigation. */
+
+@layer components {
+  /* --------------------------------------------------------------------------
+     Toolbar
+     -------------------------------------------------------------------------- */
+  /* The mode choice shares the full width on a phone. */
+  @media (max-width: 599.98px) {
+    .st-toolbar__mode {
+      display: flex;
+    }
+    .st-toolbar__mode .bm-seg__item {
+      flex: 1;
+      padding: 0 8px;
+    }
+  }
+  /* The second row is dense with a mouse. A finger gets the full control height. */
+  @media (pointer: coarse) {
+    .st-toolbar .bm-btn--sm {
+      height: var(--control-md);
+    }
+  }
+  /* A search query is code: it is set in the data face. */
+  .st-query,
+  .st-query::placeholder {
+    font-family: var(--font-mono);
+  }
+  /* Native date inputs: WebKit centres the value and gives it a height of its own. */
+  .st-date {
+    text-align: left;
+  }
+  .st-date::-webkit-date-and-time-value {
+    min-height: 0;
+    text-align: left;
+  }
+
+  /* --------------------------------------------------------------------------
+     Key hints: there is no Enter or C to press on a touch screen.
+     -------------------------------------------------------------------------- */
+  @media (hover: none) and (pointer: coarse) {
+    .st-keys {
+      display: none;
+    }
+  }
+  .st-touch-hint {
+    display: none;
+  }
+  @media (hover: none) and (pointer: coarse) {
+    .st-touch-hint {
+      display: block;
+    }
+  }
+
+  /* --------------------------------------------------------------------------
+     Range of a metric: a segment bar whose lit run is the band of one standard
+     deviation around the average, with the ink mark of bm-segbar on the average.
+     The mark sits above the row, so the row keeps room for it.
+     -------------------------------------------------------------------------- */
+  .st-range {
+    margin-top: 6px;
+  }
+
+  /* --------------------------------------------------------------------------
+     Activity heatmap: one mark a day. The level steps through ink tokens.
+     -------------------------------------------------------------------------- */
+  .st-heat__swatch {
+    display: block;
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+  /* The reading under the pointer: a floating panel, as a chart tooltip is. */
+  .st-tip {
+    position: fixed;
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: calc(100vw - 24px);
+    padding: 6px 10px;
+    border: var(--hairline) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    pointer-events: none;
+  }
+}

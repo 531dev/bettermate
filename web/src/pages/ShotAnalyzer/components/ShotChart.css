@@ -1,4 +1,5 @@
-/* Import order is intentional: later modules refine the base chart and tooltip cascade. */
+/* Import order is intentional: later modules refine the base chart and tooltip cascade.
+   Every module keeps its rules in the `components` layer, under the layout utilities. */
 @import './shotChart/styles/chartLayout.css';
 @import './shotChart/styles/chartControls.css';
 @import './shotChart/styles/tooltipShell.css';

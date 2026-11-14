@@ -196,12 +196,14 @@ function getTransitionTimeInSeconds({ transition, samples, sampleInterval }) {
   return (transition.sampleIndex * (sampleInterval || 250)) / 1000;
 }
 
-function createPhaseSeparatorAnnotation({ value }) {
+// A phase boundary. The single chart shows phases as bands and keeps this line hidden; it still
+// times the replay. The compare charts draw it as a hairline, since two shots cannot share bands.
+function createPhaseSeparatorAnnotation({ value, colors }) {
   return {
     type: 'line',
     scaleID: 'x',
     value,
-    borderColor: 'transparent',
+    borderColor: colors.phaseLine,
     borderWidth: 0,
     display: false,
     label: {
@@ -279,7 +281,7 @@ function createStopLabelAnnotation({
   yAdjust,
   fontSize,
   calloutBorderWidth,
-  color = '#dc2626',
+  color,
 }) {
   return {
     type: 'label',
@@ -293,7 +295,7 @@ function createStopLabelAnnotation({
     borderRadius: 999,
     borderWidth: 0,
     color,
-    font: { size: fontSize, weight: 'bold' },
+    font: { size: fontSize, weight: 600 },
     padding: getStopBadgePadding(displayNumber),
     callout: {
       display: calloutDisplay,
@@ -318,7 +320,7 @@ function addStopIconOverlay({
   yScaleID,
   xOffset,
   yOffset,
-  color = '#ffffff',
+  tone = 'stop',
 }) {
   const stopIcon = STOP_ICON_BY_TYPE[exitType];
   if (!stopIcon) return;
@@ -332,7 +334,7 @@ function addStopIconOverlay({
     yScaleID,
     xOffset,
     yOffset,
-    color,
+    tone,
   });
 }
 
@@ -386,7 +388,7 @@ function addTransitionStopAnnotation({
     yScaleID,
     xOffset: STOP_BADGE_X_ADJUST,
     yOffset: STOP_BADGE_Y_ADJUST,
-    color: '#ffffff',
+    tone: exitType === 'safety' ? 'warning' : 'stop',
   });
 }
 
@@ -553,13 +555,13 @@ export function getExtendedRecordingStartX(samples, maxTime) {
   return startX;
 }
 
-function addFinalWeightStopLines({ phaseAnnotations, stopTimeSec, yScaleID, yValue }) {
+function addFinalWeightStopLines({ phaseAnnotations, stopTimeSec, yScaleID, yValue, color }) {
   phaseAnnotations.shot_end = {
     type: 'line',
     scaleID: 'x',
     value: stopTimeSec,
     display: false,
-    borderColor: 'transparent',
+    borderColor: color,
     borderWidth: 0,
   };
 
@@ -572,8 +574,8 @@ function addFinalWeightStopLines({ phaseAnnotations, stopTimeSec, yScaleID, yVal
     yMin: yValue,
     yMax: context => getShiftedScaleValue(context, yScaleID, yValue, WEIGHT_STOP_LEFT_Y_ADJUST),
     display: false,
-    borderColor: '#dc2626',
-    borderWidth: 2.5,
+    borderColor: color,
+    borderWidth: 2,
   };
 }
 
@@ -639,7 +641,13 @@ function addFinalStopAnnotations({
   const yAdjust = isWeightStop ? WEIGHT_STOP_LEFT_Y_ADJUST : STOP_BADGE_Y_ADJUST;
 
   if (isWeightStop) {
-    addFinalWeightStopLines({ phaseAnnotations, stopTimeSec, yScaleID, yValue });
+    addFinalWeightStopLines({
+      phaseAnnotations,
+      stopTimeSec,
+      yScaleID,
+      yValue,
+      color: stopColor,
+    });
   }
 
   phaseAnnotations.shot_end_stop = createStopLabelAnnotation({
@@ -665,7 +673,7 @@ function addFinalStopAnnotations({
     yScaleID,
     xOffset: xAdjust,
     yOffset: yAdjust,
-    color: '#ffffff',
+    tone: exitType === 'safety' ? 'warning' : 'stop',
   });
 }
 

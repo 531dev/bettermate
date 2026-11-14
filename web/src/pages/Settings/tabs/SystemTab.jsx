@@ -1,10 +1,15 @@
-import { Icon } from '../../../components/Icon.jsx';
 import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hooks';
+import { computed } from '@preact/signals';
 import { ApiServiceContext, machine } from '../../../services/ApiService.js';
 import { downloadJson } from '../../../utils/download.js';
+import { Button } from '../../../components/Button.jsx';
+import { Chip } from '../../../components/Chip.jsx';
+import { SegmentBar } from '../../../components/SegmentBar.jsx';
 import { SystemTabSkeleton } from '../../../components/skeletons/SettingsSkeletons.jsx';
 import { Spinner } from '../../../components/Spinner.jsx';
-import Section from '../../../components/Card.jsx';
+import { Stat } from '../../../components/StatTile.jsx';
+import { Cell, Tile } from '../../../components/Tile.jsx';
+import { SegmentedField, TILE_GRID } from '../fields.jsx';
 
 const imageUrlToBase64 = async blob => {
   return new Promise((onSuccess, onError) => {
@@ -23,21 +28,47 @@ const imageUrlToBase64 = async blob => {
   });
 };
 
-const getRssiStatusClass = rssi => {
-  if (rssi < -90) return 'status-error';
-  if (rssi < -80) return 'status-warning';
-  return 'status-success';
+const link = computed(() => {
+  const { rssi, lat, rtx } = machine.value.status;
+  return { rssi, lat, rtx };
+});
+
+const CHANNELS = [
+  { value: 'latest', label: 'Stable' },
+  { value: 'nightly', label: 'Nightly' },
+];
+
+// The controller link by signal strength: only a weak one is worth a word.
+const signalChip = rssi => {
+  if (rssi < -90) {
+    return (
+      <Chip tone='danger' className='self-start'>
+        Poor signal
+      </Chip>
+    );
+  }
+  if (rssi < -80) {
+    return (
+      <Chip tone='warning' className='self-start'>
+        Weak signal
+      </Chip>
+    );
+  }
+  return null;
 };
+
+const percent = (part, total) => (total > 0 ? (part / total) * 100 : 0);
 
 function OtaProgressView({ phase, progress }) {
   const finished = phase === 4;
   const failed = phase === 5;
+  const shown = finished ? 100 : progress;
   const getOtaPhaseText = p => {
     switch (p) {
       case 1:
-        return 'Updating Display firmware';
+        return 'Updating display firmware';
       case 2:
-        return 'Updating Display filesystem';
+        return 'Updating display filesystem';
       case 3:
         return 'Updating controller firmware';
       case 5:
@@ -48,91 +79,118 @@ function OtaProgressView({ phase, progress }) {
   };
 
   return (
-    <div className='flex flex-col items-center gap-4 py-12'>
-      {!failed && <Spinner size={8} />}
-      <span className='text-base-content text-xl font-medium'>{getOtaPhaseText(phase)}</span>
-      {failed ? (
-        <span role='alert' className='max-w-md text-center text-[var(--ink-muted)]'>
-          The update could not be completed and the device kept its current firmware. Check the
-          network connection and start the update again.
-        </span>
-      ) : (
-        <span className='text-base-content text-lg font-medium'>{finished ? 100 : progress}%</span>
-      )}
-      {(finished || failed) && (
-        <a href='/' className='btn btn-primary'>
-          Back
-        </a>
-      )}
-    </div>
+    <Tile>
+      <div className='flex flex-col items-center gap-4 py-8 text-center'>
+        {!failed && !finished && <Spinner size={8} />}
+        <h2 className='bm-heading'>{getOtaPhaseText(phase)}</h2>
+        {failed ? (
+          <p role='alert' className='bm-notice bm-notice--danger max-w-md text-left'>
+            The update could not be completed and the device kept its current firmware. Check the
+            network connection and start the update again.
+          </p>
+        ) : (
+          <div className='flex w-full max-w-xs flex-col gap-2'>
+            <div className='bm-stat__row justify-center'>
+              <span className='bm-stat__value'>{shown}</span>
+              <span className='bm-stat__unit'>%</span>
+            </div>
+            <SegmentBar value={shown / 100} total={24} />
+          </div>
+        )}
+        {(finished || failed) && <Button href='/'>Back</Button>}
+      </div>
+    </Tile>
+  );
+}
+
+function VersionCell({
+  label,
+  version,
+  updateAvailable,
+  latestVersion,
+  disabled,
+  onUpdate,
+  action,
+}) {
+  return (
+    <Cell>
+      <span className='bm-eyebrow'>{label}</span>
+      <span className='bm-data break-all text-(--ink)'>{version || '—'}</span>
+      {updateAvailable && <span className='bm-data'>Update available: {latestVersion}</span>}
+      <Button
+        variant='outline'
+        size='sm'
+        className='mt-1 self-start'
+        disabled={disabled}
+        onClick={onUpdate}
+      >
+        {action}
+      </Button>
+    </Cell>
   );
 }
 
 function StorageAndMemorySection({ formData }) {
+  const heapUsed = formData.heapTotal - formData.heapFree;
+  const heapUsedPct = percent(heapUsed, formData.heapTotal);
+  const heapFragmentation =
+    formData.heapFree > 0 ? 100 - (formData.heapLargest * 100) / formData.heapFree : 0;
+
   return (
-    <Section title='Storage & Memory' className='h-full'>
-      <div className='grid grid-cols-1 gap-6'>
+    <Tile title='Storage & memory' className='@container'>
+      <div className='grid grid-cols-1 gap-2 @md:grid-cols-2'>
         {formData.spiffsTotal !== undefined && (
-          <div className='flex flex-col space-y-2'>
-            <span className='text-sm font-medium text-[var(--ink-muted)]'>Storage (LittleFS)</span>
-            <div className='bg-base-300 h-3 w-full overflow-hidden rounded'>
-              <div
-                className='bg-primary h-full transition-all'
-                style={{ width: `${formData.spiffsUsedPct || 0}%` }}
-              />
-            </div>
-            <div className='text-xs text-[var(--ink-muted)]'>
-              {((formData.spiffsUsed || 0) / 1024).toFixed(1)} KB /{' '}
-              {(formData.spiffsTotal / 1024).toFixed(1)} KB ({formData.spiffsUsedPct}%)
-            </div>
-          </div>
+          <Cell>
+            <Stat
+              size='sm'
+              label='Storage (LittleFS)'
+              value={formData.spiffsUsedPct ?? 0}
+              unit='%'
+              bar={{ value: (formData.spiffsUsedPct || 0) / 100 }}
+            >
+              <span className='bm-data'>
+                {((formData.spiffsUsed || 0) / 1024).toFixed(1)} KB /{' '}
+                {(formData.spiffsTotal / 1024).toFixed(1)} KB
+              </span>
+            </Stat>
+          </Cell>
         )}
 
         {formData.sdTotal !== undefined && (
-          <div className='flex flex-col space-y-2'>
-            <span className='text-sm font-medium text-[var(--ink-muted)]'>Storage (SD-Card)</span>
-            <div className='bg-base-300 h-3 w-full overflow-hidden rounded'>
-              <div
-                className='bg-primary h-full transition-all'
-                style={{ width: `${formData.sdUsedPct || 0}%` }}
-              />
-            </div>
-            <div className='text-xs text-[var(--ink-muted)]'>
-              {((formData.sdUsed || 0) / 1024 / 1024).toFixed(1)} MB /{' '}
-              {(formData.sdTotal / 1024 / 1024).toFixed(1)} MB ({formData.sdUsedPct}%)
-            </div>
-          </div>
+          <Cell>
+            <Stat
+              size='sm'
+              label='Storage (SD card)'
+              value={formData.sdUsedPct ?? 0}
+              unit='%'
+              bar={{ value: (formData.sdUsedPct || 0) / 100 }}
+            >
+              <span className='bm-data'>
+                {((formData.sdUsed || 0) / 1024 / 1024).toFixed(1)} MB /{' '}
+                {(formData.sdTotal / 1024 / 1024).toFixed(1)} MB
+              </span>
+            </Stat>
+          </Cell>
         )}
 
         {formData.heapTotal !== undefined && (
-          <div className='flex flex-col space-y-2'>
-            <span className='text-sm font-medium text-[var(--ink-muted)]'>Free Memory (Heap)</span>
-            <div className='bg-base-300 h-3 w-full overflow-hidden rounded'>
-              <div
-                className='bg-primary h-full transition-all'
-                style={{
-                  width: `${formData.heapTotal > 0 ? ((formData.heapTotal - formData.heapFree) / formData.heapTotal) * 100 : 0}%`,
-                }}
-              />
-            </div>
-            <div className='text-xs text-[var(--ink-muted)]'>
-              {((formData.heapTotal - formData.heapFree || 0) / 1024).toFixed(1)} kB /{' '}
-              {(formData.heapTotal / 1024).toFixed(1)} kB (
-              {(formData.heapTotal > 0
-                ? ((formData.heapTotal - formData.heapFree) / formData.heapTotal) * 100
-                : 0
-              ).toFixed(2)}
-              %) (Frag:{' '}
-              {(formData.heapFree > 0
-                ? 100 - (formData.heapLargest * 100) / formData.heapFree
-                : 0
-              ).toFixed(2)}
-              %)
-            </div>
-          </div>
+          <Cell>
+            <Stat
+              size='sm'
+              label='Memory in use (heap)'
+              value={heapUsedPct.toFixed(0)}
+              unit='%'
+              bar={{ value: heapUsedPct / 100 }}
+            >
+              <span className='bm-data'>
+                {((heapUsed || 0) / 1024).toFixed(1)} kB / {(formData.heapTotal / 1024).toFixed(1)}{' '}
+                kB · {heapFragmentation.toFixed(2)}% fragmented
+              </span>
+            </Stat>
+          </Cell>
         )}
       </div>
-    </Section>
+    </Tile>
   );
 }
 
@@ -143,63 +201,69 @@ function MaintenanceSection({
   rebuilt,
   rebuildProgress,
 }) {
-  return (
-    <Section title='Maintenance & Support' className='h-full'>
-      <div className='flex flex-col flex-wrap gap-4 sm:flex-row'>
-        <button type='button' className='btn btn-outline btn-sm' onClick={downloadSupportData}>
-          Download Support Data
-        </button>
+  const scanning =
+    rebuildProgress.status === 'starting' ||
+    rebuildProgress.status === 'scanning' ||
+    rebuildProgress.total === 0;
+  const failed = !rebuilding && rebuildProgress.status === 'error';
 
-        <button
-          type='button'
-          className='btn btn-outline btn-sm'
-          onClick={onHistoryRebuild}
-          disabled={rebuilding}
-        >
-          Rebuild Shot History
-          {rebuilding && (
-            <>
-              <Spinner size={4} className='ml-2' />
-              {rebuildProgress.total > 0 && (
-                <span className='ml-2 text-xs'>
-                  {rebuildProgress.current}/{rebuildProgress.total}
-                </span>
-              )}
-            </>
-          )}
-          {rebuilt && (
-            <span className='ml-2 text-[var(--success)]'>
-              <Icon name={'check'}></Icon>
-            </span>
-          )}
-        </button>
+  let chip = null;
+  if (rebuilding) {
+    chip = (
+      <Chip tone='primary' dot>
+        Rebuilding
+      </Chip>
+    );
+  } else if (rebuilt) {
+    chip = <Chip tone='success'>History rebuilt</Chip>;
+  } else if (failed) {
+    chip = <Chip tone='danger'>Rebuild failed</Chip>;
+  }
+
+  return (
+    <Tile title='Maintenance & support' end={chip}>
+      <div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap'>
+        <Button onClick={downloadSupportData}>Download support data</Button>
+        <Button onClick={onHistoryRebuild} disabled={rebuilding}>
+          {rebuilding && <Spinner size={4} />}
+          Rebuild shot history
+        </Button>
       </div>
 
       {rebuilding && (
-        <div className='mt-4 max-w-md'>
-          <div className='mb-1 text-xs text-[var(--ink-muted)]'>
-            {rebuildProgress.status === 'starting' ||
-            rebuildProgress.status === 'scanning' ||
-            rebuildProgress.total === 0
-              ? 'Scanning shot history files...'
+        <div className='flex flex-col gap-2'>
+          <span className='bm-help'>
+            {scanning
+              ? 'Scanning shot history files'
               : `Processing shot history files (${rebuildProgress.current}/${rebuildProgress.total})`}
-          </div>
-          <div className='bg-base-300 h-2 w-full overflow-hidden rounded'>
-            <div
-              className={`h-full transition-all duration-300 ${
-                rebuildProgress.total === 0 ? 'bg-primary animate-pulse' : 'bg-primary'
-              }`}
-              style={{
-                width:
-                  rebuildProgress.total > 0
-                    ? `${(rebuildProgress.current / rebuildProgress.total) * 100}%`
-                    : '30%',
-              }}
-            />
-          </div>
+          </span>
+          <SegmentBar
+            value={rebuildProgress.total > 0 ? rebuildProgress.current / rebuildProgress.total : 0}
+            total={24}
+          />
         </div>
       )}
-    </Section>
+
+      <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
+        <span className='bm-help'>GaggiMate project</span>
+        <a
+          href='https://github.com/jniebuhr/gaggimate'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='bm-link'
+        >
+          GitHub
+        </a>
+        <a
+          href='https://discord.gaggimate.eu/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='bm-link'
+        >
+          Discord
+        </a>
+      </div>
+    </Tile>
   );
 }
 
@@ -208,11 +272,12 @@ export function SystemTab() {
   const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({});
+  // The channel picked but not saved yet; the saved one comes with the versions.
+  const [pickedChannel, setPickedChannel] = useState(null);
+  const savingChannel = useRef(false);
   const [phase, setPhase] = useState(0);
   const [progress, setProgress] = useState(0);
-  const rssi = machine.value.status.rssi;
-  const lat = machine.value.status.lat;
-  const rtx = machine.value.status.rtx;
+  const { rssi, lat, rtx } = link.value;
 
   const downloadSupportData = useCallback(async () => {
     try {
@@ -240,6 +305,10 @@ export function SystemTab() {
       setFormData(msg);
       setIsLoading(false);
       setSubmitting(false);
+      if (savingChannel.current) {
+        savingChannel.current = false;
+        setPickedChannel(null);
+      }
     });
     return () => {
       apiService.off('res:ota-settings', listenerId);
@@ -280,17 +349,16 @@ export function SystemTab() {
     }, 500);
   }, [apiService]);
 
-  const formRef = useRef();
+  const channel = pickedChannel ?? (formData.channel === 'nightly' ? 'nightly' : 'latest');
 
   const onSubmit = useCallback(
     async e => {
       e.preventDefault();
       setSubmitting(true);
-      const form = formRef.current;
-      const data = new FormData(form);
-      apiService.send({ tp: 'req:ota-settings', update: true, channel: data.get('channel') });
+      savingChannel.current = true;
+      apiService.send({ tp: 'req:ota-settings', update: true, channel });
     },
-    [apiService],
+    [apiService, channel],
   );
 
   const onUpdate = useCallback(
@@ -319,98 +387,65 @@ export function SystemTab() {
     return <SystemTabSkeleton />;
   }
 
+  const updateAvailable = formData.displayUpdateAvailable || formData.controllerUpdateAvailable;
+
   return (
-    <div className='bm-groups'>
-      {/* Firmware updates channel */}
-      <Section title='System Version & Updates' className='h-full'>
-        <form ref={formRef} onSubmit={onSubmit} className='space-y-4'>
-          <div className='form-control max-w-md'>
-            <label htmlFor='channel' className='mb-2 block text-sm font-medium'>
-              Update Channel
-            </label>
-            <div className='flex w-full items-center gap-2'>
-              <select id='channel' name='channel' className='select select-bordered grow'>
-                <option value='latest' selected={formData.channel === 'latest'}>
-                  Stable
-                </option>
-                <option value='nightly' selected={formData.channel === 'nightly'}>
-                  Nightly
-                </option>
-              </select>
-              <button type='submit' className='btn btn-secondary' disabled={submitting}>
-                Save Channel & Refresh
-              </button>
-            </div>
-          </div>
+    <div className={TILE_GRID}>
+      <Tile
+        title='System version & updates'
+        end={updateAvailable && <Chip>Update available</Chip>}
+        className='@container md:row-span-2'
+      >
+        <form onSubmit={onSubmit} className='flex flex-col gap-3'>
+          <SegmentedField
+            label='Update channel'
+            options={CHANNELS}
+            value={channel}
+            onChange={setPickedChannel}
+          />
+          <Button type='submit' className='self-start' disabled={submitting}>
+            {submitting && <Spinner size={4} />}
+            Save channel & refresh
+          </Button>
         </form>
 
-        <div className='border-base-content/5 mt-6 grid grid-cols-1 gap-6 border-t pt-6 md:grid-cols-2'>
-          <div className='flex flex-col space-y-1'>
-            <span className='text-sm font-medium text-[var(--ink-muted)]'>Hardware</span>
-            <span className='text-base-content font-semibold'>{formData.hardware}</span>
-          </div>
-
-          <div className='flex flex-col space-y-1'>
-            <span className='text-sm font-medium text-[var(--ink-muted)]'>
-              Controller Signal Strength
-            </span>
-            <span className='text-base-content flex items-center gap-2 font-semibold'>
-              {rssi}dB (Roundtrip: {lat} ms, Resends: {rtx})
-              <span className={`indicator-item status ${getRssiStatusClass(rssi)}`} />
-            </span>
-          </div>
-
-          <div className='flex flex-col space-y-2'>
-            <span className='text-sm font-medium text-[var(--ink-muted)]'>Controller Version</span>
-            <div className='flex flex-wrap items-center gap-4'>
-              <span className='text-base-content font-semibold break-all'>
-                {formData.controllerVersion}
+        <div className='grid grid-cols-1 gap-2 @md:grid-cols-2'>
+          <Cell>
+            <span className='bm-eyebrow'>Hardware</span>
+            <span>{formData.hardware || '—'}</span>
+          </Cell>
+          <Cell>
+            <Stat size='sm' label='Controller signal strength' value={rssi ?? '—'} unit='dB'>
+              <span className='bm-data'>
+                Roundtrip {lat ?? '—'} ms · {rtx ?? '—'} resends
               </span>
-              {formData.controllerUpdateAvailable && (
-                <span className='text-primary text-sm font-bold'>
-                  Update available: {formData.latestVersion}
-                </span>
-              )}
-              <button
-                type='button'
-                className='btn btn-secondary btn-sm'
-                disabled={!formData.controllerUpdateAvailable || submitting}
-                onClick={() => onUpdate('controller')}
-              >
-                Update Controller
-              </button>
-            </div>
-          </div>
-
-          <div className='flex flex-col space-y-2'>
-            <span className='text-sm font-medium text-[var(--ink-muted)]'>Display Version</span>
-            <div className='flex flex-wrap items-center gap-4'>
-              <span className='text-base-content font-semibold break-all'>
-                {formData.displayVersion}
-              </span>
-              {formData.displayUpdateAvailable && (
-                <span className='text-primary text-sm font-bold'>
-                  Update available: {formData.latestVersion}
-                </span>
-              )}
-              <button
-                type='button'
-                className='btn btn-secondary btn-sm'
-                disabled={!formData.displayUpdateAvailable || submitting}
-                onClick={() => onUpdate('display')}
-              >
-                Update Display
-              </button>
-            </div>
-          </div>
+              {rssi !== undefined && signalChip(rssi)}
+            </Stat>
+          </Cell>
+          <VersionCell
+            label='Controller version'
+            version={formData.controllerVersion}
+            updateAvailable={formData.controllerUpdateAvailable}
+            latestVersion={formData.latestVersion}
+            disabled={!formData.controllerUpdateAvailable || submitting}
+            onUpdate={() => onUpdate('controller')}
+            action='Update controller'
+          />
+          <VersionCell
+            label='Display version'
+            version={formData.displayVersion}
+            updateAvailable={formData.displayUpdateAvailable}
+            latestVersion={formData.latestVersion}
+            disabled={!formData.displayUpdateAvailable || submitting}
+            onUpdate={() => onUpdate('display')}
+            action='Update display'
+          />
         </div>
 
-        <div className='alert alert-warning mt-6'>
-          <span>
-            Make sure to backup your profiles from the profiles screen before updating the display.
-          </span>
-        </div>
-      </Section>
+        <p className='bm-notice bm-notice--warning'>
+          Make sure to back up your profiles from the Profiles page before updating the display.
+        </p>
+      </Tile>
 
       <StorageAndMemorySection formData={formData} />
 
@@ -421,27 +456,6 @@ export function SystemTab() {
         rebuilt={rebuilt}
         rebuildProgress={rebuildProgress}
       />
-
-      <p className='px-2 pb-2 text-sm text-[var(--ink-muted)]'>
-        GaggiMate project:{' '}
-        <a
-          href='https://github.com/jniebuhr/gaggimate'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-primary'
-        >
-          GitHub
-        </a>
-        ,{' '}
-        <a
-          href='https://discord.gaggimate.eu/'
-          target='_blank'
-          rel='noopener noreferrer'
-          className='text-primary'
-        >
-          Discord
-        </a>
-      </p>
     </div>
   );
 }

@@ -1,0 +1,207 @@
+/* The analyzer's library bar: the tile that names the loaded shot and profile and holds the
+   actions on them. Tokens only, like ui/tool.css; every selector starts at one of this file's
+   own classes, because the sheet stays in the document after the page is left. */
+
+@layer components {
+  /* --------------------------------------------------------------------------
+     Placement. The bar rests in its slot. From 1024px it pins under the top
+     edge once the page scrolls past it, on a band of the page ground; while the
+     library is open it sits over the scrim at any width. The inset is the
+     sidebar's, so the pinned tile lines up with it.
+     -------------------------------------------------------------------------- */
+  .an-libpanel {
+    --an-lib-inset: max(var(--space-3), env(safe-area-inset-top));
+    --an-lib-inset-bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    position: relative;
+  }
+  .an-libbar-pin {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+  .an-libbar-pin.is-fixed {
+    position: fixed;
+    z-index: 30;
+    padding-top: var(--an-lib-inset);
+  }
+  .an-libbar-pin.is-stuck {
+    padding-bottom: var(--space-3);
+    background: var(--surface-0);
+  }
+  .an-libbar-pin.is-open {
+    z-index: 61;
+  }
+
+  /* --------------------------------------------------------------------------
+     The tile
+     -------------------------------------------------------------------------- */
+  .an-libbar {
+    position: relative;
+  }
+  /* The library hangs from the bar: the two read as one panel. */
+  .an-libbar.is-open {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .an-libbar__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  /* One shot with its profile. In a comparison the row starts with its ShotBadge. */
+  .an-libbar__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    border-radius: var(--radius-lg);
+  }
+  .an-libbar__row.an-drop {
+    outline-offset: 2px;
+  }
+  .an-libbar__pair {
+    display: grid;
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  @media (min-width: 600px) {
+    .an-libbar__pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* --------------------------------------------------------------------------
+     Slot: a pill that names what is loaded and opens the library for it, with
+     its small actions at the end. Loaded is the normal state, so it is a plain
+     surface-2 control; empty is muted; a profile that is not the shot's own is
+     a warning.
+     -------------------------------------------------------------------------- */
+  .an-slot {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    height: var(--control-md);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .an-slot__main {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    align-self: stretch;
+    gap: 6px;
+    min-width: 0;
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: inherit;
+    font: 500 15px/20px var(--font-sans);
+    text-align: left;
+    cursor: pointer;
+  }
+  .an-slot__main:focus-visible {
+    outline: var(--outline) solid var(--focus);
+    outline-offset: -2px;
+  }
+  .an-slot__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .an-slot__chevron {
+    color: var(--ink-muted);
+  }
+  .an-slot.an-slot--empty .an-slot__main {
+    color: var(--ink-muted);
+    font-weight: 400;
+  }
+  .an-slot.an-slot--warning {
+    background: var(--warning-soft);
+    color: var(--warning);
+  }
+  .an-slot.an-slot--warning .an-slot__main,
+  .an-slot.an-slot--warning .an-slot__chevron {
+    color: var(--warning);
+  }
+  .an-slot.an-slot--warning .an-iconbtn,
+  .an-slot.an-slot--warning .an-iconbtn:hover {
+    --an-hover: var(--surface-2);
+    color: var(--warning);
+  }
+  /* A finger gets 44px buttons, so they take the pill's full height and its end. */
+  @media (pointer: coarse) {
+    .an-slot {
+      padding-right: 0;
+    }
+  }
+
+  /* --------------------------------------------------------------------------
+     Action row, and the line that replaces it while a file is dragged over
+     the window.
+     -------------------------------------------------------------------------- */
+  .an-libbar__foot {
+    position: relative;
+  }
+  .an-libbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .an-libbar__drop {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0;
+    text-align: center;
+  }
+  /* Loading, in segments, under the action row: the shot first, then its profile. */
+  .an-libbar__load {
+    position: absolute;
+    right: 0;
+    bottom: calc(var(--space-3) * -1);
+    left: 0;
+  }
+  .an-libbar__load .bm-segbar {
+    height: 4px;
+  }
+  /* What the import mode just became, said once under the control that changed it. */
+  .an-libbar-hint.an-popover {
+    gap: 2px;
+  }
+
+  /* --------------------------------------------------------------------------
+     Shared by the bar and the library under it
+     -------------------------------------------------------------------------- */
+  /* A segmented control in a dense desktop row takes the small control height (promote). */
+  @media (pointer: fine) {
+    .an-seg--sm.bm-seg .bm-seg__item {
+      height: 30px;
+      padding: 0 var(--space-3);
+      font-size: 13px;
+      line-height: 18px;
+    }
+  }
+  /* A small Button is a desktop size: under a finger it grows back to the touch size (promote). */
+  @media (pointer: coarse) {
+    .an-libbar .bm-btn--sm,
+    .an-lib .bm-btn--sm {
+      height: var(--control-md);
+    }
+    .an-libbar .bm-btn--icon.bm-btn--sm,
+    .an-lib .bm-btn--icon.bm-btn--sm {
+      width: var(--control-md);
+    }
+  }
+}

@@ -1,182 +1,232 @@
-/* Full-display mode is rendered via a body portal, so these styles define the overlay shell
-   independently from the analyzer page layout. */
-.shot-chart-full-display {
-  position: fixed;
-  inset: 0;
-  z-index: 10050;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  width: 100vw;
-  height: 100dvh;
-  padding: 0.35rem;
-}
+/* The shot chart inside its tile, and the full display that shows it alone. Tokens only. */
+@layer components {
+  /* Head row, charts, legend: the chart's own column inside the tile. */
+  .shot-chart-root {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    width: 100%;
+    min-width: 0;
+    user-select: none;
+  }
 
-.shot-chart-full-display__backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: color-mix(in srgb, var(--color-base-100) 28%, black 72%);
-  cursor: pointer;
-}
+  .shot-chart-compare-root {
+    width: 100%;
+    user-select: none;
+  }
 
-.shot-chart-full-display__panel {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-base-content) 12%, transparent);
-  border-radius: 0.85rem;
-  background: color-mix(in srgb, var(--color-base-100) 94%, transparent);
-  color: var(--color-base-content);
+  /* Full display is rendered in a portal: the chart alone on the page ground, over the shell.
+     Sheets sit at this level; menus, popovers and tooltips stay above it. */
+  .shot-chart-full-display {
+    position: fixed;
+    inset: 0;
+    z-index: 61;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    width: 100vw;
+    height: 100dvh;
+    padding: var(--space-3);
+    background: var(--surface-0);
+    color: var(--ink);
+    user-select: none;
+  }
 
-  padding: 0.85rem 0.95rem 0.9rem;
-}
+  .shot-chart-full-display__panel {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    gap: var(--space-3);
+    overflow: hidden;
+  }
 
-.shot-chart-full-display__charts {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-right: 0.15rem;
-}
+  .shot-chart-full-display__charts {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 
-.shot-chart-hover-surface {
-  position: relative;
-  min-height: 0;
-}
-
-.shot-chart-hover-connector {
-  position: absolute;
-  z-index: 4;
-  width: 2.5px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  border-radius: 999px;
-  background: var(--color-base-content);
-}
-
-.shot-chart-interaction-layer {
-  touch-action: pan-y;
-}
-
-.shot-chart-single-layout {
-  display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.shot-analyzer-page {
-  --analyzer-mobile-card-gap: 0.75rem;
-}
-
-@media (max-width: 1023px) {
-  .analyzer-mobile-stack-layer {
+  .shot-chart-hover-surface {
     position: relative;
-  }
-
-  .analyzer-mobile-stack-layer--primary {
-    z-index: 0;
-    margin-bottom: var(--analyzer-mobile-card-gap);
-  }
-
-  .analyzer-mobile-stack-layer--chart {
-    z-index: 1;
-  }
-
-  .analyzer-mobile-stack-layer--details {
-    z-index: 2;
-  }
-
-  .analyzer-mobile-stack-layer--analysis {
-    z-index: 3;
-  }
-}
-
-@media (max-width: 640px) {
-  .shot-analyzer-page {
-    --analyzer-mobile-analysis-gap: 1rem;
-    --shot-chart-mobile-card-height: 90vh;
-    --shot-chart-mobile-card-height: 90dvh;
-    --shot-chart-mobile-compare-height-reduction: 3rem;
-  }
-
-  .analyzer-analysis-shell {
-    margin-top: var(--analyzer-mobile-analysis-gap);
-  }
-
-  .shot-mobile-primary-cards {
-    gap: var(--analyzer-mobile-card-gap);
-  }
-
-  .shot-chart-card-shell {
-    height: var(--shot-chart-mobile-card-height);
-    min-height: var(--shot-chart-mobile-card-height);
-    overflow: hidden;
-  }
-
-  .shot-chart-card-shell--compare {
-    height: auto;
-    min-height: 0;
-    overflow: visible;
-  }
-
-  .shot-chart-card-shell > .select-none {
-    height: calc(var(--shot-chart-mobile-card-height) - 1rem);
-    min-height: calc(var(--shot-chart-mobile-card-height) - 1rem);
-  }
-
-  .shot-chart-card-shell--compare > .select-none {
-    height: auto;
-    min-height: 0;
-  }
-
-  .shot-chart-compare-main-card--mobile {
     display: flex;
-    height: var(--shot-chart-mobile-card-height);
-    min-height: var(--shot-chart-mobile-card-height);
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
     flex-direction: column;
-    overflow: hidden;
+    justify-content: center;
   }
 
-  .shot-chart-compare-main-card--mobile .shot-chart-compare-canvas-shell {
+  /* The time under the pointer: one hairline through both charts. */
+  .shot-chart-hover-connector {
+    position: absolute;
+    z-index: 4;
+    width: var(--hairline);
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: var(--ink-muted);
+  }
+
+  .shot-chart-interaction-layer {
+    position: relative;
+    width: 100%;
+    touch-action: pan-y;
+  }
+
+  /* The gap between the two charts is part of what the layout maths reserves (12px). */
+  .shot-chart-interaction-layer--temp {
+    margin-top: var(--space-3);
+  }
+
+  .shot-chart-single-layout {
     display: flex;
+    width: 100%;
     min-height: 0;
     flex: 1 1 auto;
     flex-direction: column;
   }
 
-  .shot-chart-compare-main-card--mobile
-    .shot-chart-compare-canvas-shell
-    .shot-chart-interaction-layer {
-    height: auto !important;
-    min-height: 0;
-    flex: 1 1 auto;
+  .shot-chart-compare-canvas-shell {
+    position: relative;
+    width: 100%;
   }
 
-  .shot-chart-compare-mobile-stack--collapsed {
-    display: flex;
-    flex-direction: column;
-    gap: var(--analyzer-mobile-card-gap);
+  /* The name of a comparison's shot beside its badge. */
+  .shot-chart-compare-shot {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    font: 500 13px/18px var(--font-sans);
   }
 
-  .shot-chart-compare-mobile-stack > * + * {
-    margin-top: var(--analyzer-mobile-card-gap);
+  /* A chart's eyebrow with the glyph of its series. */
+  .shot-chart-statistics-chart-title {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
   }
 
-  .shot-chart-compare-mobile-stack--collapsed > * + * {
-    margin-top: 0;
+  @media (min-width: 1024px) {
+    .shot-chart-root {
+      height: 100%;
+    }
   }
 
-  .shot-chart-compare-mobile-stack--collapsed .shot-chart-compare-main-card--mobile {
-    flex: 0 0 auto;
-  }
-}
+  @media (max-width: 1023px) {
+    .analyzer-mobile-stack-layer {
+      position: relative;
+    }
 
-:root {
-  --shot-chart-phase-card-gap: 1rem;
+    .analyzer-mobile-stack-layer--primary {
+      z-index: 0;
+    }
+
+    .analyzer-mobile-stack-layer--chart {
+      z-index: 1;
+    }
+
+    .analyzer-mobile-stack-layer--details {
+      z-index: 2;
+    }
+
+    .analyzer-mobile-stack-layer--analysis {
+      z-index: 3;
+    }
+
+    .shot-chart-single-layout:not(.shot-chart-full-display__charts) {
+      flex: 0 0 auto;
+    }
+  }
+
+  /* On a phone the chart tile is one screen tall, so the chart, its readings and its scrubber
+     are all in view while a finger scrubs. */
+  @media (max-width: 640px) {
+    .shot-chart-card-shell {
+      --shot-chart-mobile-card-height: 90vh;
+      --shot-chart-mobile-card-height: 90dvh;
+      --shot-chart-mobile-compare-height-reduction: 48px;
+      display: flex;
+      height: var(--shot-chart-mobile-card-height);
+      min-height: var(--shot-chart-mobile-card-height);
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .shot-chart-card-shell--compare {
+      display: block;
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+    }
+
+    .shot-chart-card-shell > .shot-chart-root {
+      min-height: 0;
+      flex: 1 1 auto;
+    }
+
+    .shot-chart-single-layout:not(.shot-chart-full-display__charts) {
+      min-height: 0;
+      flex: 1 1 auto;
+    }
+
+    .shot-chart-single-layout:not(.shot-chart-full-display__charts) .shot-chart-hover-surface {
+      min-height: 0;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    .shot-chart-hover-surface canvas {
+      pointer-events: none;
+    }
+
+    .shot-chart-compare-main-card--mobile {
+      --shot-chart-static-tooltip-compare-preview-height: calc(
+        244px - var(--shot-chart-mobile-compare-height-reduction)
+      );
+      display: flex;
+      height: calc(
+        var(--shot-chart-mobile-card-height) - 56px - var(--space-2) -
+          var(--shot-chart-mobile-compare-height-reduction)
+      );
+      min-height: calc(
+        var(--shot-chart-mobile-card-height) - 56px - var(--space-2) -
+          var(--shot-chart-mobile-compare-height-reduction)
+      );
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .shot-chart-compare-main-card--mobile .shot-chart-compare-canvas-shell {
+      display: flex;
+      min-height: 0;
+      flex: 1 1 auto;
+      flex-direction: column;
+    }
+
+    .shot-chart-compare-main-card--mobile
+      .shot-chart-compare-canvas-shell
+      .shot-chart-interaction-layer {
+      height: auto !important;
+      min-height: 0;
+      flex: 1 1 auto;
+    }
+
+    .shot-chart-compare-mobile-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .shot-chart-compare-mobile-stack--collapsed .shot-chart-compare-main-card--mobile {
+      flex: 0 0 auto;
+    }
+
+    .shot-chart-full-display {
+      padding: 0;
+    }
+  }
 }

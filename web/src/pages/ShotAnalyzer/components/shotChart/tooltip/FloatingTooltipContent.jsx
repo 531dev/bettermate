@@ -23,11 +23,7 @@ function FloatingPhaseHeading({ phaseSummary, index }) {
       key={`${phaseSummary.shotLabel || ''}-${phaseSummary.phaseLabel}-${index}`}
       className='shot-chart-tooltip__phase-heading'
     >
-      <TooltipShotBadge
-        shotNumber={phaseSummary.shotNumber}
-        color={phaseSummary.color}
-        className='shot-chart-tooltip__phase-badge'
-      />
+      <TooltipShotBadge shotNumber={phaseSummary.shotNumber} />
       {phaseSummary.shotLabel ? (
         <span className='shot-chart-tooltip__phase-shot'>{phaseSummary.shotLabel}</span>
       ) : null}
@@ -122,9 +118,9 @@ function FloatingTooltipRow({ row, index }) {
       {rowIcon ? (
         <Icon
           name={rowIcon}
+          size={14}
           className='shot-chart-tooltip__icon'
           style={{ color: row.color }}
-          aria-hidden='true'
         />
       ) : null}
       <span className='shot-chart-tooltip__text'>

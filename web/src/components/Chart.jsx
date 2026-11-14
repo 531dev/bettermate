@@ -1,149 +1,137 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { Chart } from 'chart.js';
+import { useEffect, useRef } from 'preact/hooks';
+import { Chart, LineController, LineElement, LinearScale, PointElement } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { applyChartTheme } from '../utils/chartTheme.js';
+import { applyChartTheme, chartFont, seriesColor } from '../utils/chartTheme.js';
+import { Chip } from './Chip.jsx';
+import { cx } from './cx.js';
 
-Chart.register(annotationPlugin);
-Chart.defaults.font.family = '"Jost", system-ui, sans-serif';
+// Everything these charts draw with, so a page registers nothing to use one.
+Chart.register(LineController, LineElement, PointElement, LinearScale, annotationPlugin);
 
-export function ChartComponent({ data, className, chartClassName, style }) {
-  const [chart, setChart] = useState(null);
-  const ref = useRef();
+// A reading worked out from another one shares the color of its source and draws dotted, so its
+// mark in the legend is a short dotted stroke instead of the dot, as in the Analyzer's legend.
+const dottedMark = series => ({
+  width: 12,
+  height: 0,
+  borderTop: `2px dotted ${seriesColor(series)}`,
+  borderRadius: 0,
+  background: 'none',
+});
 
-  // Create chart on mount
+/** The legend: a neutral Chip for each series, its dot in the series color. A target has none. */
+export function ChartLegend({ datasets, className }) {
+  const named = datasets.filter(dataset => dataset.label && dataset.kind !== 'target');
+  return (
+    <div className={cx('flex flex-wrap gap-1.5', className)}>
+      {named.map(dataset =>
+        dataset.kind === 'estimate' ? (
+          <Chip key={dataset.label}>
+            <i className='bm-chip__dot' style={dottedMark(dataset.series)} />
+            {dataset.label}
+          </Chip>
+        ) : (
+          <Chip key={dataset.label} dot={seriesColor(dataset.series)}>
+            {dataset.label}
+          </Chip>
+        ),
+      )}
+    </div>
+  );
+}
+
+/**
+ * A line chart: the legend, then a canvas that fills what is left of the box.
+ *   data            the Chart.js config, built with the helpers of utils/chartTheme.js. A new
+ *                   object replaces what the chart shows; nothing animates.
+ *   className       the box; give it a height, or cap the canvas with `chartClassName`
+ *   plotClassName   the canvas's own box, to give the plot a height the legend cannot take from
+ *   chartClassName  the canvas
+ *   legend          false to leave the Chips out and place a ChartLegend elsewhere
+ *   label           the canvas's name for screen readers; the series names by default
+ *   chartRef        receives the Chart, for a live chart that appends to its own data and updates
+ */
+export function ChartComponent({
+  data,
+  className,
+  plotClassName,
+  chartClassName,
+  style,
+  legend = true,
+  label,
+  chartRef,
+}) {
+  const canvas = useRef();
+  const chart = useRef();
+  const shown = useRef(data);
+
   useEffect(() => {
-    if (!ref.current) return;
+    applyChartTheme(shown.current, canvas.current);
+    const created = new Chart(canvas.current, shown.current);
+    chart.current = created;
 
-    const newChart = new Chart(ref.current, data);
-    applyChartTheme(newChart);
-    newChart.update('none');
-    setChart(newChart);
-
-    // Cleanup function to destroy chart on unmount
-    return () => {
-      if (newChart) {
-        newChart.destroy();
-      }
-    };
-  }, []); // Empty dependency array - only run on mount
-
-  // Update chart data when history changes
-  useEffect(() => {
-    if (!chart) return;
-
-    // Preserve dataset visibility state when updating data
-    const hiddenDatasets = chart.data.datasets.map((dataset, index) => {
-      return chart.getDatasetMeta(index).hidden;
-    });
-
-    chart.data = data.data;
-    chart.options = data.options;
-    applyChartTheme(chart);
-
-    // Restore dataset visibility state
-    chart.data.datasets.forEach((dataset, index) => {
-      if (hiddenDatasets[index] !== undefined) {
-        chart.getDatasetMeta(index).hidden = hiddenDatasets[index];
-      }
-    });
-
-    chart.update();
-  }, [data, chart]);
-
-  useEffect(() => {
-    if (!chart) return;
     let alive = true;
-    const refresh = () => {
+    const retheme = () => {
       if (!alive) return;
-      applyChartTheme(chart);
-      chart.update('none');
+      applyChartTheme(created.config, created.canvas);
+      created.update('none');
     };
-    const observer = new MutationObserver(refresh);
+    // The colors follow the theme, and the text is laid out again once its font has arrived.
+    const observer = new MutationObserver(retheme);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['data-theme'],
     });
-    document.fonts.ready.then(refresh);
+    if (!document.fonts.check(chartFont())) {
+      document.fonts.load(chartFont()).then(retheme, () => {});
+    }
+
+    // Chart.js follows its box by itself; iOS home-screen apps miss a rotation without this.
+    const resize = () => alive && created.resize();
+    const rotate = () => setTimeout(resize, 100);
+    window.addEventListener('orientationchange', rotate);
+    window.visualViewport?.addEventListener('resize', resize);
+
     return () => {
       alive = false;
       observer.disconnect();
+      window.removeEventListener('orientationchange', rotate);
+      window.visualViewport?.removeEventListener('resize', resize);
+      created.destroy();
     };
-  }, [chart]);
+  }, []);
 
-  // Add resize event listener to update chart options dynamically
   useEffect(() => {
-    if (!chart) return;
-
-    // Generic "get or create" helper for nested option objects.
-    const ensure = (obj, key, def) => {
-      if (!obj[key]) obj[key] = def;
-      return obj[key];
-    };
-
-    // Walk a path (array of keys) under chart.options creating objects.
-    // Guarantees a font object exists so we can safely assign size.
-    const ensureFont = path => {
-      const target = path.reduce((acc, key) => ensure(acc, key, {}), chart.options);
-      if (!target.font) target.font = {}; // for scale tick objects that may embed font deeper
-      return target;
-    };
-
-    const handleResize = () => {
-      const isSmallScreen = window.innerWidth < 640;
-
-      // Update legend font size
-      ensureFont(['plugins', 'legend', 'labels']).font.size = isSmallScreen ? 10 : 12;
-
-      // Update title font size
-      ensureFont(['plugins', 'title']).font.size = isSmallScreen ? 14 : 16;
-
-      // Update axis font sizes
-      ensureFont(['scales', 'y', 'ticks']).font.size = isSmallScreen ? 10 : 12;
-      ensureFont(['scales', 'y1', 'ticks']).font.size = isSmallScreen ? 10 : 12;
-      ensureFont(['scales', 'x', 'ticks']).font.size = isSmallScreen ? 10 : 12;
-
-      // Update maxTicksLimit for x-axis
-      const xTicks = ensureFont(['scales', 'x', 'ticks']);
-      xTicks.maxTicksLimit = isSmallScreen ? 5 : 10;
-
-      // Force chart to resize and recalculate dimensions
-      chart.resize();
-
-      // Update the chart to apply changes
-      chart.update('none'); // Use 'none' mode for better performance
-    };
-
-    // Add event listeners for different orientation change scenarios
-    window.addEventListener('resize', handleResize);
-
-    // iOS PWA specific: orientationchange event
-    const handleOrientationChange = () => {
-      // Use a small delay to ensure the orientation change is complete
-      setTimeout(handleResize, 100);
-    };
-    window.addEventListener('orientationchange', handleOrientationChange);
-
-    // iOS PWA specific: visualViewport change (for newer iOS versions)
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
-    }
-
-    // Initial call to ensure correct sizing
-    handleResize();
-
-    // Cleanup
+    if (!chartRef) return undefined;
+    chartRef.current = chart.current;
     return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleOrientationChange);
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleResize);
-      }
+      chartRef.current = null;
     };
-  }, [chart]);
+  }, [chartRef]);
+
+  useEffect(() => {
+    if (shown.current === data) return;
+    shown.current = data;
+    applyChartTheme(data, canvas.current);
+    chart.current.data = data.data;
+    chart.current.options = data.options;
+    chart.current.update('none');
+  }, [data]);
+
+  const names = data.data.datasets
+    .filter(dataset => dataset.label && dataset.kind !== 'target')
+    .map(dataset => dataset.label);
 
   return (
-    <div className={className} style={style}>
-      <canvas className={chartClassName} ref={ref} />
+    <div className={cx('flex min-w-0 flex-col gap-3', className)} style={style}>
+      {legend && <ChartLegend datasets={data.data.datasets} />}
+      <div className={cx('relative min-h-0 w-full min-w-0 flex-1', plotClassName)}>
+        <canvas
+          ref={canvas}
+          className={chartClassName}
+          role='img'
+          aria-label={label || `${names.join(', ')} over time`}
+        />
+      </div>
     </div>
   );
 }

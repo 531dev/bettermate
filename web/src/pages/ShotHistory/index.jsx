@@ -1,45 +1,112 @@
-import { Icon } from '../../components/Icon.jsx';
-import {
-  Chart,
-  LineController,
-  TimeScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Legend,
-  Filler,
-  CategoryScale,
-} from 'chart.js';
-import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm';
-Chart.register(LineController);
-Chart.register(TimeScale);
-Chart.register(LinearScale);
-Chart.register(CategoryScale);
-Chart.register(PointElement);
-Chart.register(LineElement);
-Chart.register(Filler);
-Chart.register(Legend);
-
-import { ApiServiceContext, machine } from '../../services/ApiService.js';
-import { useCallback, useEffect, useRef, useState, useContext, useMemo } from 'preact/hooks';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { computed } from '@preact/signals';
+import { Button } from '../../components/Button.jsx';
+import { Input, Select } from '../../components/Field.jsx';
+import { Icon } from '../../components/Icon.jsx';
+import { List } from '../../components/ListRow.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
+import PageLayout from '../../components/PageLayout.jsx';
+import { Segmented } from '../../components/Segmented.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
-import HistoryCard from './HistoryCard.jsx';
-import { parseBinaryShot } from './parseBinaryShot.js';
+import { Tile } from '../../components/Tile.jsx';
+import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { parseBinaryIndex, indexToShotList } from './parseBinaryIndex.js';
+import { parseBinaryShot } from './parseBinaryShot.js';
+import { ShotRow } from './ShotRow.jsx';
 
 const connected = computed(() => machine.value.connected);
 
+const ITEMS_PER_PAGE = 10;
+
+const SORTS = [
+  ['date-desc', 'Newest first'],
+  ['date-asc', 'Oldest first'],
+  ['rating-desc', 'Highest rated'],
+  ['rating-asc', 'Lowest rated'],
+  ['profile-asc', 'Profile A to Z'],
+  ['profile-desc', 'Profile Z to A'],
+  ['duration-desc', 'Longest shot'],
+  ['duration-asc', 'Shortest shot'],
+  ['volume-desc', 'Highest yield'],
+  ['volume-asc', 'Lowest yield'],
+  ['id-desc', 'Highest ID'],
+  ['id-asc', 'Lowest ID'],
+];
+
+const FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'rated', label: 'Rated' },
+  { value: 'unrated', label: 'Unrated' },
+];
+
+// A machine that never got the time stamps its shots near zero.
+const hasDate = shot => shot.timestamp >= 10000;
+const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+// Today, Yesterday, then the date; the year only once it is not this one. Calendar days, not
+// spans of 24 hours, so a shot from 11:59 PM yesterday reads as Yesterday.
+function dayLabel(shot, month = 'long') {
+  if (!hasDate(shot)) return month === 'long' ? 'No date' : '—';
+  const date = new Date(shot.timestamp * 1000);
+  const today = new Date();
+  const daysAgo = Math.round((startOfDay(today) - startOfDay(date)) / 86400000);
+  if (daysAgo === 0) return 'Today';
+  if (daysAgo === 1) return 'Yesterday';
+  return date.toLocaleDateString([], {
+    weekday: month === 'long' ? 'long' : undefined,
+    day: 'numeric',
+    month,
+    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
+  });
+}
+
+const timeLabel = shot =>
+  hasDate(shot)
+    ? new Date(shot.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '—';
+
+/**
+ * The tiles of a page of shots. In an order by date, shots that follow each other on one day
+ * share a tile named for the day and show their time; in any other order the days no longer sort
+ * the list, so it is one tile named for the order and every row shows its day.
+ */
+function groupShots(shots, sortBy, sortLabel) {
+  if (sortBy !== 'date' && sortBy !== 'id') {
+    return [{ key: sortBy, label: sortLabel, when: shot => dayLabel(shot, 'short'), shots }];
+  }
+  const groups = [];
+  for (const shot of shots) {
+    const label = dayLabel(shot);
+    const last = groups[groups.length - 1];
+    if (last?.label === label) last.shots.push(shot);
+    else groups.push({ key: `${label} ${shot.id}`, label, when: timeLabel, shots: [shot] });
+  }
+  return groups;
+}
+
+// Under 600px a row has no room for its facts and the time side by side.
+const PHONE = '(max-width: 599.98px)';
+function usePhoneWidth() {
+  const [matches, setMatches] = useState(() => window.matchMedia(PHONE).matches);
+  useEffect(() => {
+    const query = window.matchMedia(PHONE);
+    const onChange = () => setMatches(query.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
+  return matches;
+}
+
 export function ShotHistory() {
   const apiService = useContext(ApiServiceContext);
+  const compact = usePhoneWidth();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date'); // date, rating, profile, duration, volume
+  const [sortBy, setSortBy] = useState('date'); // date, rating, profile, duration, volume, id
   const [sortOrder, setSortOrder] = useState('desc'); // asc, desc
   const [filterBy, setFilterBy] = useState('all'); // all, rated, unrated
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
   const loadHistoryAbortRef = useRef(null);
   const loadHistory = async () => {
     // Abort any in-flight fetch to prevent request pileup on the ESP32.
@@ -91,12 +158,15 @@ export function ShotHistory() {
       setLoading(false);
     }
   };
+  const isConnected = connected.value;
   useEffect(() => {
-    if (connected.value) {
+    if (isConnected) {
       loadHistory();
     }
     return () => loadHistoryAbortRef.current?.abort();
-  }, [connected.value]);
+    // loadHistory only touches refs and setters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
 
   const onDelete = useCallback(
     async id => {
@@ -105,13 +175,48 @@ export function ShotHistory() {
       // Reload the index after deletion
       await loadHistory();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [apiService],
   );
 
   const onNotesChanged = useCallback(async () => {
     // Reload the index to get updated ratings
     await loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const onLoad = useCallback(
+    async id => {
+      // Fetch binary only if not loaded
+      const target = history.find(h => h.id === id);
+      if (!target || target.loaded) return;
+      const merge = fields =>
+        setHistory(prev => prev.map(h => (h.id === id ? { ...h, ...fields(h) } : h)));
+      try {
+        // Pad ID to 6 digits with zeros to match backend filename format
+        const paddedId = id.padStart(6, '0');
+        const resp = await fetch(`/api/history/${paddedId}.slog`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const buf = await resp.arrayBuffer();
+        const parsed = parseBinaryShot(buf, id);
+        parsed.incomplete = (target?.incomplete ?? false) || parsed.incomplete;
+        if (target?.notes) parsed.notes = target.notes;
+        merge(h => ({
+          ...parsed,
+          // Preserve index metadata over shot file data
+          volume: h.volume ?? parsed.volume, // Use index volume if available, fallback to shot volume
+          rating: h.rating ?? parsed.rating, // Use index rating if available
+          incomplete: h.incomplete ?? parsed.incomplete,
+          loaded: true,
+          loadFailed: false,
+        }));
+      } catch (e) {
+        console.error('Failed loading shot', e);
+        merge(() => ({ loadFailed: true }));
+      }
+    },
+    [history],
+  );
 
   // Filtered and sorted history with pagination
   const { paginatedHistory, totalPages, totalFilteredItems } = useMemo(() => {
@@ -137,8 +242,8 @@ export function ShotHistory() {
         break;
     }
 
-    // Apply sorting
-    filtered.sort((a, b) => {
+    // Apply sorting, on a copy: with no search and no filter this is still the loaded list
+    filtered = [...filtered].sort((a, b) => {
       let comparison = 0;
 
       switch (sortBy) {
@@ -155,18 +260,18 @@ export function ShotHistory() {
           comparison = (a.volume || 0) - (b.volume || 0);
           break;
         case 'id':
-          comparison = parseInt(a.id) - parseInt(b.id);
+          comparison = parseInt(a.id, 10) - parseInt(b.id, 10);
           break;
         case 'date':
         default:
-          if (a.timestamp >= 10000 && b.timestamp >= 10000) {
+          if (hasDate(a) && hasDate(b)) {
             comparison = a.timestamp - b.timestamp;
-          } else if (a.timestamp >= 10000) {
+          } else if (hasDate(a)) {
             comparison = 1;
-          } else if (b.timestamp >= 10000) {
+          } else if (hasDate(b)) {
             comparison = -1;
           } else {
-            comparison = parseInt(a.id) - parseInt(b.id);
+            comparison = parseInt(a.id, 10) - parseInt(b.id, 10);
           }
       }
 
@@ -174,209 +279,162 @@ export function ShotHistory() {
     });
 
     const totalFilteredItems = filtered.length;
-    const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
+    const totalPages = Math.ceil(totalFilteredItems / ITEMS_PER_PAGE);
 
     // Apply pagination
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedHistory = filtered.slice(startIndex, endIndex);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedHistory = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     return { paginatedHistory, totalPages, totalFilteredItems };
   }, [history, searchTerm, filterBy, sortBy, sortOrder, currentPage]);
 
-  if (loading) {
-    return (
-      <div className='flex w-full flex-row items-center justify-center py-16'>
-        <Spinner size={8} />
-      </div>
-    );
-  }
+  // Deleting the last shot of the last page leaves that page empty: step back to one that exists.
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) setCurrentPage(totalPages);
+  }, [totalPages, currentPage]);
+
+  const sort = `${sortBy}-${sortOrder}`;
+  const sortLabel = SORTS.find(([value]) => value === sort)?.[1];
+  const groups = groupShots(paginatedHistory, sortBy, sortLabel);
+  const narrowed = searchTerm.trim() || filterBy !== 'all';
+  const showAll = () => {
+    setSearchTerm('');
+    setFilterBy('all');
+    setCurrentPage(1);
+  };
+
+  // At most five page numbers, around the current one.
+  const firstPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  const pages = Array.from({ length: Math.min(5, totalPages) }, (_, i) => firstPage + i);
 
   return (
-    <div className='mx-auto w-full max-w-4xl'>
-      <div className='mb-2'>
-        <div className='mb-3 flex flex-row items-center gap-3'>
-          <div className='min-w-0 flex-grow'>
-            <h2 className='bm-page-title'>Shot History</h2>
-            <p className='bm-page-sub'>
-              {totalFilteredItems} of {history.length} shots
-              {totalPages > 1 && `, page ${currentPage} of ${totalPages}`}
-            </p>
-          </div>
-          <a href='/analyzer' className='bm-link'>
-            Analyzer
-          </a>
-          <a href='/statistics' className='bm-link pr-2'>
-            Statistics
-          </a>
-        </div>
-
-        {/* Controls Row */}
-        <div className='grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:items-center'>
-          {/* Search */}
-          <div className='relative col-span-2 max-w-md flex-grow max-sm:max-w-none'>
-            <Icon
-              name={'search'}
-              className='absolute top-1/2 left-3 z-10 -translate-y-1/2 transform text-sm text-[var(--ink-muted)]'
-            />
-            <input
-              type='text'
-              placeholder='Search...'
-              aria-label='Search shots'
-              value={searchTerm}
-              onChange={e => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1); // Reset to page 1 when searching
-              }}
-              className='input input-bordered w-full pr-4 pl-10 text-sm'
-            />
-          </div>
-
-          {/* Sort */}
-          <div className='min-w-0'>
-            <select
-              aria-label='Sort shots'
-              value={`${sortBy}-${sortOrder}`}
-              onChange={e => {
-                const [newSortBy, newSortOrder] = e.target.value.split('-');
-                setSortBy(newSortBy);
-                setSortOrder(newSortOrder);
-                setCurrentPage(1); // Reset to page 1 when sorting
-              }}
-              className='select select-bordered w-full text-sm'
-            >
-              <option value='date-desc'>Newest First</option>
-              <option value='date-asc'>Oldest First</option>
-              <option value='rating-desc'>Highest Rated</option>
-              <option value='rating-asc'>Lowest Rated</option>
-              <option value='profile-asc'>Profile A-Z</option>
-              <option value='profile-desc'>Profile Z-A</option>
-              <option value='duration-desc'>Longest Duration</option>
-              <option value='duration-asc'>Shortest Duration</option>
-              <option value='volume-desc'>Highest Volume</option>
-              <option value='volume-asc'>Lowest Volume</option>
-              <option value='id-desc'>Highest ID First</option>
-              <option value='id-asc'>Lowest ID first</option>
-            </select>
-          </div>
-
-          {/* Filter */}
-          <div className='min-w-0'>
-            <select
-              aria-label='Filter shots'
-              value={filterBy}
-              onChange={e => {
-                setFilterBy(e.target.value);
-                setCurrentPage(1); // Reset to page 1 when filtering
-              }}
-              className='select select-bordered w-full text-sm'
-            >
-              <option value='all'>All Shots</option>
-              <option value='rated'>Rated Only</option>
-              <option value='unrated'>Unrated Only</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className='grid grid-cols-1 gap-2 lg:grid-cols-12'>
-        {paginatedHistory.map((item, idx) => (
-          <HistoryCard
-            key={item.id}
-            shot={item}
-            onDelete={id => onDelete(id)}
-            onNotesChanged={onNotesChanged}
-            onLoad={async id => {
-              // Fetch binary only if not loaded
-              const target = history.find(h => h.id === id);
-              if (!target || target.loaded) return;
-              try {
-                // Pad ID to 6 digits with zeros to match backend filename format
-                const paddedId = id.padStart(6, '0');
-                const resp = await fetch(`/api/history/${paddedId}.slog`);
-                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-                const buf = await resp.arrayBuffer();
-                const parsed = parseBinaryShot(buf, id);
-                parsed.incomplete = (target?.incomplete ?? false) || parsed.incomplete;
-                if (target?.notes) parsed.notes = target.notes;
-                setHistory(prev =>
-                  prev.map(h =>
-                    h.id === id
-                      ? {
-                          ...h,
-                          ...parsed,
-                          // Preserve index metadata over shot file data
-                          volume: h.volume ?? parsed.volume, // Use index volume if available, fallback to shot volume
-                          rating: h.rating ?? parsed.rating, // Use index rating if available
-                          incomplete: h.incomplete ?? parsed.incomplete,
-                          loaded: true,
-                        }
-                      : h,
-                  ),
-                );
-              } catch (e) {
-                console.error('Failed loading shot', e);
-              }
-            }}
-          />
-        ))}
-        {totalFilteredItems === 0 && !loading && (
-          <div className='flex flex-row items-center justify-center py-20 lg:col-span-12'>
-            {history.length === 0 ? (
-              <span>No shots available</span>
-            ) : (
-              <span>No shots match your search and filter criteria</span>
+    <PageLayout variant='narrow'>
+      <PageHeader
+        title='Shot history'
+        tabs={
+          <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
+            <a href='/analyzer' className='bm-link'>
+              Analyzer
+            </a>
+            <a href='/statistics' className='bm-link'>
+              Statistics
+            </a>
+            {history.length > 0 && (
+              <span className='bm-data ml-auto'>
+                {narrowed && `${totalFilteredItems} of `}
+                {history.length} {history.length === 1 ? 'shot' : 'shots'}
+              </span>
             )}
           </div>
-        )}
-      </div>
+        }
+      />
 
-      {/* Pagination Controls */}
+      {history.length > 0 && (
+        <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:flex sm:items-center'>
+          <Input
+            type='text'
+            className='sm:flex-1'
+            placeholder='Search shots'
+            aria-label='Search shots'
+            value={searchTerm}
+            onInput={e => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset to page 1 when searching
+            }}
+          />
+          <Select
+            className='w-40 sm:order-last sm:w-44'
+            aria-label='Sort shots'
+            value={sort}
+            onChange={e => {
+              const [newSortBy, newSortOrder] = e.target.value.split('-');
+              setSortBy(newSortBy);
+              setSortOrder(newSortOrder);
+              setCurrentPage(1); // Reset to page 1 when sorting
+            }}
+          >
+            {SORTS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+          <Segmented
+            label='Filter shots'
+            className='col-span-2 max-sm:flex max-sm:*:flex-1'
+            options={FILTERS}
+            value={filterBy}
+            onChange={value => {
+              setFilterBy(value);
+              setCurrentPage(1); // Reset to page 1 when filtering
+            }}
+          />
+        </div>
+      )}
+
+      {loading && history.length === 0 ? (
+        <div className='flex justify-center py-16' aria-label='Loading shots'>
+          <Spinner size={8} />
+        </div>
+      ) : history.length === 0 ? (
+        <Tile>
+          <h2 className='bm-sub'>No shots yet</h2>
+          <p className='bm-help'>Pull a shot and it shows up here.</p>
+        </Tile>
+      ) : totalFilteredItems === 0 ? (
+        <Tile>
+          <h2 className='bm-sub'>No shots match</h2>
+          <p className='bm-help'>The search looks at profile names and shot numbers.</p>
+          <Button className='self-start' onClick={showAll}>
+            Show all shots
+          </Button>
+        </Tile>
+      ) : (
+        groups.map(group => (
+          <Tile key={group.key} eyebrow={group.label} aria-busy={loading}>
+            <List>
+              {group.shots.map(shot => (
+                <ShotRow
+                  key={shot.id}
+                  shot={shot}
+                  when={group.when(shot)}
+                  compact={compact}
+                  onDelete={onDelete}
+                  onNotesChanged={onNotesChanged}
+                  onLoad={onLoad}
+                />
+              ))}
+            </List>
+          </Tile>
+        ))
+      )}
+
       {totalPages > 1 && (
-        <div className='mt-6 flex items-center justify-center gap-2'>
-          <button
-            className='btn btn-sm btn-outline'
+        <nav className='flex items-center justify-center gap-2 pt-2' aria-label='Pages of shots'>
+          <Button
+            iconOnly
+            aria-label='Previous page'
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
           >
-            Previous
-          </button>
-
-          <div className='flex items-center gap-1'>
-            {/* Show page numbers */}
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let pageNum;
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (currentPage <= 3) {
-                pageNum = i + 1;
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-              } else {
-                pageNum = currentPage - 2 + i;
-              }
-
-              return (
-                <button
-                  key={pageNum}
-                  className={`btn btn-sm ${currentPage === pageNum ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => setCurrentPage(pageNum)}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-          </div>
-
-          <button
-            className='btn btn-sm btn-outline'
+            <Icon name='chevron-left' />
+          </Button>
+          <Segmented
+            label='Page'
+            options={pages.map(page => ({ value: page, label: String(page) }))}
+            value={currentPage}
+            onChange={setCurrentPage}
+          />
+          <Button
+            iconOnly
+            aria-label='Next page'
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
           >
-            Next
-          </button>
-        </div>
+            <Icon name='chevron-right' />
+          </Button>
+        </nav>
       )}
-    </div>
+    </PageLayout>
   );
 }
