@@ -19,7 +19,9 @@ it as the layout source. This file says how those become code under `src/display
 - **A screen is a set of parts on the root**, each with a rank: 0 label and reading, 1 second-rank values, 2 action
   and handle. On a change the old screen gives up one rank a frame while the new one takes it (`Screen::conceal`,
   `reveal`), then the ring walks. Only a `Reading` steps in by recolour during the settle; everything else arrives with
-  the cut. Measured in the simulator: 20 to 22% of the panel in the largest frame, about 3% a frame while the ring walks.
+  the cut. The host measures each step: when the outgoing and the incoming rank together would repaint more than 22%
+  of the panel, the incoming rank waits one frame, so the 25% limit holds for any pair of screens. Measured in the
+  simulator: 20 to 23% of the panel in the largest frame, about 3% a frame while the ring walks.
 - **Exact repaints.** LVGL 8.4 grows every area an object invalidates by 5 px a side. `ui::` setters and `ui::show`
   switch that off and invalidate the object's own box (`ui::invalidate`). Use them; do not call `lv_obj_invalidate`,
   `lv_obj_add_flag(.., HIDDEN)` or `lv_obj_set_style_*_color` on a part yourself.

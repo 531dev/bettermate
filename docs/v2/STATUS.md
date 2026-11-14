@@ -1,0 +1,156 @@
+# BetterMate v2 — status and handoff
+
+Written 2026-11-14 at the end of the session that started the redesign, so that new sessions can pick it up with a
+clean context. Branch `ui/v2`, local only (never push). Everything described here is committed; the tree is clean.
+
+**The task** (the user, 2026-11-11): implement the BetterMate v2 design system "in a way that's efficient and takes
+up less resources while allowing for clean animations. Tear down anything that's not needed and rewrite it for this
+new design." The design is the claude.ai artifact `UnsxdMryJW25NAwXn12bSb`, copied unchanged into `design/`.
+
+Read in this order: this file, then `PLAN.md` (the contract), then `DISPLAY.md` or `WEB.md` + `WEB-LANES.md` for the
+face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the workspace root are up to date.
+
+## 1. What is done
+
+### Display (`src/display/ui/bettermate/`) — complete in the simulator, not flashed
+
+- **Core.** `BetterMateUI` is standalone: it subscribes to the machine's events, snapshots the machine into `UiState`
+  four times a second, and counts time in 42.5 ms panel frames. One LVGL screen; a shared `TickRing`; screens are
+  sets of ranked parts; no style opacity, transforms, `lv_anim`, flex or default theme; every part repaints its exact
+  box. The stock UI (`ui/default/`), EEZ (`eez-ui/`), `icons/` and the `BETTERMATE_UI` flag are deleted.
+- **Screens.** All ten classes are implemented from the design's coordinates: Standby, Brew, Shot (running,
+  calibrating, complete, flush), Mode (Steam, Water, Grind), Menu, Profiles, Adjust, Sheet, Warnings (and the confirm
+  question), Info (QR, About). Captures of every state are in `docs/display/v2/{core,shot,modes,menu,profiles}/`.
+- **Checks** (`scripts/verify_display_*.py` on `scripts/display_sim.py`), all passing on this tree:
+  core 29, shot 489, modes 520, menu 891, profiles 1401. Native tests: 57 pass, 7 skipped.
+- **Motion budget, measured in the simulator** (share of the panel repainted in one frame): a screen change 20 to
+  23% in its largest frame (limit 25%; the host delays the incoming rank a frame when a pair of screens would exceed
+  22%); the ring walk about 3%; a running shot at most 5.3%; modes running under 5%; the busy comet under 1%.
+- **Size.** `pio run -e display`: 3,227,117 bytes of flash (49.2%; was 3,838,157 before v2) and 84,000 bytes of
+  static RAM (was 94,312). One draw buffer instead of two frees a further 460 KB of PSRAM at run time. The firmware
+  image still embeds the **old** web bundle (see Web below).
+- **Panels.** The 480 px design sits on a stage centred on the LVGL screen, so it is centred on the 466 px AMOLED
+  boards (`SIM_PANEL_SIZE=466`). In direct mode (AMOLED) the flush now pushes only the rows that changed.
+
+### Web (`web/`) — foundation done, pages part-way
+
+- **Foundation** (`acbdef2e`): `tokens.css` and icon paths generated from `design/`, `bm.css` with the design's
+  recipes, the shell (sidebar, top bar, one floating mode bar), shared components (`WEB.md` lists them), Funnel
+  Display and Geist Mono, daisyUI removed, Tailwind for layout only. Main CSS went from 29.8 to 15.0 KB gzip.
+- **Pages** (`f0ac9dd6`, a work-in-progress checkpoint). State when the agents were stopped:
+
+| Lane (`WEB-LANES.md`) | Converted | Verified | Known |
+| --- | --- | --- | --- |
+| Dashboard (Home, DashboardSettings, 404) | yes, no old class left | no | The agent had not reported. |
+| Profiles and Setup | yes, no old class left | no | It was cleaning up hook dependencies in the editor when stopped. |
+| Settings | yes, no old class left | no | It had found fixes to apply, starting with a `Segmented` overflowing at 320 px. |
+| Shot history and charts | yes, no old class left | no | The four shared chart components are part of this lane. |
+| Shot Analyzer and Statistics | about half | no | Left in class strings: Analyzer 7 daisyUI component and 53 color classes, 12 `--color-*` references; Statistics 25 and 47, 1 `--color-*`, 1 `"Jost"`. |
+
+- `npm run lint:check`: 0 errors (6 known warnings). **`vite build` fails**:
+  `src/pages/Statistics/components/toolbar/subcomponents.jsx` imports `getMenuItemClasses`, which
+  `toolbar/helpers.js` no longer exports (the Statistics lane was mid-edit). Nothing else is known to break the build.
+
+## 2. What is left, in order
+
+1. **Web pages**: finish and verify the five lanes (`WEB-LANES.md`). Fix the Statistics import first so the app
+   builds; then the Analyzer/Statistics lane is the largest piece of remaining work.
+2. **Web integration**, once the lanes are done: promote page-local pieces the lanes built into
+   `web/src/components` or `bm.css`; rewrite `scripts/verify_web_ui.mjs` for v2 (its selectors target the old shell)
+   and run it against Vite and against the embedded bundle; refresh `docs/webui/` (README and captures);
+   `scripts/build_webui.sh`; rebuild `display-sim` and `display` and record the sizes.
+3. **Hardware**: flash `display-frame-stats`, read the `FrameStats` lines (pass mark: no line over 42 ms a frame or
+   25% redrawn while something animates), check touch targets, the ring, a real shot, steam, the scale, the AMOLED
+   flush if such a board is at hand. Back up the flash first, as on 2026-10-03 (`docs/hardware/2026-10-03.md`).
+4. **Loose ends on the display**: run every screen at `SIM_PANEL_SIZE=466` (only Standby and Brew were looked at);
+   a screen's first build repaints an 11 x 11 px box at the origin (cosmetic, cause not found); profiles with more
+   than eight phases show eight stage bars.
+5. **Housekeeping**: remove the four merged agent worktrees
+   (`git worktree list`; `git worktree unlock` then `git worktree remove --force .claude/worktrees/<name>`, and delete
+   their `worktree-agent-*` branches); decide whether `ui/v2` should become `main`.
+
+## 3. Decisions taken on the way — the user has not confirmed these
+
+1. "Tear down anything that's not needed" was read as lifting the earlier "defer the cutover" instruction: the stock
+   UI, EEZ and `icons/` are deleted, and so are the old design's captures under `docs/display/` and
+   `docs/ui-usability*`. Everything is at `4714a53d` (`ui/minimal-luxury`).
+2. The web mode bar keeps today's lock: while a process runs every other mode is disabled. The design's mock draws
+   Steam enabled during a shot, but a web mode change stops the running process.
+3. Steam's status line reads Heating, Ready to steam, Paused after 10 minutes. The controller starts its steam
+   process by itself within 5° of the target and ends it after ten minutes; it does not know whether the valve is open.
+4. The flush reminder raises the warning glyph on Brew only; the glyph's ground on the ring is 40 px (it answers on 56).
+5. Brew's label reads `COOLING TO 93°` when the boiler is above target (the design names only `HEATING TO`).
+6. The fonts carry accented Latin-1 letters beyond the design's glyph table, so typed profile names render.
+7. Display theme: the setting's Light is Light; everything else is Display black. The design's Dark is web-only.
+8. Minus and plus repeat while held. Water shows pumped millilitres when the controller reports them, and no timer
+   (the firmware has none for water). Warnings shows the two most severe and counts the rest. Information has the
+   handle as its way back.
+9. A screen change between two heavy screens takes four to six frames instead of three, to hold the 25% budget.
+10. Driver changes that cannot be tested here: one LVGL draw buffer; changed-row flush on the AMOLED panels.
+11. The design-lint hook flags Geist Mono as an overused font; it is the design system's face, so the exception is
+    recorded in `.impeccable/config.json`.
+
+## 4. Restarting — one prompt per session
+
+Usage credits ran out with nine agents at once. Run one session per item, or two or three in parallel at most; each
+prompt stands on its own.
+
+**A web page lane** (one of: Dashboard · Profiles and Setup · Settings · Shot history and charts · Shot Analyzer and
+Statistics):
+
+> Finish the **<lane>** lane of the BetterMate v2 web rewrite. Read `bettermate/docs/v2/STATUS.md`, then follow
+> `bettermate/docs/v2/WEB-LANES.md` ("For every lane" and the lane's own section) exactly. The lane's work so far is
+> committed (`f0ac9dd6`): start by reading what its directories hold, finish what is unfinished, then verify the whole
+> lane as the brief says. Commit when it passes, and update the lane's row in `STATUS.md`.
+
+For Analyzer and Statistics add: "The web build is broken by this lane
+(`Statistics/components/toolbar/subcomponents.jsx` imports `getMenuItemClasses`, which `toolbar/helpers.js` no longer
+exports): fix that first."
+
+**Web integration** (after the five lanes):
+
+> Do the web integration pass of BetterMate v2 described in `bettermate/docs/v2/STATUS.md`, section 2, item 2:
+> promote page-local pieces, rewrite `scripts/verify_web_ui.mjs` for the v2 shell and run it against Vite and the
+> embedded bundle, refresh `docs/webui/`, run `scripts/build_webui.sh`, rebuild `display-sim` and `display`, record the
+> sizes in `STATUS.md`, and commit.
+
+**Display on hardware** (needs the user at the machine):
+
+> Help me flash and measure BetterMate v2 on the LilyGo T-RGB as `bettermate/docs/v2/STATUS.md`, section 2, item 3
+> describes. Back up the flash first. Ask me for the `FrameStats` serial lines before changing anything.
+
+**Display loose ends**:
+
+> Work through the display loose ends in `bettermate/docs/v2/STATUS.md`, section 2, item 4, following
+> `bettermate/docs/v2/DISPLAY.md`. Keep all five `scripts/verify_display_*.py` passing and commit.
+
+## 5. Practical notes
+
+- Build and check the display: `pio run -e display-sim`, then
+  `for check in scripts/verify_display_*.py; do python3 "$check" || break; done` (about 25 minutes; they run in
+  parallel safely with `SIM_PORT_BASE` set apart). Never rebuild `display-sim` while one is running.
+- The simulator keeps its state in `./sim_data` of the directory it starts in. `scripts/fixtures/web-seed/` is a
+  seeded state (three favourite profiles, two recorded shots) for web work. Port 8080 belongs to Docker on this Mac:
+  set `SIM_HTTP_PORT`.
+- Playwright for web checks: `/Users/mohamadsherif/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/index.mjs`.
+- Regenerating display assets needs `fonttools` and `brotli` in a Python environment, Pillow, `rsvg-convert` and Node.
+- The first session's scratch directory may still exist with the lanes' ad-hoc scripts and screenshots:
+  `/private/tmp/claude-501/-Users-mohamadsherif-Developer-betterMate/9e29bab1-a935-42cc-a0da-68edb046862e/scratchpad/`
+  (`web-home`, `web-profiles`, `web-settings`, `web-history`, `web-analyzer`, `web-a`). Nothing depends on it.
+
+## 6. Commits on `ui/v2`
+
+| Commit | What |
+| --- | --- |
+| `4714a53d` (`ui/minimal-luxury`) | Checkpoint of everything before v2. |
+| `57e26339` | Display core, Standby, Brew; stock UI, EEZ and `icons/` removed; v2 design sources imported. |
+| `2f9fe74a` | `scripts/display_sim.py`, `verify_display_core.py`. |
+| `dafabf54` | One draw buffer, changed-row AMOLED flush, 466 px panels. |
+| `acbdef2e`, `83f5713c` | Web foundation; `WEB.md`. |
+| `7f73a4e7` | Simulator README; the old design's evidence removed. |
+| `3fa37168` | Steam, Water, Grind. |
+| `b3092b9e` | Shot. |
+| `ccec1d69` | Menu, Information, Warnings. |
+| `36b23a6b` | Profiles, Adjust, Save sheet. |
+| `e1e29a01` | Lanes integrated: step budget for screen changes, exception slot, `fit`/`clamp`, Steam's words. |
+| `f0ac9dd6` | Web page lanes, work in progress. |
