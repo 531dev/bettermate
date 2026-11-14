@@ -216,8 +216,8 @@ def check_menu(page, names, active, what, ink=INK, on_ink=ON_INK, muted=MUTED, c
 
 
 def slot(page):
-    """The exception glyph at 12 o'clock, or None."""
-    body = at(page, (212, 6, 267, 61))
+    """The exception glyph at 12 o'clock, or None. Its ground is a 40 px disc; it answers on 56 px."""
+    body = at(page, (220, 14, 259, 53))
     glyphs = children(page, body, "img") if body else []
     return glyphs[0] if glyphs else None
 

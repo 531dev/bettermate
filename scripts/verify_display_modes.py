@@ -5,7 +5,7 @@
 
 The cases run one after the other, each in its own simulator with fresh settings; together they take about seven
 minutes, because the mock boiler heats in real time. --slow adds the one state that takes eleven more minutes to
-reach: Steam after the controller's safety limit has ended the steam process ("Ready"). Screenshots go to
+reach: Steam after the controller's safety limit has ended the steam process ("Paused after 10 minutes"). Screenshots go to
 docs/display/v2/modes/; compare them with design/reference/components/DisplayModes/preview.html.
 
 The Grind screen needs a grinder: the alt relay set to grind (`alt_relay` 1, the default, so a fresh simulator has
@@ -184,8 +184,8 @@ def steam():
         {tap(PLUS)}; wait 400; expect setpoint 146; expect text 146; {tap(MINUS)}; wait 400; expect setpoint 145; expect text 145;
         expect temperature 93; redraw edit.frames; wait 8000; redraw heating.frames;
         wait 12000; shot heating.bmp; layout heating.json;
-        wait 17300; expect active 1; expect text Steaming; expect hidden Heating; shot steaming.bmp; layout steaming.json;
-        wait 30000; expect active 1; expect text 145°; expect text Steaming; shot on-target.bmp; layout on-target.json;
+        wait 17300; expect active 1; expect text Ready to steam; expect hidden Heating; shot steaming.bmp; layout steaming.json;
+        wait 30000; expect active 1; expect text 145°; expect text Ready to steam; shot on-target.bmp; layout on-target.json;
         redraw to-target.frames; wait 4000; redraw settled.frames;
         {tap(HANDLE)}; wait 800; expect screen menu; expect mode 1; expect active 0; quit
     """)
@@ -214,7 +214,7 @@ def steam():
     steaming = sim.layout("steaming.json")
     frame(steaming, "steam", "STEAM", "TARGET °C", "Steam, steaming")
     checks.equal(controls(steaming), {"minus", "plus", "handle"}, "Steaming keeps minus, plus and the handle: leaving is how it ends")
-    line = steaming.find("Steaming")
+    line = steaming.find("Ready to steam")
     checks.true(line is not None and line["baseline"] == 380, "Steaming says so where the pill would be")
     live = live_value(steaming, "Steam, steaming", r"14[0-4]°")
     checks.color(brightest(sim, "steaming.bmp", live), HEAT_TEXT, "Steaming below the target: the live temperature stays heat-text")
@@ -529,7 +529,14 @@ def limits():
 
 def exceptions():
     """The exception slot at 12 o'clock, and the machine leaving for Standby when the controller goes."""
+    # The flush reminder only matters before a shot: away from Brew it does not raise the glyph.
+    quiet = Sim("modes-no-flush-glyph")
+    if run(quiet, "wait 3500; mode brew; wait 1500; mode water; wait 2500; expect screen water; layout water.json; quit"):
+        checks.true(control_at(quiet.layout("water.json"), SLOT) is None, "Water after Brew: the flush reminder does not raise the glyph")
+
+    # A saved scale that is not connected is a warning on every screen.
     sim = Sim("modes-exceptions")
+    seed(sim, ssc="AA:BB:CC:DD:EE:FF")
     ok = run(sim, f"""
         wait 3500; mode brew; wait 1500; mode water; wait 2500; expect screen water; layout warning.json; shot warning.bmp;
         {tap(PILL)}; wait 800; expect active 1; layout running.json; {tap(SLOT)}; wait 600; expect screen water; expect active 1;
@@ -540,7 +547,7 @@ def exceptions():
     if ok:
         warning = sim.layout("warning.json")
         glyph = control_at(warning, SLOT)
-        checks.true(glyph is not None, "Water after Brew: the warning glyph is in the slot at 12 o'clock")
+        checks.true(glyph is not None, "Water with its scale away: the warning glyph is in the slot at 12 o'clock")
         inside = [o for o in warning.objects if o["kind"] == "img" and glyph and o["parent"] == glyph["id"]]
         checks.color(inside and inside[0]["color"], WARNING, "The warning glyph is drawn in warning")
         checks.equal(controls(sim.layout("running.json")), {"pill"}, "Water, running: the exception slot is empty")
@@ -581,8 +588,8 @@ def steam_ready():
     """Ten minutes on: the controller's safety limit ends the steam process and the boiler stays hot."""
     sim = Sim("modes-steam-ready")
     ok = run(sim, """
-        wait 3500; mode steam; wait 60000; expect active 1; expect text Steaming;
-        wait 590000; expect mode 2; expect active 0; expect text Ready; expect hidden Steaming; expect hidden Heating;
+        wait 3500; mode steam; wait 60000; expect active 1; expect text Ready to steam;
+        wait 590000; expect mode 2; expect active 0; expect text Paused after 10 minutes; expect hidden Ready to steam; expect hidden Heating;
         expect text 145°; shot ready.bmp; layout ready.json; quit
     """, timeout=720)
     if ok:

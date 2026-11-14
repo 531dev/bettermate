@@ -22,7 +22,11 @@ void paintFace();
 lv_obj_t *text(lv_obj_t *parent, int cx, int baseline, Type type, Tone tone, const char *str = "", int width = 0);
 // Text starting at x.
 lv_obj_t *textLeft(lv_obj_t *parent, int x, int baseline, Type type, Tone tone, const char *str = "", int width = 0);
-// Keep a name on one line of the given width, ending in an ellipsis when it is longer.
+// The longest beginning of `str` that fits `width` px in this type, ending in "..." when it had to be cut.
+// Returns the width of what it wrote to `out`.
+int fit(Type type, const char *str, int width, char *out, size_t size);
+// Keeps a label on one line of the given width: from then on setText() cuts longer text and ends it in "...".
+// (LVGL's own dot mode rewrites the label's text, so an unchanged name would look changed on every snapshot.)
 void clamp(lv_obj_t *label, int width);
 // The setters skip unchanged values: in LVGL 8 every style or text set repaints the object.
 void setText(lv_obj_t *label, const char *str);
@@ -121,6 +125,9 @@ class Reading {
 namespace fx {
 void step();
 void reset();
+// The screen is being left: a part that is still pressed stays inverted until its rank is taken off the glass,
+// instead of being repainted back for the two frames before it goes.
+void hold();
 } // namespace fx
 
 } // namespace bm::ui

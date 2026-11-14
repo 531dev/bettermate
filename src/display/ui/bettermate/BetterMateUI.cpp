@@ -24,6 +24,9 @@ namespace {
 // the pass that crosses its 42.5 ms boundary.
 constexpr uint32_t UI_LOOP_PERIOD_MS = 14;
 constexpr uint32_t PROFILE_LOOP_PERIOD_MS = 100;
+// One step of a screen change may repaint a quarter of the panel (design/reference/motion.md). The parts are
+// counted by their boxes, with a little kept back for what else the frame may repaint.
+constexpr unsigned STEP_BUDGET_PX = bm::tokens::DISPLAY_SIZE * bm::tokens::DISPLAY_SIZE * 22 / 100;
 
 ScreenId screenForMode(int mode) {
     switch (mode) {
@@ -216,14 +219,28 @@ void BetterMateUI::runFrame(unsigned long now) {
     else if (snapshot)
         active->update(state);
 
-    // A screen change is a cut that settles over three frames; the ring holds still until it has.
+    // A screen change is a cut that settles one rank a frame; the ring holds still until it has. The old screen
+    // gives a rank up and the new one takes it in the same frame, unless the two together would repaint more than
+    // the budget of one transition step: then the new rank waits one frame. Whatever two screens meet, no frame
+    // of a change repaints more than a quarter of the panel.
     const bool settling = settle < 3;
     if (settling) {
-        if (leaving != nullptr)
-            leaving->conceal(settle);
-        active->reveal(settle);
-        if (++settle == 3)
-            leaving = nullptr;
+        unsigned leavingArea = 0;
+        if (!rankConcealed) {
+            if (leaving != nullptr) {
+                leavingArea = leaving->rankArea(settle, false);
+                leaving->conceal(settle);
+            }
+            rankConcealed = true;
+        }
+        lv_obj_update_layout(lv_scr_act()); // the new parts' sizes, before they are measured
+        const unsigned arriving = active->rankArea(settle, true) + active->steppingArea();
+        if (leavingArea == 0 || leavingArea + arriving <= STEP_BUDGET_PX) {
+            active->reveal(settle);
+            rankConcealed = false;
+            if (++settle == 3)
+                leaving = nullptr;
+        }
     }
     active->tick(state, frame);
     if (!settling)
@@ -246,6 +263,8 @@ void BetterMateUI::beginChange(ScreenId next) {
             leaving->conceal(rank);
     }
     leaving = active;
+    rankConcealed = false;
+    bm::ui::fx::hold();
     if (current == ScreenId::Standby && next != ScreenId::Standby && active != nullptr) {
         setBrightness(controller->getSettings().getMainBrightness());
         dimmed = false;

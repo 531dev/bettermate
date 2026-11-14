@@ -52,6 +52,26 @@ void Screen::conceal(unsigned rank) {
         revealed = 0;
 }
 
+unsigned Screen::rankArea(unsigned rank, bool entering) const {
+    unsigned area = 0;
+    for (unsigned i = 0; i < partCount; ++i) {
+        const Part &p = parts[i];
+        if (p.rank == rank && (entering ? p.wanted : ui::shown(p.obj)))
+            area += static_cast<unsigned>(lv_obj_get_width(p.obj)) * lv_obj_get_height(p.obj);
+    }
+    return area;
+}
+
+unsigned Screen::steppingArea() const {
+    unsigned area = 0;
+    for (unsigned i = 0; i < partCount; ++i) {
+        const Part &p = parts[i];
+        if (p.rank < revealed && p.wanted && ui::isReading(p.obj))
+            area += static_cast<unsigned>(lv_obj_get_width(p.obj)) * lv_obj_get_height(p.obj);
+    }
+    return area;
+}
+
 void Screen::destroy() {
     for (unsigned i = 0; i < partCount; ++i)
         lv_obj_del(parts[i].obj);
@@ -103,25 +123,30 @@ lv_obj_t *Screen::addHandle() {
 }
 
 void Screen::addException() {
-    warningSlot = ui::disc(root, 240, 34, tokens::DISPLAY_TOUCH / 2, &bm_icon_triangle_alert_28, Tone::Surface0, Tone::Warning);
-    bind(warningSlot, Intent::Warnings);
-    part(warningSlot, 0);
-    updateSlot = ui::disc(root, 240, 34, tokens::DISPLAY_TOUCH / 2, &bm_icon_download_28, Tone::Surface0, Tone::Muted);
-    bind(updateSlot, Intent::Info);
-    part(updateSlot, 0);
+    // The single ring has no gap at 12 o'clock, so the glyph's ground is kept as small as the glyph: it hides
+    // two or three ticks, not seven. The touch target is still 56 px.
+    constexpr int RADIUS = 20;
+    const auto slot = [this](const lv_img_dsc_t *glyph, Tone ink, Intent intent) {
+        lv_obj_t *obj = ui::disc(root, 240, 34, RADIUS, glyph, Tone::Surface0, ink);
+        lv_obj_set_ext_click_area(obj, tokens::DISPLAY_TOUCH / 2 - RADIUS);
+        bind(obj, intent);
+        return part(obj, 0);
+    };
+    warningSlot = slot(&bm_icon_triangle_alert_28, Tone::Warning, Intent::Warnings);
+    updateSlot = slot(&bm_icon_download_28, Tone::Muted, Intent::Info);
 }
 
-void Screen::updateException(const UiState &state, bool standby, bool running) {
+void Screen::updateException(const UiState &state, bool awayFromBrew, bool running) {
     if (warningSlot == nullptr)
         return;
-    const bool warning = !running && anyWarning(state, standby);
+    const bool warning = !running && anyWarning(state, awayFromBrew);
     show(warningSlot, warning);
     show(updateSlot, !warning && !running && state.updateAvailable);
 }
 
-bool anyWarning(const UiState &s, bool standby) {
+bool anyWarning(const UiState &s, bool awayFromBrew) {
     for (int i = 0; i < WARNING_TYPE_COUNT; ++i) {
-        if (i == WARNING_TEMPERATURE || (standby && i == WARNING_FLUSH))
+        if (i == WARNING_TEMPERATURE || (awayFromBrew && i == WARNING_FLUSH))
             continue;
         if (s.warn[i] || s.error[i])
             return true;
@@ -129,9 +154,9 @@ bool anyWarning(const UiState &s, bool standby) {
     return false;
 }
 
-bool anyError(const UiState &s, bool standby) {
+bool anyError(const UiState &s, bool awayFromBrew) {
     for (int i = 0; i < WARNING_TYPE_COUNT; ++i) {
-        if (i == WARNING_TEMPERATURE || (standby && i == WARNING_FLUSH))
+        if (i == WARNING_TEMPERATURE || (awayFromBrew && i == WARNING_FLUSH))
             continue;
         if (s.error[i])
             return true;

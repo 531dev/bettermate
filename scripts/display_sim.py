@@ -103,8 +103,14 @@ class Sim:
         return [row["px"] * 100.0 / PANEL_PX for row in rows]
 
     def save(self, bmp, destination):
-        """Copies a `shot` into the repository as a PNG."""
+        """Copies a `shot` into the repository as a PNG.
+
+        A capture that already exists is kept (every run would otherwise rewrite it, if only because the clock
+        moved on). Set UPDATE_SHOTS=1 to take them all again.
+        """
         target = ROOT / destination
+        if target.exists() and not os.environ.get("UPDATE_SHOTS"):
+            return target
         target.parent.mkdir(parents=True, exist_ok=True)
         if shutil.which("sips"):
             subprocess.run(["sips", "-s", "format", "png", str(self.dir / bmp), "--out", str(target)], check=True, capture_output=True)

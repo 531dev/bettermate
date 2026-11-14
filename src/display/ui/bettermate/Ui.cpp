@@ -1,5 +1,6 @@
 #include "Ui.h"
 
+#include <cstdio>
 #include <cstring>
 #include <display/ui/bettermate/Motion.h>
 
@@ -9,7 +10,7 @@ constexpr int CENTRE = tokens::DISPLAY_SIZE / 2;
 
 // Each part keeps its color roles and its step-in level in its user data, so a part can be recoloured, faded
 // by recolour and pressed without any state of its own.
-enum : uint8_t { HAS_FG = 1, HAS_BG = 2, IS_IMG = 4, CUSTOM = 8, PRESSED = 16 };
+enum : uint8_t { HAS_FG = 1, HAS_BG = 2, IS_IMG = 4, CUSTOM = 8, PRESSED = 16, CLAMPED = 32 };
 struct Look {
     Tone fg = Tone::Ink;
     Tone bg = Tone::Surface0;
@@ -141,6 +142,7 @@ struct Press {
     lv_obj_t *obj;
     uint8_t frames;
     bool released;
+    bool held;
 };
 Press presses[4];
 unsigned pressCount = 0;
@@ -169,7 +171,7 @@ void press(lv_obj_t *obj) {
     }
     if (pressCount == sizeof(presses) / sizeof(presses[0]))
         return;
-    presses[pressCount++] = {obj, 0, false};
+    presses[pressCount++] = {obj, 0, false, false};
     // Ink means "this one": a pressed part inverts to ink and on-ink, and an ink part to a disc.
     const Look l = look(obj);
     const Tone fill = l.bg == Tone::Ink ? Tone::Surface2 : Tone::Ink;
@@ -226,7 +228,7 @@ void step() {
         Press &p = presses[i];
         if (p.frames < 255)
             ++p.frames;
-        if (p.released && p.frames >= 2) {
+        if (p.released && p.frames >= 2 && (!p.held || !lv_obj_is_visible(p.obj))) {
             restore(p.obj);
             presses[i] = presses[--pressCount];
         } else {
@@ -238,6 +240,11 @@ void step() {
 void reset() {
     stepCount = 0;
     pressCount = 0;
+}
+
+void hold() {
+    for (unsigned i = 0; i < pressCount; ++i)
+        presses[i].held = true;
 }
 } // namespace fx
 
@@ -279,9 +286,44 @@ lv_obj_t *textLeft(lv_obj_t *parent, int x, int baseline, Type type, Tone fg, co
     return obj;
 }
 
+static int fitFace(const lv_font_t *face, lv_coord_t space, const char *str, int width, char *out, size_t size) {
+    const auto measure = [&](const char *text) {
+        return static_cast<int>(lv_txt_get_width(text, static_cast<uint32_t>(strlen(text)), face, space, LV_TEXT_FLAG_NONE));
+    };
+    snprintf(out, size, "%s", str);
+    int fitted = measure(out);
+    if (fitted <= width)
+        return fitted;
+    // Drop one glyph at a time (a whole UTF-8 sequence, and any space left hanging) until the rest and its
+    // dots fit.
+    size_t length = strlen(out);
+    while (length > 0) {
+        do {
+            --length;
+        } while (length > 0 && (static_cast<unsigned char>(out[length]) & 0xC0) == 0x80);
+        while (length > 0 && out[length - 1] == ' ')
+            --length;
+        if (length + 4 > size)
+            continue;
+        memcpy(out + length, "...", 4);
+        fitted = measure(out);
+        if (fitted <= width)
+            return fitted;
+    }
+    out[0] = '\0';
+    return 0;
+}
+
+int fit(Type type, const char *str, int width, char *out, size_t size) {
+    return fitFace(font(type), static_cast<lv_coord_t>(tracking(type)), str, width, out, size);
+}
+
 void clamp(lv_obj_t *obj, int width) {
-    lv_obj_set_size(obj, width, lv_obj_get_style_text_font(obj, 0)->line_height);
-    lv_label_set_long_mode(obj, LV_LABEL_LONG_DOT);
+    lv_obj_set_width(obj, width);
+    lv_label_set_long_mode(obj, LV_LABEL_LONG_CLIP);
+    Look l = look(obj);
+    l.flags |= CLAMPED;
+    setLook(obj, l);
 }
 
 void invalidate(const lv_obj_t *obj, const lv_area_t *area) {
@@ -295,6 +337,12 @@ void invalidate(const lv_obj_t *obj, const lv_area_t *area) {
 }
 
 void setText(lv_obj_t *obj, const char *str) {
+    char fitted[96];
+    if (look(obj).flags & CLAMPED) {
+        fitFace(lv_obj_get_style_text_font(obj, 0), lv_obj_get_style_text_letter_space(obj, 0), str,
+                lv_obj_get_style_width(obj, 0), fitted, sizeof(fitted));
+        str = fitted;
+    }
     if (strcmp(lv_label_get_text(obj), str) == 0)
         return;
     {
@@ -461,6 +509,8 @@ void SegRow::build(lv_obj_t *parent, int y, const char *const *labels, unsigned 
         items[i] = filled(track, Type::Label, on ? Tone::OnInk : Tone::Muted, on ? Tone::Ink : Tone::Surface1, labels[i], each,
                           HEIGHT - INSET * 2, 35 - INSET, LV_RADIUS_CIRCLE);
         lv_obj_set_pos(items[i], INSET + each * static_cast<int>(i), INSET);
+        // A segment is drawn 48 px tall and answers on the track's full 56.
+        lv_obj_set_ext_click_area(items[i], INSET);
         pressable(items[i]);
         lv_obj_add_event_cb(
             items[i],

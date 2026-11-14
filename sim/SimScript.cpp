@@ -70,6 +70,12 @@ static unsigned rgb(lv_color_t color) { return lv_color_to32(color) & 0xffffff; 
 static void dumpLayout(lv_obj_t *obj, FILE *out, int depth, int parentId, int &nextId) {
     if (!lv_obj_is_visible(obj) || lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN))
         return;
+    // The stage only centres the 480 px design on the panel: its parts are listed as the screen's own.
+    if (obj == bm::ui::root()) {
+        for (uint32_t i = 0; i < lv_obj_get_child_cnt(obj); ++i)
+            dumpLayout(lv_obj_get_child(obj, i), out, depth, parentId, nextId);
+        return;
+    }
     const int id = nextId++;
     lv_area_t a;
     lv_obj_get_coords(obj, &a);

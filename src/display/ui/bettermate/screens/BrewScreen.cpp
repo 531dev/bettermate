@@ -14,6 +14,9 @@ constexpr int START_Y[2] = {334, 340};
 } // namespace
 
 void BrewScreen::build(lv_obj_t *root) {
+    // Nothing is laid out yet: forget what the last set of parts showed (a theme change builds again).
+    shownName = "\x01";
+    withScale = false;
     addException();
     label = part(ui::text(root, 240, 98, Type::Label, Tone::Muted, "BREW", 216), 0);
     temperature.build(root, 240, 222, Type::Hero, Tone::Ink);
@@ -63,17 +66,14 @@ void BrewScreen::update(const UiState &s) {
     snprintf(buf, sizeof(buf), "%ld", lroundf(s.currentTemp));
     temperature.set(buf);
 
-    // Name and chevron read as one centred group, the chevron 4 px after the name.
-    if (strcmp(lv_label_get_text(profileName), s.profileName.c_str()) != 0 || withScale != s.bluetoothScale) {
+    // Name and chevron read as one centred group, the chevron 4 px after the name. A name too long for the
+    // group is cut and ends in dots.
+    if (shownName != s.profileName || withScale != s.bluetoothScale) {
+        shownName = s.profileName;
         withScale = s.bluetoothScale;
-        lv_label_set_text(profileName, s.profileName.c_str());
-        lv_point_t size;
-        lv_txt_get_size(&size, s.profileName.c_str(), font(Type::Title), tracking(Type::Title), 0, LV_COORD_MAX, LV_TEXT_FLAG_NONE);
-        const int width = size.x > NAME_LIMIT ? NAME_LIMIT : size.x;
-        if (size.x > NAME_LIMIT)
-            ui::clamp(profileName, NAME_LIMIT);
-        else
-            lv_obj_set_size(profileName, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        char fitted[64];
+        const int width = ui::fit(Type::Title, shownName.c_str(), NAME_LIMIT, fitted, sizeof(fitted));
+        ui::setText(profileName, fitted);
         const int left = (PROFILE_WIDTH - (width + 4 + 24)) / 2;
         lv_obj_set_x(profileName, left);
         lv_obj_set_x(chevron, left + width + 4);

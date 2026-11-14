@@ -26,9 +26,9 @@ constexpr int STATUS_BASELINE = 380;
 // The scale's line sits between the row and the target, nearer the row it belongs with.
 constexpr int SCALE_BASELINE = 194;
 constexpr int SCALE_WIDTH = 228;
-// Sized for the longest values: "LEFT OF 5:00" and "Steaming".
+// Sized for the longest values: "LEFT OF 5:00" and "Paused after 10 minutes".
 constexpr int UNIT_WIDTH = 168;
-constexpr int STATUS_WIDTH = 160;
+constexpr int STATUS_WIDTH = 264;
 
 const char *const ROW_LABELS[] = {"TIME", "WEIGHT"};
 constexpr unsigned long FRAME_MS_X2 = motion::FRAME_MS_EVEN + motion::FRAME_MS_ODD;
@@ -175,7 +175,8 @@ void ModeScreen::applyBoiler(const UiState &s, unsigned rank) {
         snprintf(buf, sizeof(buf), "%ld", lroundf(pumped ? s.waterPumped : s.targetTemp));
         target.set(buf);
         ui::setText(unit, pumped ? "ML" : "TARGET " BM_DEGREE "C");
-        updateException(s, false, running || steaming);
+        // Steam being ready is no reason to hide a warning: water running low matters most right then.
+        updateException(s, true, running);
         break;
     }
     case 1:
@@ -187,7 +188,9 @@ void ModeScreen::applyBoiler(const UiState &s, unsigned rank) {
         show(minus, s.canWake && !running);
         show(plus, s.canWake && !running);
         if (kind == Kind::Steam) {
-            ui::setText(status, steaming ? "Steaming" : heating(s) ? "Heating" : "Ready");
+            // The controller starts the steam process by itself once the boiler is within 5 degrees, and ends it
+            // after ten minutes: it means "steam is ready", not that the valve is open.
+            ui::setText(status, steaming ? "Ready to steam" : heating(s) ? "Heating" : "Paused after 10 minutes");
         } else {
             ui::setPill(action, running ? "STOP" : "START", running ? Tone::Ink : Tone::Primary);
             show(action, running || s.canWake);
@@ -226,7 +229,7 @@ void ModeScreen::applyGrind(const UiState &s, unsigned rank) {
             snprintf(buf, sizeof(buf), "SECONDS");
         }
         ui::setText(unit, buf);
-        updateException(s, false, running);
+        updateException(s, true, running);
         break;
     case 1:
         // The time the grind has run takes the row's place.

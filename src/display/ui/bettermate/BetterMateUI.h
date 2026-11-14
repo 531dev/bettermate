@@ -115,6 +115,7 @@ class BetterMateUI : private bm::Host {
     bm::Screen *active = nullptr;
     bm::Screen *leaving = nullptr;
     uint8_t settle = 3; // the rank the running change reveals next; 3 once settled
+    bool rankConcealed = false; // the old screen has given that rank up already
 
     // Frames
     uint32_t frame = 0;

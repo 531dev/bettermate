@@ -82,6 +82,10 @@ class Screen {
     void conceal(unsigned rank);
     // Drop the LVGL objects (theme change); the next enter() builds them again.
     void destroy();
+    // The pixels a rank repaints: of its parts on the glass (leaving), or of those about to appear (entering).
+    unsigned rankArea(unsigned rank, bool entering) const;
+    // The pixels of the readings already revealed and still stepping in: they repaint on every frame of the settle.
+    unsigned steppingArea() const;
 
     // Bring the screen in line with the snapshot: texts, tones, which parts show, what the ring carries.
     virtual void update(const UiState &state) = 0;
@@ -110,9 +114,10 @@ class Screen {
     // The handle at 6 o'clock opens the mode menu (rank 2).
     lv_obj_t *addHandle();
     // The exception slot at 12 o'clock: a warning glyph, or an arrow when an update waits (rank 0). Empty when
-    // all is normal, and while a process runs so a stray tap at the top can never stop it.
+    // all is normal, and while a process runs so a stray tap at the top can never stop it. The flush reminder
+    // only matters before a shot, so every screen but Brew leaves it out (`awayFromBrew`).
     void addException();
-    void updateException(const UiState &state, bool standby = false, bool running = false);
+    void updateException(const UiState &state, bool awayFromBrew = false, bool running = false);
 
     Host &host;
     lv_obj_t *root = nullptr; // set once the parts exist
@@ -137,9 +142,9 @@ class Screen {
 };
 
 // Which warnings raise the glyph. Temperature never does: the label and the ring already show heating.
-// Standby also leaves out the flush reminder, which only matters before a shot.
-bool anyWarning(const UiState &state, bool standby = false);
-bool anyError(const UiState &state, bool standby = false);
+// Away from Brew the flush reminder is left out too: it only matters before a shot.
+bool anyWarning(const UiState &state, bool awayFromBrew = false);
+bool anyError(const UiState &state, bool awayFromBrew = false);
 const char *warningName(WarningType type);
 
 // "m:ss" for a duration in milliseconds.

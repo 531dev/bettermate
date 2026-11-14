@@ -32,11 +32,12 @@ it as the layout source. This file says how those become code under `src/display
 | `Theme.h` | `Tone` (the color tokens), `Type` (the seven type styles), `tone(t)`, `tone(t, level)`, `font`, `tracking`, `ascent`. Display black is the default theme on every panel; Light is a setting. |
 | `Motion.h` | Frame counts and the ease tables. |
 | `TickRing.h` | The ring: `Layout::{None, Split, Single}`, `Arc{value, target, tone, pace}`, fixed scales `MAX_TEMPERATURE` 160 and `MAX_PRESSURE` 16. |
-| `Ui.h` | The parts: `text`, `textLeft`, `clamp`, `icon`, `pill`, `disc`, `textButton`, `labelButton`, `group`, `card`, `chip`, `SegRow`, `Reading`, and `setText`, `setTone`, `setFill`, `setPill`, `setIcon`, `show`, `pressable`, `invalidate`. |
+| `Ui.h` | The parts: `text`, `textLeft`, `fit`, `clamp`, `icon`, `pill`, `disc`, `textButton`, `labelButton`, `group`, `card`, `chip`, `SegRow`, `Reading`, and `setText`, `setTone`, `setFill`, `setPill`, `setIcon`, `show`, `pressable`, `invalidate`. |
+| `parts/` | Custom-drawn parts one screen needs: `StageBars` (the phases of a shot, growing a pixel at a time). |
 | `Screen.h` | `Screen` (parts, ranks, bindings, the handle and the exception slot), `Host`, `Intent`, `ScreenId`, `anyWarning`, `warningName`, `formatTime`, `upper`. |
 | `UiState.h` | The snapshot a screen reads. A screen never reads the controller. |
 | `BetterMateUI.*` | The host: events, snapshot, routing, intents, frames, theme, brightness, favourites task. |
-| `screens/` | One class per screen. |
+| `screens/` | One class per screen: Standby, Brew, Shot, Mode (Steam, Water, Grind), Menu, Profiles, Adjust, Sheet, Warnings, Info. |
 
 ## Writing a screen
 
@@ -73,7 +74,8 @@ Rules that keep it cheap and correct:
    a second color for the same meaning. A fade is `tone(t, level)` through `ui::show(obj, true)`; a leave is a cut.
 6. Motion between snapshots (a timer, a growing bar) goes in `tick(state, frame)`, counted in frames, repainting only
    what moved. One ambient motion at a time: the ring's pulse or its comet.
-7. The label face has capitals, digits and punctuation only; the button face has `A-Z`, space and `&`. Uppercase any
+7. A name that may be too long is cut with `ui::fit` or kept on a `ui::clamp`ed label; never LVGL's dot mode, which
+   rewrites the label's text so that an unchanged name looks changed on every snapshot. The label face has capitals, digits and punctuation only; the button face has `A-Z`, space and `&`. Uppercase any
    name you put in them with `upper()`. The hero faces have digits, `:`, `.`, `-`, space and `°`.
 8. Units: a large reading carries a small unit label under it; small text writes `93°`, `9.0 BAR`, `36 G` in the label
    face and `93°`, `36 g` in the body face. Sentence case in `Body`; no state words for the normal state.
@@ -99,6 +101,8 @@ SIM_HTTP_PORT=8101 SDL_VIDEODRIVER=dummy <repo>/.pio/build/display-sim/program -
 # layout <path>: the screen, the ring (layout, lit ticks, notch, tone) and every visible object with text and colors.
 ```
 
-Script verbs are listed in `sim/SimScript.h` (`mode`, `tap`, `hold`, `swipe`, `key`, `scale`, `weight`,
-`pressure-sensor`, `controller`, `error`, `protocol`, `autotune`, `update`, `wifi`, `panel`, `theme`, `expect ...`).
+Script verbs are listed in `sim/SimScript.h` (`mode`, `tap`, `press`/`release`, `hold`, `swipe`, `key`, `scale`,
+`weight`, `pumped`, `pressure-sensor`, `controller`, `error`, `protocol`, `autotune`, `update`, `wifi`, `panel`,
+`theme`, `expect ...`). The checks are `scripts/verify_display_{core,shot,modes,menu,profiles}.py`, each on
+`scripts/display_sim.py`; they keep the captures under `docs/display/v2/` unless `UPDATE_SHOTS=1` is set.
 On hardware, `pio run -e display-frame-stats -t upload -t monitor` logs render time and redrawn share once a second.

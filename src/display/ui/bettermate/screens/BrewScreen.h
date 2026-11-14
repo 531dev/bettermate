@@ -2,6 +2,7 @@
 #define BETTERMATE_BREW_SCREEN_H
 
 #include <display/ui/bettermate/Screen.h>
+#include <string>
 
 namespace bm {
 
@@ -28,6 +29,7 @@ class BrewScreen : public Screen {
     lv_obj_t *chevron = nullptr;
     lv_obj_t *scale = nullptr;
     lv_obj_t *start = nullptr;
+    std::string shownName;
     bool withScale = false;
 };
 
