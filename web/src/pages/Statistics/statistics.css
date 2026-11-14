@@ -37,6 +37,63 @@
     text-align: left;
   }
 
+  /* A name in a chip keeps its own case: the chip's uppercase is for status words. */
+  .st-chip--plain {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  /* A piece of query syntax inside running text. */
+  .st-code {
+    font: 400 13px/18px var(--font-mono);
+  }
+
+  /* --------------------------------------------------------------------------
+     Multi-select option: a round mark that fills with ink when the row is
+     selected. The mark is the touch target for sweeping over several rows.
+     -------------------------------------------------------------------------- */
+  .st-option__mark {
+    display: grid;
+    place-items: center;
+    width: var(--control-sm);
+    height: var(--control-sm);
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .st-option__box {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: var(--hairline) solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: transparent;
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out);
+  }
+  .st-option__mark[aria-checked='true'] .st-option__box {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .st-option__mark:focus-visible {
+    outline: 0;
+  }
+  .st-option__mark:focus-visible .st-option__box {
+    outline: var(--outline) solid var(--focus);
+    outline-offset: 2px;
+  }
+  @media (pointer: coarse) {
+    .st-option__mark {
+      width: var(--touch-min);
+      height: var(--touch-min);
+    }
+  }
+
   /* --------------------------------------------------------------------------
      Key hints: there is no Enter or C to press on a touch screen.
      -------------------------------------------------------------------------- */

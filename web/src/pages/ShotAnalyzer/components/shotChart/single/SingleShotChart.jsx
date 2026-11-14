@@ -356,9 +356,11 @@ export function SingleShotChart({ shotData, profileData, results, desktopCardHei
 
     // Full-display mode changes the available canvas box without changing the
     // chart data, so Chart.js needs an explicit resize tick after layout settles.
+    // A chart may have been rebuilt by the time the frame runs: resize the mounted ones only.
     const frameId = browserWindow.requestAnimationFrame(() => {
-      mainChart.resize();
-      tempChart.resize();
+      for (const chart of [mainChartInstance.current, tempChartInstance.current]) {
+        if (chart?.canvas?.isConnected) chart.resize();
+      }
       updateScrubberInsets();
     });
 

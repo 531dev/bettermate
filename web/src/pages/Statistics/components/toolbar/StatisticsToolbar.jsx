@@ -158,7 +158,7 @@ export function StatisticsToolbar({
   // An unfolded toolbar folds again on a press on its empty ground.
   const handleGroundClick = event => {
     if (!shouldCollapseToolbar || !isCollapsedStripExpanded) return;
-    if (isToolbarControlTarget(event.target)) return;
+    if (isToolbarControlTarget(event.target, toolbarContainerRef.current)) return;
     setIsCollapsedStripExpanded(false);
   };
 

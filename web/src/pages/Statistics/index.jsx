@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { useRoute } from 'preact-iso';
+import PageHeader from '../../components/PageHeader.jsx';
+import PageLayout from '../../components/PageLayout.jsx';
 import { StatisticsView } from './components/StatisticsView';
 import {
   normalizeStatisticsSourceSelection,
@@ -51,16 +53,9 @@ export function StatisticsPage() {
   }, [routeInitialContext, sessionInitialContext]);
 
   return (
-    <div className='pb-20'>
-      <div className='mb-4 flex flex-row items-center gap-2'>
-        <h2 className='bm-page-title flex-grow'>
-          Statistics
-        </h2>
-      </div>
-
-      <div className='w-full'>
-        <StatisticsView initialContext={initialContext} />
-      </div>
-    </div>
+    <PageLayout variant='wide'>
+      <PageHeader title='Statistics' />
+      <StatisticsView initialContext={initialContext} />
+    </PageLayout>
   );
 }

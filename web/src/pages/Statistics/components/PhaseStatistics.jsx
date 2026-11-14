@@ -1,150 +1,110 @@
-import { Icon } from '../../../components/Icon.jsx';
 import { useState } from 'preact/hooks';
-import { fmt } from '../utils/format';
-import {
-  STATISTICS_CARD_HEADING_CLASS,
-  STATISTICS_DENSE_VALUE_CLASS,
-  STATISTICS_SECTION_TITLE_CLASS,
-  STATISTICS_SMALL_LABEL_CLASS,
-  STATISTICS_TABLE_NUMBER_CLASS,
-} from './statisticsUi';
+import { Chip } from '../../../components/Chip.jsx';
+import { Icon } from '../../../components/Icon.jsx';
+import { Stat } from '../../../components/StatTile.jsx';
+import { Cell, Tile } from '../../../components/Tile.jsx';
+import { fmt, fmtDelta, MISSING } from '../utils/format';
 
-const DELTA_COLOR = 'var(--analyzer-pred-info-blue)';
-const EXIT_REASON_UNKNOWN_STYLE = {
-  color: 'color-mix(in srgb, var(--color-base-content) 72%, transparent)',
-  borderColor: 'var(--statistics-summary-border)',
-  background: 'var(--statistics-summary-surface-muted)',
-};
-
-function getExitReasonAccent(reason) {
-  const normalized = String(reason || '')
-    .trim()
-    .toLowerCase();
-  if (!normalized) return null;
-  if (normalized.includes('weight')) return 'var(--analyzer-weight-text)';
-  if (normalized.includes('flow')) return 'var(--analyzer-flow-text)';
-  if (normalized.includes('pressure')) return 'var(--analyzer-pressure-text)';
-  if (normalized.includes('time')) return 'var(--statistics-summary-duration)';
-  if (normalized.includes('water') || normalized.includes('pumped')) {
-    return 'var(--statistics-summary-water)';
-  }
-  return null;
-}
-
-function getExitReasonBadgeStyle(reason) {
-  const accentColor = getExitReasonAccent(reason);
-  if (!accentColor) return EXIT_REASON_UNKNOWN_STYLE;
-
-  return {
-    color: accentColor,
-    borderColor: `color-mix(in srgb, ${accentColor} 30%, var(--statistics-summary-border))`,
-    background: `color-mix(in srgb, ${accentColor} 12%, var(--statistics-summary-surface-muted))`,
-  };
-}
-
-function fmtDelta(val) {
-  if (!Number.isFinite(val)) return null;
-  const sign = val >= 0 ? '+' : '';
-  return `${sign}${val.toFixed(1)}`;
-}
+const PHASE_METRIC_ROWS = [
+  { key: 'p', label: 'Pressure', unit: 'bar' },
+  { key: 'f', label: 'Pump flow', unit: 'ml/s' },
+  { key: 'pf', label: 'Puck flow', unit: 'ml/s' },
+  { key: 't', label: 'Temperature', unit: '°C' },
+  { key: 'w', label: 'Weight', unit: 'g' },
+];
 
 function TargetDeltaCell({ entry, unit }) {
-  if (!entry) return <td className={STATISTICS_TABLE_NUMBER_CLASS}>-</td>;
+  if (!entry) return <td className='text-right'>{MISSING}</td>;
   return (
-    <td className={STATISTICS_TABLE_NUMBER_CLASS} style={{ color: DELTA_COLOR }}>
-      {fmt(entry.target)}
-      {unit} ({fmtDelta(entry.delta)})
+    <td className='text-right whitespace-nowrap'>
+      {fmt(entry.target)} {unit} ({fmtDelta(entry.delta)})
     </td>
+  );
+}
+
+// A reading of the phase with its target and the distance to it, when the profile sets one.
+function PhaseReading({ label, value, unit, delta }) {
+  return (
+    <Cell>
+      <Stat size='sm' label={label} value={fmt(value)} unit={unit}>
+        {delta && (
+          <span className='bm-data'>
+            target {fmt(delta.target)} {unit}, {fmtDelta(delta.delta)} {unit}
+          </span>
+        )}
+      </Stat>
+    </Cell>
   );
 }
 
 function PhaseSection({ phase, hideExitReasons = false }) {
   const [open, setOpen] = useState(phase.isTotal || false);
   const td = phase.targetDeltas || {};
+  const exitReasons = Object.entries(phase.exitReasonDistribution ?? {}).sort(
+    (a, b) => b[1] - a[1],
+  );
 
   return (
-    <div className='app-card-surface rounded-xl transition-colors'>
+    <Tile data-statistics-phase={phase.isTotal ? 'total' : phase.phaseName}>
       <button
         type='button'
-        className='flex w-full cursor-pointer items-center justify-between px-3 py-3 text-left'
+        className='flex w-full cursor-pointer items-center justify-between gap-3 text-left'
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
       >
-        <span className={phase.isTotal ? STATISTICS_CARD_HEADING_CLASS : 'text-sm font-medium'}>
-          {phase.phaseName}
-          <span className='ml-2 text-xs opacity-50'>({phase.shotCount} entries)</span>
+        <span className='flex min-w-0 flex-wrap items-baseline gap-x-3'>
+          <span className='bm-sub'>{phase.phaseName}</span>
+          <span className='bm-data'>
+            {phase.shotCount} {phase.shotCount === 1 ? 'entry' : 'entries'}
+          </span>
         </span>
-        <span className='text-xs opacity-45' aria-hidden='true'>
-          <Icon name={open ? 'minus' : 'plus'} className='h-3 w-3' />
-        </span>
+        <Icon
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={20}
+          className='text-(--ink-muted)'
+        />
       </button>
 
       {open && (
-        <div className='space-y-3 px-3 pb-3'>
-          <div className='flex flex-wrap items-center gap-4'>
-            <div className='flex items-center gap-1.5'>
-              <span className='text-xs opacity-50'>Avg Duration:</span>
-              <span className={`text-xs ${STATISTICS_DENSE_VALUE_CLASS}`}>
-                {fmt(phase.avgDuration)}s
-              </span>
-              {td.duration && (
-                <span
-                  className={`text-xs ${STATISTICS_DENSE_VALUE_CLASS}`}
-                  style={{ color: DELTA_COLOR }}
-                >
-                  (target {fmt(td.duration.target)}s, {fmtDelta(td.duration.delta)}s)
-                </span>
-              )}
-            </div>
-            <div className='flex items-center gap-1.5'>
-              <span className='text-xs opacity-50'>Avg Pumped Water:</span>
-              <span className={`text-xs ${STATISTICS_DENSE_VALUE_CLASS}`}>
-                {fmt(td.water ? td.water.actual : phase.avgWater)}ml
-              </span>
-              {td.water && (
-                <span
-                  className={`text-xs ${STATISTICS_DENSE_VALUE_CLASS}`}
-                  style={{ color: DELTA_COLOR }}
-                >
-                  (target {fmt(td.water.target)}ml, {fmtDelta(td.water.delta)}ml)
-                </span>
-              )}
-            </div>
+        <>
+          <div className='grid grid-cols-1 gap-2 sm:grid-cols-2'>
+            <PhaseReading label='Duration' value={phase.avgDuration} unit='s' delta={td.duration} />
+            <PhaseReading
+              label='Pumped water'
+              value={td.water ? td.water.actual : phase.avgWater}
+              unit='ml'
+              delta={td.water}
+            />
           </div>
 
-          <div className='overflow-x-auto'>
-            <table className='table-xs table w-full'>
+          <div className='an-scroll overflow-x-auto'>
+            <table className='bm-table'>
               <thead>
-                <tr className='text-xs opacity-60'>
+                <tr>
                   <th>Metric</th>
-                  <th className='text-right' title='Time-Weighted Average'>
-                    Avg (TW)
+                  <th className='text-right' title='Time-weighted average'>
+                    Average
                   </th>
                   <th className='text-right'>Min</th>
                   <th className='text-right'>Max</th>
                   <th className='text-right' title='Average target value and deviation'>
-                    Target (Delta)
+                    Target (delta)
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {[
-                  { key: 'p', label: 'Pressure', unit: 'bar' },
-                  { key: 'f', label: 'Pump Flow', unit: 'ml/s' },
-                  { key: 'pf', label: 'Puck Flow', unit: 'ml/s' },
-                  { key: 't', label: 'Temp', unit: '\u2103' },
-                  { key: 'w', label: 'Weight', unit: 'g' },
-                ].map(row => {
+                {PHASE_METRIC_ROWS.map(row => {
                   const m = phase.metrics[row.key];
                   if (!m) return null;
                   return (
                     <tr key={row.key}>
-                      <td className='font-semibold'>
-                        {row.label} <span className='opacity-50'>({row.unit})</span>
+                      <td className='whitespace-nowrap'>
+                        <span className='an-label'>{row.label}</span>{' '}
+                        <span className='text-(--ink-muted)'>{row.unit}</span>
                       </td>
-                      <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(m.avg)}</td>
-                      <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(m.min)}</td>
-                      <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(m.max)}</td>
+                      <td className='text-right'>{fmt(m.avg)}</td>
+                      <td className='text-right'>{fmt(m.min)}</td>
+                      <td className='text-right'>{fmt(m.max)}</td>
                       <TargetDeltaCell entry={td[row.key]} unit={row.unit} />
                     </tr>
                   );
@@ -153,27 +113,21 @@ function PhaseSection({ phase, hideExitReasons = false }) {
             </table>
           </div>
 
-          {!hideExitReasons && (
-            <div>
-              <div className={`mb-1 opacity-55 ${STATISTICS_SMALL_LABEL_CLASS}`}>Exit Reasons</div>
-              <div className='flex flex-wrap gap-1'>
-                {Object.entries(phase.exitReasonDistribution ?? {})
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([reason, count]) => (
-                    <span
-                      key={reason}
-                      className='badge badge-sm border font-medium'
-                      style={getExitReasonBadgeStyle(reason)}
-                    >
-                      {reason}: {count}
-                    </span>
-                  ))}
+          {!hideExitReasons && exitReasons.length > 0 && (
+            <div className='flex flex-col gap-2'>
+              <span className='bm-eyebrow'>Exit reasons</span>
+              <div className='flex flex-wrap gap-1.5'>
+                {exitReasons.map(([reason, count]) => (
+                  <Chip key={reason}>
+                    {reason} · {count}
+                  </Chip>
+                ))}
               </div>
             </div>
           )}
-        </div>
+        </>
       )}
-    </div>
+    </Tile>
   );
 }
 
@@ -185,18 +139,12 @@ export function PhaseStatistics({ phaseStats, showTitle = true, hideExitReasons 
   const totalRow = phaseStats.find(p => p.isTotal);
 
   return (
-    <div>
-      {showTitle && (
-        <h3 className={`mb-2 ${STATISTICS_SECTION_TITLE_CLASS}`}>Per-phase statistics</h3>
-      )}
-      <div className='space-y-3'>
-        {phases.map(phase => (
-          <PhaseSection key={phase.phaseName} phase={phase} hideExitReasons={hideExitReasons} />
-        ))}
-        {totalRow && (
-          <PhaseSection key='total' phase={totalRow} hideExitReasons={hideExitReasons} />
-        )}
-      </div>
+    <div className='flex flex-col gap-2 lg:gap-3'>
+      {showTitle && <h2 className='bm-sub px-1'>Per-phase statistics</h2>}
+      {phases.map(phase => (
+        <PhaseSection key={phase.phaseName} phase={phase} hideExitReasons={hideExitReasons} />
+      ))}
+      {totalRow && <PhaseSection key='total' phase={totalRow} hideExitReasons={hideExitReasons} />}
     </div>
   );
 }

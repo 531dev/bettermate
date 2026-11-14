@@ -147,7 +147,9 @@ export function SourceSelectionDropdown({
   onProfileSourceChange,
   isBusy,
 }) {
-  const popover = usePopoverState(isBusy);
+  // A source change reloads the lists and makes the toolbar busy for a moment: the panel stays
+  // open through it, so both sources can be set in one visit.
+  const popover = usePopoverState();
   const sourceGroups = [
     { label: 'Shots', value: shotSource, onChange: onShotSourceChange },
     { label: 'Profiles', value: profileSource, onChange: onProfileSourceChange },
@@ -297,12 +299,12 @@ export function AdvancedSearchControls({
   return (
     <div
       className={cx(
-        'flex min-w-0 items-center gap-2',
+        'flex min-w-0 flex-wrap items-center justify-end gap-2',
         showAdvancedSearch ? 'basis-full sm:flex-1 sm:basis-auto' : 'ml-auto',
       )}
     >
       {showAdvancedSearch && (
-        <div ref={dslInputRef} className='min-w-0 flex-1'>
+        <div ref={dslInputRef} className='min-w-0 flex-1 max-sm:order-last max-sm:basis-full'>
           <Input
             type='text'
             value={query}

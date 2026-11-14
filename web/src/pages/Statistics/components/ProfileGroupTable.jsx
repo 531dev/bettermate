@@ -1,42 +1,40 @@
+import { Tile } from '../../../components/Tile.jsx';
 import { fmt } from '../utils/format';
-import { STATISTICS_SECTION_TITLE_CLASS, STATISTICS_TABLE_NUMBER_CLASS } from './statisticsUi';
 
 export function ProfileGroupTable({ profileGroups, showTitle = true }) {
   if (!profileGroups || profileGroups.length === 0) return null;
 
   return (
-    <div>
-      {showTitle && (
-        <h3 className={`mb-2 ${STATISTICS_SECTION_TITLE_CLASS}`}>Per-profile statistics</h3>
-      )}
-      <div className='overflow-x-auto'>
-        <table className='table-xs table w-full'>
+    <Tile title={showTitle ? 'Per-profile statistics' : undefined}>
+      <div className='an-scroll overflow-x-auto'>
+        <table className='bm-table'>
           <thead>
-            <tr className='text-xs opacity-60'>
+            <tr>
               <th>Profile</th>
               <th className='text-right'>Shots</th>
-              <th className='text-right'>Avg Duration</th>
-              <th className='text-right'>Avg Weight</th>
-              <th className='text-right'>Avg Pumped Water</th>
-              <th className='text-right'>Avg Pressure</th>
-              <th className='text-right'>Avg Pump Flow</th>
+              <th className='text-right'>Duration</th>
+              <th className='text-right'>Weight</th>
+              <th className='text-right'>Pumped water</th>
+              <th className='text-right'>Pressure</th>
+              <th className='text-right'>Pump flow</th>
             </tr>
           </thead>
           <tbody>
             {profileGroups.map(group => (
               <tr key={group.profileName}>
-                <td className='font-semibold'>{group.profileName}</td>
-                <td className={STATISTICS_TABLE_NUMBER_CLASS}>{group.shotCount}</td>
-                <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(group.avgDuration)}s</td>
-                <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(group.avgWeight)}g</td>
-                <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(group.avgWater)}ml</td>
-                <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(group.metrics.p?.avg)} bar</td>
-                <td className={STATISTICS_TABLE_NUMBER_CLASS}>{fmt(group.metrics.f?.avg)} ml/s</td>
+                <td className='an-label whitespace-nowrap'>{group.profileName}</td>
+                <td className='text-right'>{group.shotCount}</td>
+                <td className='text-right whitespace-nowrap'>{fmt(group.avgDuration)} s</td>
+                <td className='text-right whitespace-nowrap'>{fmt(group.avgWeight)} g</td>
+                <td className='text-right whitespace-nowrap'>{fmt(group.avgWater)} ml</td>
+                <td className='text-right whitespace-nowrap'>{fmt(group.metrics.p?.avg)} bar</td>
+                <td className='text-right whitespace-nowrap'>{fmt(group.metrics.f?.avg)} ml/s</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+      <p className='an-caption'>Averages over the shots of each profile.</p>
+    </Tile>
   );
 }

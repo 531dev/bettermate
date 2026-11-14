@@ -311,8 +311,11 @@ export function CompareChartCanvas({
     const chart = chartRef.current;
     if (!chart || globalThis.window === undefined) return undefined;
 
+    // The chart may have been rebuilt or destroyed by the time the frame runs: resize the one
+    // that is mounted now, never a destroyed instance.
     const frameId = globalThis.window.requestAnimationFrame(() => {
-      chart.resize();
+      const mounted = chartRef.current;
+      if (mounted?.canvas?.isConnected) mounted.resize();
       updateScrubberInsets();
     });
 

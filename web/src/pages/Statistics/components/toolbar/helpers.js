@@ -160,7 +160,13 @@ export function isToolbarFloatingPanelOpen(root) {
 const TOOLBAR_CONTROL_SELECTOR =
   'button, a, input, select, textarea, label, [role="switch"], [role="tab"], [tabindex]';
 
-// A press on a control of the toolbar, as opposed to a press on its empty ground.
-export function isToolbarControlTarget(target) {
-  return target instanceof Element && !!target.closest(TOOLBAR_CONTROL_SELECTOR);
+// A press on a control of the toolbar, as opposed to a press on its empty ground. Only controls
+// inside `root` count: the page around the toolbar may carry a tabindex of its own.
+export function isToolbarControlTarget(target, root) {
+  if (!(target instanceof Element)) return false;
+  // The control that was pressed may have left the document already (the summary row is replaced
+  // by the controls as it is pressed): it was a control all the same.
+  if (!target.isConnected) return true;
+  const control = target.closest(TOOLBAR_CONTROL_SELECTOR);
+  return !!control && control !== root && (!root || root.contains(control));
 }

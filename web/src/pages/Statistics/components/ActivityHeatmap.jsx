@@ -1,7 +1,8 @@
 // GitHub-style activity heatmap: rolling 12-month view of daily shot counts with streak tracking
 import { useState, useMemo, useRef, useEffect } from 'preact/hooks';
 import { getDayStartLocalMs, getIsoWeekStartLocalMs, formatDateLocal } from '../utils/trendBuckets';
-import { CardTitle } from '../../../components/CardTitle';
+import { Tile } from '../../../components/Tile.jsx';
+import '../statistics.css';
 
 const DAY_LABELS = [
   { dow: 0, label: 'M' },
@@ -13,10 +14,33 @@ const MS_PER_DAY = 86400000;
 const TOOLTIP_DATE_OPTIONS = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 const MONTH_LABEL_OPTIONS = { month: 'short', year: '2-digit' };
 
-const SHOT_COLOR = 'var(--statistics-trend-shots-brown, #8B5E3C)';
-const FUTURE_FILL = 'fill-base-content/[0.03]';
-const EMPTY_FILL = 'fill-base-content/[0.06]';
-const SHOT_FILL_OPACITY = [0.4, 0.6, 0.8, 1];
+// One mark a day. The level steps through the ink tokens: none, 1, 2, 3, 4 or more shots.
+// A day that has not come yet draws nothing.
+const FUTURE_FILL = 'fill-none';
+const LEVEL_FILLS = [
+  'fill-(--track)',
+  'fill-(--line-strong)',
+  'fill-(--ink-faint)',
+  'fill-(--ink-muted)',
+  'fill-(--ink)',
+];
+const LEVEL_GROUNDS = [
+  'bg-(--track)',
+  'bg-(--line-strong)',
+  'bg-(--ink-faint)',
+  'bg-(--ink-muted)',
+  'bg-(--ink)',
+];
+
+const getLevel = count => Math.min(Math.max(0, count), LEVEL_FILLS.length - 1);
+
+function HeatmapFact({ label, children }) {
+  return (
+    <span className='bm-data'>
+      {label} <span className='text-(--ink)'>{children}</span>
+    </span>
+  );
+}
 
 function computeStreaks(dayMap, startMs, todayMs) {
   const totalDaysToToday = Math.round((todayMs - startMs) / MS_PER_DAY) + 1;
@@ -183,21 +207,22 @@ export function ActivityHeatmap({ trends }) {
   const svgHeight = topPadding + 7 * step;
 
   return (
-    <div ref={containerRef}>
-      <CardTitle className='mb-2 px-0.5 py-1'>Activity Heatmap</CardTitle>
-      <div className='overflow-x-auto'>
+    <Tile eyebrow='Activity' data-statistics-heatmap>
+      <div ref={containerRef} className='an-scroll overflow-x-auto'>
         <svg
           width={svgWidth}
           height={svgHeight + 4}
-          className='block'
+          className='block fill-none'
           style={{ minWidth: svgWidth }}
+          role='img'
+          aria-label={`Shots per day over the last year: ${data.stats.totalShots} shots on ${data.stats.daysWithShots} days`}
         >
           {data.monthLabels.map((m, i) => (
             <text
               key={i}
               x={labelWidth + m.week * step}
               y={10}
-              style={{ fontSize: '10px', fill: 'var(--statistics-trend-axis-tick, #888)' }}
+              className='an-tick fill-(--ink-muted)'
             >
               {m.label}
             </text>
@@ -208,7 +233,7 @@ export function ActivityHeatmap({ trends }) {
               key={dow}
               x={0}
               y={topPadding + dow * step + cellSize - 1}
-              style={{ fontSize: '10px', fill: 'var(--statistics-trend-shots-brown, #8B5E3C)' }}
+              className='an-tick fill-(--ink-muted)'
             >
               {label}
             </text>
@@ -218,7 +243,6 @@ export function ActivityHeatmap({ trends }) {
             const x = labelWidth + cell.week * step;
             const y = topPadding + cell.dow * step;
             const isFuture = cell.dayMs > data.todayMs;
-            const hasShots = !isFuture && cell.count > 0;
             const makeTooltip = e => ({
               cell,
               x: e.clientX,
@@ -238,15 +262,8 @@ export function ActivityHeatmap({ trends }) {
                 width={cellSize}
                 height={cellSize}
                 rx={2}
-                className={hasShots ? undefined : isFuture ? FUTURE_FILL : EMPTY_FILL}
-                style={{
-                  cursor: isFuture ? 'default' : 'pointer',
-                  ...(hasShots && {
-                    fill: SHOT_COLOR,
-                    fillOpacity:
-                      SHOT_FILL_OPACITY[Math.min(cell.count, SHOT_FILL_OPACITY.length) - 1],
-                  }),
-                }}
+                data-shots={isFuture ? undefined : cell.count}
+                className={isFuture ? FUTURE_FILL : LEVEL_FILLS[getLevel(cell.count)]}
                 onPointerEnter={handleHover}
                 onPointerMove={handleHover}
                 onPointerLeave={e => {
@@ -266,49 +283,43 @@ export function ActivityHeatmap({ trends }) {
         </svg>
       </div>
 
-      <div className='mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs'>
-        <span className='opacity-60'>
-          Daily average:{' '}
-          <span className='text-base-content font-bold'>
-            {data.stats.dailyAvg.toFixed(1)} shots
-          </span>
-        </span>
-        <span className='opacity-60'>
-          Days active:{' '}
-          <span className='text-base-content font-bold'>{data.stats.daysWithShots}</span>
-        </span>
-        <span className='opacity-60'>
-          Longest streak:{' '}
-          <span className='text-base-content font-bold'>
-            {data.stats.longestStreak} {data.stats.longestStreak === 1 ? 'day' : 'days'}
-          </span>
-        </span>
-        <span className='opacity-60'>
-          Current streak:{' '}
-          <span className='text-base-content font-bold'>
-            {data.stats.currentStreak} {data.stats.currentStreak === 1 ? 'day' : 'days'}
-          </span>
+      <div className='flex flex-wrap items-center gap-x-5 gap-y-1'>
+        <HeatmapFact label='Daily average'>{data.stats.dailyAvg.toFixed(1)} shots</HeatmapFact>
+        <HeatmapFact label='Days active'>{data.stats.daysWithShots}</HeatmapFact>
+        <HeatmapFact label='Longest streak'>
+          {data.stats.longestStreak} {data.stats.longestStreak === 1 ? 'day' : 'days'}
+        </HeatmapFact>
+        <HeatmapFact label='Current streak'>
+          {data.stats.currentStreak} {data.stats.currentStreak === 1 ? 'day' : 'days'}
+        </HeatmapFact>
+        <span className='an-tick ml-auto flex items-center gap-1' aria-hidden='true'>
+          0
+          {LEVEL_GROUNDS.map(ground => (
+            <i key={ground} className={`st-heat__swatch ${ground}`} />
+          ))}
+          4+
         </span>
       </div>
 
       {tooltip && (
         <div
-          className='bg-base-300 text-base-content pointer-events-none fixed z-50 rounded-md px-2.5 py-1.5 text-xs'
+          className='st-tip'
+          role='status'
           style={{
             ...(tooltip.onLeft
               ? { right: window.innerWidth - tooltip.x + 12 }
               : { left: tooltip.x + 12 }),
-            top: tooltip.y > 48 ? tooltip.y - 36 : tooltip.y + 16,
+            top: tooltip.y > 56 ? tooltip.y - 48 : tooltip.y + 16,
           }}
         >
-          <div className='font-semibold'>
+          <span className='an-data'>
             {tooltip.cell.count} {tooltip.cell.count === 1 ? 'shot' : 'shots'}
-          </div>
-          <div className='opacity-60'>
+          </span>
+          <span className='an-caption'>
             {formatDateLocal(tooltip.cell.dayMs, TOOLTIP_DATE_OPTIONS)}
-          </div>
+          </span>
         </div>
       )}
-    </div>
+    </Tile>
   );
 }

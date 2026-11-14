@@ -1,97 +1,54 @@
-import { StatisticsMetricHeader } from './StatisticsMetricHeader';
+import { StatTile } from '../../../components/StatTile.jsx';
+import { MISSING } from '../utils/format';
 
-// Presentational only: renders a high-signal summary layer from StatisticsService.summary.
-function formatDuration(seconds) {
-  if (!Number.isFinite(seconds) || seconds <= 0) return '0 s';
-  const totalSeconds = Math.max(0, Math.round(seconds));
+// Presentational only: the totals of a statistics run, one reading per tile.
+function fmtNumber(value, digits = 1) {
+  return Number.isFinite(value) ? value.toFixed(digits) : MISSING;
+}
+
+const pad2 = value => String(value).padStart(2, '0');
+
+// A total time as one numeral with its unit: 42 s, 1:38 min, 2:05 h.
+function splitDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return { value: '0', unit: 's' };
+  const totalSeconds = Math.round(seconds);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const remainingSeconds = totalSeconds % 60;
-  const parts = [];
 
-  if (hours > 0) parts.push(`${hours} h`);
-  if (hours > 0 || minutes > 0) parts.push(`${minutes} m`);
-  parts.push(`${remainingSeconds} s`);
-
-  return parts.join(' ');
+  if (hours > 0) return { value: `${hours}:${pad2(minutes)}`, unit: 'h' };
+  if (minutes > 0) return { value: `${minutes}:${pad2(remainingSeconds)}`, unit: 'min' };
+  return { value: String(remainingSeconds), unit: 's' };
 }
 
-function fmtNumber(value, digits = 1) {
-  return Number.isFinite(value) ? value.toFixed(digits) : '-';
-}
-
-function formatWeight(value) {
+function splitAmount(value, unit, largeUnit) {
   const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return '-';
-  if (Math.abs(numericValue) >= 1000) return `${(numericValue / 1000).toFixed(3)} kg`;
-  return `${fmtNumber(numericValue)} g`;
-}
-
-function formatWater(value) {
-  const numericValue = Number(value);
-  if (!Number.isFinite(numericValue)) return '-';
-  if (Math.abs(numericValue) >= 1000) return `${(numericValue / 1000).toFixed(3)} l`;
-  return `${fmtNumber(numericValue)} ml`;
-}
-
-function SummaryStatCard({ icon, label, value, accentColorVar }) {
-  const accent = `var(${accentColorVar})`;
-
-  return (
-    <div className='app-card-surface rounded-xl p-3 transition-colors'>
-      <StatisticsMetricHeader
-        accentColor={accent}
-        icon={icon}
-        label={label}
-        value={value}
-        valueClassName='text-lg leading-tight sm:text-xl'
-      />
-    </div>
-  );
+  if (!Number.isFinite(numericValue)) return { value: MISSING, unit };
+  if (Math.abs(numericValue) >= 1000) {
+    return { value: (numericValue / 1000).toFixed(2), unit: largeUnit };
+  }
+  return { value: fmtNumber(numericValue), unit };
 }
 
 export function SummaryCards({ summary }) {
   if (!summary) return null;
 
-  // Totals are shown first with a stronger visual treatment for quick scanning.
-  const totalCards = [
+  const totals = [
     {
       key: 'totalShots',
-      label: 'Total Shots',
-      value: Number.isFinite(summary.totalShots) ? String(summary.totalShots) : '-',
-      icon: 'coffee',
-      accentColorVar: '--statistics-summary-shots-brown',
+      label: 'Shots',
+      value: Number.isFinite(summary.totalShots) ? String(summary.totalShots) : MISSING,
     },
-    {
-      key: 'totalWeight',
-      label: 'Total Weight',
-      value: formatWeight(summary.totalWeight),
-      icon: 'scale',
-      accentColorVar: '--analyzer-weight-text',
-    },
-    {
-      key: 'totalWater',
-      label: 'Total Pumped Water',
-      value: formatWater(summary.totalWater),
-      icon: 'droplet',
-      accentColorVar: '--statistics-summary-water',
-    },
-    {
-      key: 'totalDuration',
-      label: 'Total Duration',
-      value: formatDuration(summary.totalDuration),
-      icon: 'timer',
-      accentColorVar: '--statistics-summary-duration',
-    },
+    { key: 'totalWeight', label: 'Weight', ...splitAmount(summary.totalWeight, 'g', 'kg') },
+    { key: 'totalWater', label: 'Pumped water', ...splitAmount(summary.totalWater, 'ml', 'l') },
+    { key: 'totalDuration', label: 'Duration', ...splitDuration(summary.totalDuration) },
   ];
 
   return (
-    <div className='space-y-2'>
-      <div className='grid grid-cols-2 gap-3 md:grid-cols-4'>
-        {totalCards.map(card => (
-          <SummaryStatCard key={card.key} {...card} />
-        ))}
-      </div>
+    <div className='grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-3' data-statistics-summary>
+      {totals.map(total => (
+        <StatTile key={total.key} label={total.label} value={total.value} unit={total.unit} />
+      ))}
     </div>
   );
 }

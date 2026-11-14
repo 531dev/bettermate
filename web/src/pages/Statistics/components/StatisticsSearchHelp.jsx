@@ -1,156 +1,109 @@
-import { Icon } from '../../../components/Icon.jsx';
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { createPortal } from 'preact/compat';
-import { getAnalyzerIconButtonClasses } from '../../ShotAnalyzer/components/analyzerControlStyles';
-import {
-  STATISTICS_DROPDOWN_PANEL_SURFACE_CLASS,
-  STATISTICS_DROPDOWN_PANEL_SURFACE_STYLE,
-} from './statisticsDropdownSurface';
-import './StatisticsSearchHelp.css';
+import { Sheet } from '../../../components/Sheet.jsx';
+import { Cell } from '../../../components/Tile.jsx';
+import { IconButton } from '../../ShotAnalyzer/ui/IconButton.jsx';
+import { Popover } from '../../ShotAnalyzer/ui/Popover.jsx';
+import '../statistics.css';
+import { TOOLBAR_FLOATING_PANEL_ATTR } from './toolbar/constants';
+import { useMediaQuery, usePopoverState } from './toolbar/hooks';
 
-/* global globalThis */
+const FLOATING_PANEL_PROPS = { [TOOLBAR_FLOATING_PANEL_ATTR]: '' };
 
-const STATISTICS_SEARCH_HELP_PANEL_CLASS = `dropdown-content mt-2 w-[min(92vw,34rem)] p-3 ${STATISTICS_DROPDOWN_PANEL_SURFACE_CLASS}`;
-const STATISTICS_SEARCH_HELP_FLOATING_ATTR = 'data-statistics-toolbar-floating-panel';
+function Code({ children }) {
+  return <code className='st-code'>{children}</code>;
+}
 
-function StatisticsSearchHelpContent() {
+function HelpGroup({ title, onSheet, children }) {
+  // A cell is surface-2: on the popover's own surface-2 the group needs no ground of its own.
+  const Group = onSheet ? Cell : 'div';
   return (
-    <div className='space-y-2 text-xs leading-relaxed'>
-      <p className='font-semibold'>Statistics Search DSL</p>
-      <p className='opacity-80'>
-        Rules are separated with <code>;</code>. Visual filters and DSL are combined with AND.
+    <Group className='flex flex-col gap-1'>
+      <span className='bm-eyebrow'>{title}</span>
+      {children}
+    </Group>
+  );
+}
+
+function StatisticsSearchHelpContent({ onSheet = false }) {
+  return (
+    <div className='bm-help flex flex-col gap-3 text-(--ink)'>
+      <p>
+        Rules are separated with <Code>;</Code>. The filters above and the query are combined with
+        AND.
       </p>
-      <div className='rounded-lg bg-[var(--surface-2)] p-2'>
-        <p className='font-semibold'>Fields</p>
+      <HelpGroup title='Fields' onSheet={onSheet}>
         <p>
-          <code>name</code>, <code>profile</code>, <code>id</code>, <code>source</code>,{' '}
-          <code>date</code>, <code>pinned</code>
+          <Code>name</Code>, <Code>profile</Code>, <Code>id</Code>, <Code>source</Code>,{' '}
+          <Code>date</Code>, <Code>pinned</Code>
         </p>
-      </div>
-      <div className='rounded-lg bg-[var(--surface-2)] p-2'>
-        <p className='font-semibold'>Examples</p>
+      </HelpGroup>
+      <HelpGroup title='Examples' onSheet={onSheet}>
         <p>
-          <code>name:325; name:326;</code> (same field = OR)
+          <Code>name:325; name:326;</Code> the same field twice is OR
         </p>
         <p>
-          <code>name:&quot;325&quot;;</code> (exact)
+          <Code>name:&quot;325&quot;;</Code> exact
         </p>
         <p>
-          <code>profile:3_0_25; date:&gt;h-7d;</code>
+          <Code>profile:3_0_25; date:&gt;h-7d;</Code>
         </p>
         <p>
-          <code>pinned:true; source:gm;</code>
+          <Code>pinned:true; source:gm;</Code>
         </p>
         <p>
-          <code>date:&gt;=01.02.2026; date:&lt;=07.02.2026 23:59;</code>
+          <Code>date:&gt;=01.02.2026; date:&lt;=07.02.2026 23:59;</Code>
         </p>
-      </div>
-      <div className='rounded-lg bg-[var(--surface-2)] p-2'>
-        <p className='font-semibold'>Date</p>
+      </HelpGroup>
+      <HelpGroup title='Date' onSheet={onSheet}>
         <p>
-          Use <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>,{' '}
-          <code>=</code>
+          Use <Code>&gt;</Code>, <Code>&gt;=</Code>, <Code>&lt;</Code>, <Code>&lt;=</Code>,{' '}
+          <Code>=</Code>
         </p>
         <p>
-          Relative time: <code>h</code> (now), <code>h-7d</code> (7 days ago)
+          Relative time: <Code>h</Code> is now, <Code>h-7d</Code> is 7 days ago. Local browser time
+          is used.
         </p>
-        <p className='opacity-70'>Local browser time is used.</p>
-        <p className='opacity-70'>
-          Date basis (<code>Shot / Auto / Upload</code>) appears only when missing shot timestamps
-          are detected.
+        <p>
+          The date basis (shot, auto or upload) appears only when shots without a timestamp are
+          found.
         </p>
-      </div>
+      </HelpGroup>
     </div>
   );
 }
 
+// The search syntax: a popover beside its button, a sheet on a phone.
 export function StatisticsSearchHelp() {
-  const detailsRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMobileViewport, setIsMobileViewport] = useState(
-    () => globalThis.window?.matchMedia?.('(max-width: 639px)').matches || false,
-  );
-  const [mobilePortalTarget, setMobilePortalTarget] = useState(null);
-
-  useEffect(() => {
-    if (globalThis.window?.matchMedia === undefined) return undefined;
-
-    const mediaQuery = globalThis.window.matchMedia('(max-width: 639px)');
-    const handleChange = event => setIsMobileViewport(event.matches);
-    setIsMobileViewport(mediaQuery.matches);
-
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-
-    return undefined;
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen || !isMobileViewport) {
-      setMobilePortalTarget(null);
-      return;
-    }
-    const detailsEl = detailsRef.current;
-    setMobilePortalTarget(detailsEl?.closest('[data-statistics-toolbar-shell]') || null);
-  }, [isMobileViewport, isOpen]);
-
-  useEffect(() => {
-    const detailsEl = detailsRef.current;
-    if (!detailsEl) return undefined;
-
-    const handleToggle = () => {
-      setIsOpen(detailsEl.open);
-    };
-
-    handleToggle();
-    detailsEl.addEventListener('toggle', handleToggle);
-
-    return () => detailsEl.removeEventListener('toggle', handleToggle);
-  }, []);
-
-  const panelStyle = {
-    ...STATISTICS_DROPDOWN_PANEL_SURFACE_STYLE,
-    maxHeight: 'min(80vh, 32rem)',
-    overflowY: 'auto',
-    overscrollBehavior: 'contain',
-  };
-  const mobilePanelStyle = {
-    ...STATISTICS_DROPDOWN_PANEL_SURFACE_STYLE,
-    maxHeight: 'min(70vh, 28rem)',
-    overflowY: 'auto',
-    overscrollBehavior: 'contain',
-    WebkitOverflowScrolling: 'touch',
-  };
+  const popover = usePopoverState();
+  const isPhone = useMediaQuery('(max-width: 599.98px)');
 
   return (
-    <details ref={detailsRef} className='statistics-search-help dropdown dropdown-end'>
-      <summary
-        className={`${getAnalyzerIconButtonClasses({
-          className:
-            'hover:text-base-content flex h-9 min-h-0 w-9 list-none items-center justify-center bg-transparent px-0 text-[var(--ink-muted)]',
-        })} [&::-webkit-details-marker]:hidden`}
-        aria-label='Search help'
-        title='Search help'
-      >
-        <Icon name={'info'} className='text-sm' />
-      </summary>
-      <div className={STATISTICS_SEARCH_HELP_PANEL_CLASS} style={panelStyle}>
-        <StatisticsSearchHelpContent />
-      </div>
-      {isOpen && isMobileViewport && mobilePortalTarget
-        ? createPortal(
-            <div
-              {...{ [STATISTICS_SEARCH_HELP_FLOATING_ATTR]: true }}
-              className={`statistics-search-help-mobile-panel mx-1.5 mt-1 p-3 sm:mx-2 ${STATISTICS_DROPDOWN_PANEL_SURFACE_CLASS}`}
-              style={mobilePanelStyle}
-            >
-              <StatisticsSearchHelpContent />
-            </div>,
-            mobilePortalTarget,
-          )
-        : null}
-    </details>
+    <>
+      <IconButton
+        ref={popover.anchor}
+        icon='info'
+        label='Search help'
+        aria-haspopup='dialog'
+        aria-expanded={popover.open}
+        onClick={popover.toggle}
+      />
+      {isPhone ? (
+        <Sheet open={popover.open} onClose={popover.close} title='Search syntax'>
+          <StatisticsSearchHelpContent onSheet />
+        </Sheet>
+      ) : (
+        <Popover
+          {...FLOATING_PANEL_PROPS}
+          open={popover.open}
+          onClose={popover.close}
+          anchor={popover.anchor}
+          placement='bottom-end'
+          label='Search syntax'
+          width='min(calc(100vw - 24px), 30rem)'
+        >
+          <span className='bm-sub'>Search syntax</span>
+          <StatisticsSearchHelpContent />
+        </Popover>
+      )}
+    </>
   );
 }

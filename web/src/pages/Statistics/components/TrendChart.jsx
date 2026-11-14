@@ -1,65 +1,36 @@
-import { Icon } from '../../../components/Icon.jsx';
 /* global globalThis */
 
 import { useEffect, useRef, useState } from 'preact/hooks';
 import Chart from 'chart.js/auto';
+import { Select } from '../../../components/Field.jsx';
+import { Tile } from '../../../components/Tile.jsx';
+import {
+  gridStyle,
+  lineStyle,
+  LINE_WIDTH,
+  PRESSURE_LINE_WIDTH,
+  readChartTokens,
+  tickStyle,
+  useThemeVersion,
+} from '../../ShotAnalyzer/ui/chartTokens.js';
 import {
   aggregateTrendsByGranularity,
   formatTrendBucketTickLabel,
   formatTrendBucketTooltipTitle,
 } from '../utils/trendBuckets';
-import {
-  ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS,
-  getAnalyzerSurfaceTriggerClasses,
-} from '../../ShotAnalyzer/components/analyzerControlStyles';
-import { CardTitle } from '../../../components/CardTitle';
 
 // Chart-level trend aggregation stays local to this component so users can switch
 // metric and bucket size without rerunning StatisticsService.
+// `series` names the chart token the line takes (ui/chartTokens.js).
 const TREND_METRICS = [
-  {
-    key: 'duration',
-    label: 'Duration (s)',
-    colorVar: '--statistics-trend-duration',
-    color: '#64748b',
-  },
-  { key: 'weight', label: 'Weight (g)', colorVar: '--analyzer-weight-text', color: '#8B5CF6' },
-  {
-    key: 'water',
-    label: 'Pumped Water (ml)',
-    colorVar: '--statistics-trend-water',
-    color: '#0EA5E9',
-  },
-  {
-    key: 'shotCount',
-    label: 'Shots',
-    colorVar: '--statistics-trend-shots-brown',
-    color: '#8B5E3C',
-  },
-  {
-    key: 'avgPressure',
-    label: 'Avg Pressure (bar)',
-    colorVar: '--analyzer-pressure-text',
-    color: '#0066CC',
-  },
-  {
-    key: 'avgFlow',
-    label: 'Avg Pump Flow (ml/s)',
-    colorVar: '--analyzer-flow-text',
-    color: '#63993D',
-  },
-  {
-    key: 'avgTemp',
-    label: 'Avg Temp (\u2103)',
-    colorVar: '--analyzer-temp-text',
-    color: '#F0561D',
-  },
-  {
-    key: 'avgPuckFlow',
-    label: 'Avg Puck Flow (ml/s)',
-    colorVar: '--analyzer-puckflow-text',
-    color: '#059669',
-  },
+  { key: 'duration', label: 'Duration (s)', series: 'duration' },
+  { key: 'weight', label: 'Weight (g)', series: 'weight' },
+  { key: 'water', label: 'Pumped water (ml)', series: 'water' },
+  { key: 'shotCount', label: 'Shots', series: 'ink' },
+  { key: 'avgPressure', label: 'Pressure (bar)', series: 'pressure' },
+  { key: 'avgFlow', label: 'Pump flow (ml/s)', series: 'flow' },
+  { key: 'avgTemp', label: 'Temperature (\u00b0C)', series: 'temperature' },
+  { key: 'avgPuckFlow', label: 'Puck flow (ml/s)', series: 'puckFlow' },
 ];
 
 const GRANULARITY_OPTIONS = [
@@ -81,34 +52,6 @@ function getAdaptiveMaxTicks(containerWidth) {
   return 10;
 }
 
-function resolveCssColorVar(colorVar, fallback) {
-  if (!colorVar || globalThis.window === undefined) return fallback;
-  try {
-    const value = globalThis.window
-      .getComputedStyle(globalThis.document.documentElement)
-      .getPropertyValue(colorVar)
-      .trim();
-    return value || fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function resolveMetricColor(metricDef) {
-  return resolveCssColorVar(metricDef?.colorVar, metricDef?.color || '#64748b');
-}
-
-function withAlpha(color, alphaHex) {
-  if (typeof color !== 'string') return color;
-  const trimmed = color.trim();
-  if (/^#[0-9a-fA-F]{6}$/.test(trimmed)) return `${trimmed}${alphaHex}`;
-  if (/^#[0-9a-fA-F]{3}$/.test(trimmed)) {
-    const [, r, g, b] = trimmed;
-    return `#${r}${r}${g}${g}${b}${b}${alphaHex}`;
-  }
-  return trimmed;
-}
-
 function formatTrendMetricValue(value, metricKey) {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) return '';
@@ -123,11 +66,6 @@ function formatUniqueTrendMetricTick(value, index, ticks, metricKey) {
   return label === previousLabel ? '' : label;
 }
 
-const CHART_FONT_FAMILY = '"Jost", system-ui, sans-serif';
-const CHART_TICK_FONT = { family: CHART_FONT_FAMILY, size: 10, weight: '400' };
-const CHART_TOOLTIP_TITLE_FONT = { family: CHART_FONT_FAMILY, size: 11, weight: '700' };
-const CHART_TOOLTIP_BODY_FONT = { family: CHART_FONT_FAMILY, size: 10, weight: '400' };
-
 export function TrendChart({ trends }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -135,6 +73,7 @@ export function TrendChart({ trends }) {
   const [selectedMetric, setSelectedMetric] = useState('shotCount');
   const [selectedGranularity, setSelectedGranularity] = useState('day');
   const [containerWidth, setContainerWidth] = useState(0);
+  const themeVersion = useThemeVersion();
 
   useEffect(() => {
     const element = containerRef.current;
@@ -167,16 +106,14 @@ export function TrendChart({ trends }) {
     if (!trends || trends.length === 0 || !canvasRef.current) return;
 
     const metricDef = TREND_METRICS.find(m => m.key === selectedMetric) || TREND_METRICS[0];
-    const metricColor = resolveMetricColor(metricDef);
-    const tickColor = resolveCssColorVar('--statistics-trend-axis-tick', '#888');
-    const gridColor = resolveCssColorVar('--statistics-trend-grid', 'rgba(200, 200, 200, 0.1)');
-    const tooltipBg = resolveCssColorVar('--statistics-trend-tooltip-bg', 'rgba(20, 20, 20, 0.9)');
+    const tokens = readChartTokens();
     const metricLabel =
       metricDef.key === 'shotCount'
-        ? `Shots / ${getGranularityLabel(selectedGranularity)}`
+        ? `Shots / ${getGranularityLabel(selectedGranularity).toLowerCase()}`
         : metricDef.label;
     const data = aggregateTrendsByGranularity(trends, metricDef.key, selectedGranularity);
     const maxTicksLimit = getAdaptiveMaxTicks(containerWidth);
+    const tooltipFont = { family: tokens.fontMono, size: 11, weight: 400 };
 
     try {
       chartInstance.current = new Chart(canvasRef.current, {
@@ -186,13 +123,10 @@ export function TrendChart({ trends }) {
             {
               label: metricLabel,
               data,
-              borderColor: metricColor,
-              backgroundColor: withAlpha(metricColor, '20'),
-              fill: true,
-              pointRadius: 3,
-              pointHoverRadius: 5,
-              borderWidth: 2,
               tension: 0,
+              ...lineStyle(tokens[metricDef.series], {
+                width: metricDef.series === 'pressure' ? PRESSURE_LINE_WIDTH : LINE_WIDTH,
+              }),
             },
           ],
         },
@@ -204,9 +138,16 @@ export function TrendChart({ trends }) {
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: tooltipBg,
-              titleFont: CHART_TOOLTIP_TITLE_FONT,
-              bodyFont: CHART_TOOLTIP_BODY_FONT,
+              backgroundColor: tokens.surface2,
+              borderColor: tokens.line,
+              borderWidth: 1,
+              cornerRadius: 8,
+              padding: 8,
+              displayColors: false,
+              titleColor: tokens.ink,
+              bodyColor: tokens.inkMuted,
+              titleFont: { ...tooltipFont, weight: 500 },
+              bodyFont: tooltipFont,
               callbacks: {
                 title: ctx => {
                   const raw = ctx[0]?.raw;
@@ -226,26 +167,33 @@ export function TrendChart({ trends }) {
           scales: {
             x: {
               type: 'linear',
+              border: { display: false },
               ticks: {
-                font: CHART_TICK_FONT,
-                color: tickColor,
-                callback: value =>
-                  formatTrendBucketTickLabel(Number(value), selectedGranularity, {
-                    containerWidth,
-                  }),
+                ...tickStyle(tokens),
+                // Two ticks inside one bucket would carry the same date: the second stays blank.
+                callback: (value, index, ticks) => {
+                  const labelOf = tickValue =>
+                    formatTrendBucketTickLabel(Number(tickValue), selectedGranularity, {
+                      containerWidth,
+                    });
+                  const label = labelOf(value);
+                  return index > 0 && labelOf(ticks[index - 1]?.value) === label ? '' : label;
+                },
                 maxTicksLimit,
               },
-              grid: { color: gridColor },
+              grid: gridStyle(tokens, false),
             },
             y: {
               min: metricDef.key === 'shotCount' ? 0 : undefined,
+              border: { display: false },
               ticks: {
-                font: CHART_TICK_FONT,
-                color: metricColor,
+                ...tickStyle(tokens),
+                maxTicksLimit: 4,
+                padding: 8,
                 callback: (value, index, ticks) =>
                   formatUniqueTrendMetricTick(value, index, ticks, metricDef.key),
               },
-              grid: { color: gridColor },
+              grid: gridStyle(tokens),
             },
           },
         },
@@ -260,64 +208,63 @@ export function TrendChart({ trends }) {
         chartInstance.current = null;
       }
     };
-  }, [trends, selectedMetric, selectedGranularity, containerWidth]);
+  }, [trends, selectedMetric, selectedGranularity, containerWidth, themeVersion]);
 
   if (!trends || trends.length === 0) return null;
 
+  const bucketCount = aggregateTrendsByGranularity(
+    trends,
+    selectedMetric,
+    selectedGranularity,
+  ).length;
+
   return (
-    <div>
-      <div className='mb-2 flex items-center justify-between gap-2 px-1'>
-        <CardTitle className='px-0.5 py-1'>Trend Chart</CardTitle>
-        <div className='ml-auto flex items-center gap-1.5'>
-          <div
-            className={`relative flex shrink-0 ${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} items-center`}
+    <Tile data-statistics-trend>
+      <div className='bm-tile__head flex-wrap'>
+        <span className='bm-eyebrow'>Trend</span>
+        <div className='flex min-w-0 items-center gap-2'>
+          <Select
+            className='an-input--sm'
+            value={selectedMetric}
+            onChange={e => setSelectedMetric(e.target.value)}
+            aria-label='Trend metric'
+            title='Trend metric'
           >
-            <select
-              className={getAnalyzerSurfaceTriggerClasses({
-                className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} w-[8.75rem] max-w-[8.75rem] appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium outline-none`,
-              })}
-              value={selectedMetric}
-              onChange={e => setSelectedMetric(e.target.value)}
-              aria-label='Trend metric'
-              title='Trend metric'
-            >
-              {TREND_METRICS.map(m => (
-                <option key={m.key} value={m.key}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-            <span className='pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[10px] text-[var(--ink-muted)]'>
-              <Icon name={'chevron-down'} />
-            </span>
-          </div>
-          <div
-            className={`relative flex shrink-0 ${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} items-center`}
+            {TREND_METRICS.map(m => (
+              <option key={m.key} value={m.key}>
+                {m.label}
+              </option>
+            ))}
+          </Select>
+          <Select
+            className='an-input--sm'
+            value={selectedGranularity}
+            onChange={e => setSelectedGranularity(e.target.value)}
+            aria-label='Trend bucket size'
+            title='Trend bucket size'
           >
-            <select
-              className={getAnalyzerSurfaceTriggerClasses({
-                className: `${ANALYZER_COMPACT_CONTROL_HEIGHT_CLASS} w-[5rem] max-w-[5rem] appearance-none rounded-md border-0 bg-transparent px-2.5 pr-6 text-xs font-medium outline-none`,
-              })}
-              value={selectedGranularity}
-              onChange={e => setSelectedGranularity(e.target.value)}
-              aria-label='Trend bucket size'
-              title='Trend bucket size'
-            >
-              {GRANULARITY_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <span className='pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-[10px] text-[var(--ink-muted)]'>
-              <Icon name={'chevron-down'} />
-            </span>
-          </div>
+            {GRANULARITY_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
         </div>
       </div>
-      <div ref={containerRef} className='relative h-52 w-full'>
+      {/* A line needs two buckets: one bucket is a single value, and a chart draws no points. */}
+      {bucketCount < 2 && (
+        <p className='bm-help' data-statistics-trend-single>
+          All shots fall into one {getGranularityLabel(selectedGranularity).toLowerCase()}. A trend
+          needs at least two.
+        </p>
+      )}
+      <div
+        ref={containerRef}
+        className={bucketCount < 2 ? 'hidden' : 'relative h-52 w-full'}
+        data-chart='statistics-trend'
+      >
         <canvas ref={canvasRef} />
       </div>
-    </div>
+    </Tile>
   );
 }

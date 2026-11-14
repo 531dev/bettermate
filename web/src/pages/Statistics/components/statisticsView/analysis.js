@@ -9,6 +9,7 @@ import {
   detectAutoDelay,
 } from '../../../ShotAnalyzer/services/AnalyzerService';
 import { libraryService } from '../../../ShotAnalyzer/services/LibraryService';
+import { resolveShotEffectiveTimestampMs } from '../../utils/statisticsSearchDsl';
 import { DEFAULT_SETTINGS } from './constants';
 import {
   getShotSelectionKey,
@@ -280,16 +281,4 @@ export function getBuiltDateRange(entriesRef, dateBasisMode) {
     startMs: timestamps[0],
     endMs: timestamps[timestamps.length - 1],
   };
-}
-
-function resolveShotEffectiveTimestampMs(shotMeta, dateBasisMode) {
-  if (dateBasisMode === 'shot' || dateBasisMode === 'auto') {
-    const ts = shotMeta?.timestamp || shotMeta?.shotDate || 0;
-    if (Number.isFinite(ts) && ts > 0) return Number(ts);
-  }
-  if (dateBasisMode === 'upload' || dateBasisMode === 'auto') {
-    const ts = shotMeta?.uploadedAt || 0;
-    if (Number.isFinite(ts) && ts > 0) return Number(ts);
-  }
-  return null;
 }

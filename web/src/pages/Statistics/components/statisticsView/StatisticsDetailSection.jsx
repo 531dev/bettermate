@@ -1,13 +1,12 @@
-// Sub-components for the Statistics view detail section: header bar and panel body with metrics, profile groups, phase stats, trend chart, and compare
-import { STATISTICS_PANEL_CLASS } from './constants';
+// The detail section of a statistics run: its tabs and the panel of the selected one (metric
+// averages, trends, shot charts, per-profile and per-phase statistics).
+import TabBar from '../../../../components/TabBar.jsx';
 import { StatisticsShotCompareSection } from '../StatisticsShotCompareSection';
 import { MetricsTable } from '../MetricsTable';
 import { ProfileGroupTable } from '../ProfileGroupTable';
 import { PhaseStatistics } from '../PhaseStatistics';
 import { TrendChart } from '../TrendChart';
 import { ActivityHeatmap } from '../ActivityHeatmap';
-
-const STATISTICS_SECTION_TITLE_CLASS = 'text-xs font-semibold uppercase tracking-widest opacity-90';
 
 function StatisticsDetailHeader({
   hasCompareStatistics,
@@ -19,34 +18,24 @@ function StatisticsDetailHeader({
   setStatisticsDetailSection,
 }) {
   const availableTabs = [
-    hasMetricStatistics ? { id: 'metrics', label: 'Global metric averages' } : null,
+    hasMetricStatistics ? { id: 'metrics', label: 'Averages' } : null,
     hasTrendStatistics ? { id: 'trends', label: 'Trends' } : null,
-    hasCompareStatistics ? { id: 'compare', label: 'Shot Charts' } : null,
-    hasProfileGroupStatistics ? { id: 'profile', label: 'Per-profile statistics' } : null,
-    hasPhaseStatistics ? { id: 'phase', label: 'Per-phase statistics' } : null,
+    hasCompareStatistics ? { id: 'compare', label: 'Shot charts' } : null,
+    hasProfileGroupStatistics ? { id: 'profile', label: 'Profiles' } : null,
+    hasPhaseStatistics ? { id: 'phase', label: 'Phases' } : null,
   ].filter(Boolean);
 
   if (availableTabs.length > 1) {
     return (
-      <div role='tablist' className='tabs tabs-border'>
-        {availableTabs.map(tab => (
-          <button
-            key={tab.id}
-            type='button'
-            role='tab'
-            className={`tab ${resolvedStatisticsDetailSection === tab.id ? 'tab-active' : ''}`}
-            aria-selected={resolvedStatisticsDetailSection === tab.id}
-            onClick={() => setStatisticsDetailSection(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <TabBar
+        tabs={availableTabs}
+        activeTab={resolvedStatisticsDetailSection}
+        onTabChange={setStatisticsDetailSection}
+      />
     );
   }
 
-  const title = availableTabs[0]?.label || 'Statistics';
-  return <h3 className={STATISTICS_SECTION_TITLE_CLASS}>{title}</h3>;
+  return <h2 className='bm-sub px-1'>{availableTabs[0]?.label || 'Statistics'}</h2>;
 }
 
 export function StatisticsDetailSectionPanel({
@@ -75,52 +64,8 @@ export function StatisticsDetailSectionPanel({
     return null;
   }
 
-  const shouldUsePanelSurface =
-    resolvedStatisticsDetailSection !== 'metrics' &&
-    resolvedStatisticsDetailSection !== 'compare' &&
-    resolvedStatisticsDetailSection !== 'phase';
-  const shouldUseCompactChartPadding = resolvedStatisticsDetailSection === 'trends';
-
-  const sectionContent = (
-    <>
-      {hasCompareStatistics && resolvedStatisticsDetailSection === 'compare' && (
-        <StatisticsShotCompareSection
-          key={`statistics-shot-charts-${chartRunKey}`}
-          compareEntries={compareEntries}
-          compareTargetDisplayMode={compareTargetDisplayMode}
-          onCompareTargetDisplayModeChange={onCompareTargetDisplayModeChange}
-          showTitle={false}
-          embedded={true}
-        />
-      )}
-
-      {hasMetricStatistics && resolvedStatisticsDetailSection === 'metrics' && (
-        <MetricsTable metrics={result.metrics} />
-      )}
-
-      {hasTrendStatistics && resolvedStatisticsDetailSection === 'trends' && (
-        <div className='space-y-4'>
-          <TrendChart key={`statistics-trends-${chartRunKey}`} trends={result.trends} />
-          <ActivityHeatmap trends={result.trends} />
-        </div>
-      )}
-
-      {hasProfileGroupStatistics && resolvedStatisticsDetailSection === 'profile' && (
-        <ProfileGroupTable profileGroups={result.profileGroups} showTitle={false} />
-      )}
-
-      {hasPhaseStatistics && resolvedStatisticsDetailSection === 'phase' && (
-        <PhaseStatistics
-          phaseStats={result.phaseStats}
-          showTitle={false}
-          hideExitReasons={hidePhaseExitReasons}
-        />
-      )}
-    </>
-  );
-
   return (
-    <div className='space-y-2'>
+    <div className='flex flex-col gap-2 lg:gap-3'>
       <StatisticsDetailHeader
         hasCompareStatistics={hasCompareStatistics}
         hasMetricStatistics={hasMetricStatistics}
@@ -130,17 +75,45 @@ export function StatisticsDetailSectionPanel({
         resolvedStatisticsDetailSection={resolvedStatisticsDetailSection}
         setStatisticsDetailSection={setStatisticsDetailSection}
       />
-      {shouldUsePanelSurface ? (
-        <div
-          className={`${STATISTICS_PANEL_CLASS} ${
-            shouldUseCompactChartPadding ? 'px-1.5 py-2 sm:px-2' : 'p-4'
-          }`}
-        >
-          {sectionContent}
-        </div>
-      ) : (
-        sectionContent
-      )}
+
+      <div
+        role='tabpanel'
+        id={`panel-${resolvedStatisticsDetailSection}`}
+        className='flex flex-col gap-2 lg:gap-3'
+      >
+        {hasCompareStatistics && resolvedStatisticsDetailSection === 'compare' && (
+          <StatisticsShotCompareSection
+            key={`statistics-shot-charts-${chartRunKey}`}
+            compareEntries={compareEntries}
+            compareTargetDisplayMode={compareTargetDisplayMode}
+            onCompareTargetDisplayModeChange={onCompareTargetDisplayModeChange}
+            showTitle={false}
+          />
+        )}
+
+        {hasMetricStatistics && resolvedStatisticsDetailSection === 'metrics' && (
+          <MetricsTable metrics={result.metrics} />
+        )}
+
+        {hasTrendStatistics && resolvedStatisticsDetailSection === 'trends' && (
+          <>
+            <TrendChart key={`statistics-trends-${chartRunKey}`} trends={result.trends} />
+            <ActivityHeatmap trends={result.trends} />
+          </>
+        )}
+
+        {hasProfileGroupStatistics && resolvedStatisticsDetailSection === 'profile' && (
+          <ProfileGroupTable profileGroups={result.profileGroups} showTitle={false} />
+        )}
+
+        {hasPhaseStatistics && resolvedStatisticsDetailSection === 'phase' && (
+          <PhaseStatistics
+            phaseStats={result.phaseStats}
+            showTitle={false}
+            hideExitReasons={hidePhaseExitReasons}
+          />
+        )}
+      </div>
     </div>
   );
 }

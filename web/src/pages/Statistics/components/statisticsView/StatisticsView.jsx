@@ -1,4 +1,6 @@
 import { Chip } from '../../../../components/Chip.jsx';
+import { SegmentBar } from '../../../../components/SegmentBar.jsx';
+import { Spinner } from '../../../../components/Spinner.jsx';
 import { Tile } from '../../../../components/Tile.jsx';
 import { useState, useEffect, useRef, useContext, useCallback } from 'preact/hooks';
 // Main StatisticsView orchestrator: wires hooks, toolbar, summary cards, and the detail section panel
@@ -17,7 +19,6 @@ import {
 import { StatisticsToolbar } from '../StatisticsToolbar';
 import { SummaryCards } from '../SummaryCards';
 import { normalizeStatisticsSourceSelection } from '../../utils/statisticsRoute';
-import { STATISTICS_PANEL_CLASS } from './constants';
 import {
   getInitialProfileName,
   getStatisticsSelectionHint,
@@ -328,106 +329,100 @@ export function StatisticsView({ initialContext }) {
   );
 
   return (
-    <div className={shouldShowEmptyStatisticsState ? 'space-y-6' : 'space-y-5'}>
-      <div
-        className='app-card-surface relative z-[80] rounded-xl lg:sticky lg:top-0'
-        data-statistics-toolbar-shell
-      >
-        <div className='px-1.5 py-1.5 sm:px-2 sm:py-2'>
-          <StatisticsToolbar
-            shotSource={shotSource}
-            onShotSourceChange={setShotSource}
-            profileSource={profileSource}
-            onProfileSourceChange={setProfileSource}
-            mode={mode}
-            onModeChange={setMode}
-            onGo={handleGo}
-            startLoading={preparingRun}
-            loading={loading}
-            metadataLoading={metadataLoading}
-            canGo={canRunStatistics}
-            profileSelectionItems={profileSelectionItems}
-            selectedProfileNames={displayedProfileSelection}
-            onSelectedProfileNamesChange={
-              mode === 'shots' ? handleByShotsProfileSelectionChange : handleProfileSelectionChange
-            }
-            onProfilePinToggle={handleProfilePinToggle}
-            shotSelectionItems={shotSelectionItems}
-            selectedShotKeys={selectedShotKeys}
-            onSelectedShotKeysChange={
-              mode === 'profile' ? handleByProfileShotSelectionChange : handleShotSelectionChange
-            }
-            onShotPinToggle={handleShotPinToggle}
-            query={query}
-            onQueryChange={setQuery}
-            dateFromLocal={dateFromLocal}
-            dateFromPreviewLocal={dateInputPreviewRange.fromLocal}
-            onDateFromChange={setDateFromLocal}
-            dateToLocal={dateToLocal}
-            dateToPreviewLocal={dateInputPreviewRange.toLocal}
-            onDateToChange={setDateToLocal}
-            dateBasisMode={dateBasisMode}
-            onDateBasisModeChange={setDateBasisMode}
-            showDateBasisWarning={dateBasisWarningState.showDateBasisWarning}
-            dateBasisWarningMessage={dateBasisWarningState.dateBasisWarningMessage}
-            candidateCount={metadataLoading ? null : candidateFilterState.count}
-            parseErrors={candidateFilterState.parseErrors}
-            parseWarnings={candidateFilterState.parseWarnings}
-            onClearFilters={handleClearFilters}
-            metadataError={metadataError}
-            selectionHint={selectionHint}
-            hasBuiltStatistics={Boolean(result)}
-            builtShotCount={builtShotCount}
-            builtProfileCount={builtProfileCount}
-            builtDateRangeStartMs={builtDateRange.startMs}
-            builtDateRangeEndMs={builtDateRange.endMs}
-          />
-        </div>
-      </div>
+    <div className='flex flex-col gap-2 lg:gap-3' data-tool='statistics'>
+      <Tile className='z-30 lg:sticky lg:top-3' data-statistics-toolbar-shell>
+        <StatisticsToolbar
+          shotSource={shotSource}
+          onShotSourceChange={setShotSource}
+          profileSource={profileSource}
+          onProfileSourceChange={setProfileSource}
+          mode={mode}
+          onModeChange={setMode}
+          onGo={handleGo}
+          startLoading={preparingRun}
+          loading={loading}
+          metadataLoading={metadataLoading}
+          canGo={canRunStatistics}
+          profileSelectionItems={profileSelectionItems}
+          selectedProfileNames={displayedProfileSelection}
+          onSelectedProfileNamesChange={
+            mode === 'shots' ? handleByShotsProfileSelectionChange : handleProfileSelectionChange
+          }
+          onProfilePinToggle={handleProfilePinToggle}
+          shotSelectionItems={shotSelectionItems}
+          selectedShotKeys={selectedShotKeys}
+          onSelectedShotKeysChange={
+            mode === 'profile' ? handleByProfileShotSelectionChange : handleShotSelectionChange
+          }
+          onShotPinToggle={handleShotPinToggle}
+          query={query}
+          onQueryChange={setQuery}
+          dateFromLocal={dateFromLocal}
+          dateFromPreviewLocal={dateInputPreviewRange.fromLocal}
+          onDateFromChange={setDateFromLocal}
+          dateToLocal={dateToLocal}
+          dateToPreviewLocal={dateInputPreviewRange.toLocal}
+          onDateToChange={setDateToLocal}
+          dateBasisMode={dateBasisMode}
+          onDateBasisModeChange={setDateBasisMode}
+          showDateBasisWarning={dateBasisWarningState.showDateBasisWarning}
+          dateBasisWarningMessage={dateBasisWarningState.dateBasisWarningMessage}
+          candidateCount={metadataLoading ? null : candidateFilterState.count}
+          parseErrors={candidateFilterState.parseErrors}
+          parseWarnings={candidateFilterState.parseWarnings}
+          onClearFilters={handleClearFilters}
+          metadataError={metadataError}
+          selectionHint={selectionHint}
+          hasBuiltStatistics={Boolean(result)}
+          builtShotCount={builtShotCount}
+          builtProfileCount={builtProfileCount}
+          builtDateRangeStartMs={builtDateRange.startMs}
+          builtDateRangeEndMs={builtDateRange.endMs}
+        />
+      </Tile>
 
       {loading && (
-        <div className={`${STATISTICS_PANEL_CLASS} p-6 text-center`}>
-          <div className='mb-2 text-sm font-semibold opacity-70'>
-            {progress.total > 0
-              ? `Analyzing shot ${progress.current} of ${progress.total}...`
-              : 'Preparing statistics...'}
-          </div>
+        <Tile className='items-center text-center' role='status' data-statistics-progress>
           {progress.total > 0 ? (
-            <progress
-              className='progress progress-primary w-full max-w-xs'
-              value={progress.current}
-              max={progress.total}
-            />
+            <>
+              <p className='an-label'>
+                Analyzing shot {progress.current} of {progress.total}
+              </p>
+              <SegmentBar className='w-full max-w-xs' value={progress.current / progress.total} />
+            </>
           ) : (
-            <progress className='progress progress-primary w-full max-w-xs' />
+            <>
+              <Spinner size={8} className='text-(--ink-muted)' />
+              <p className='an-label'>Preparing statistics</p>
+            </>
           )}
-        </div>
+        </Tile>
       )}
 
       {error && (
-        <div className='bg-error/10 border-error/20 rounded-lg border p-4 text-center'>
-          <p className='text-sm text-[var(--danger)]'>{error}</p>
+        <div role='alert' className='bm-notice bm-notice--danger'>
+          {error}
         </div>
       )}
 
       {!error && metadataError && (
-        <div className='bg-warning/10 border-warning/20 rounded-lg border p-4 text-center'>
-          <p className='text-sm text-[var(--warning)]'>{metadataError}</p>
+        <div role='alert' className='bm-notice bm-notice--warning'>
+          {metadataError}
         </div>
       )}
 
       {!loading && result && (
-        <div className='space-y-5'>
+        <>
           <SummaryCards summary={result.summary} />
 
           {statisticsDetailSectionPanel}
 
           {result.summary.totalShots === 0 && (
-            <div className={`${STATISTICS_PANEL_CLASS} p-8 text-center`}>
-              <p className='text-sm opacity-50'>No shots found for the selected filters.</p>
-            </div>
+            <Tile className='items-center text-center'>
+              <p className='bm-help'>No shots found for the selected filters.</p>
+            </Tile>
           )}
-        </div>
+        </>
       )}
 
       {shouldShowEmptyStatisticsState && (

@@ -1,51 +1,42 @@
-import { fmt } from '../utils/format';
-import { StatisticsMetricHeader } from './StatisticsMetricHeader';
-import { STATISTICS_DENSE_VALUE_CLASS, STATISTICS_SMALL_LABEL_CLASS } from './statisticsUi';
+import { cx } from '../../../components/cx.js';
+import { Stat } from '../../../components/StatTile.jsx';
+import { Tile } from '../../../components/Tile.jsx';
+import { fmt, MISSING } from '../utils/format';
 
+// `tone` is the series of the metric, as a segment bar draws it; none is ink.
 const METRIC_ROWS = [
   {
     key: 'w',
     label: 'Weight',
     unit: 'g',
-    colorClass: 'text-[var(--analyzer-weight-text)]',
-    accentColor: 'var(--analyzer-weight-text)',
-    icon: 'scale',
+    tone: 'weight',
     averageDescription: 'Final shot weight average',
   },
   {
     key: 'duration',
     label: 'Duration',
     unit: 's',
-    colorClass: 'text-[var(--statistics-summary-duration)]',
-    accentColor: 'var(--statistics-summary-duration)',
-    icon: 'clock',
     averageDescription: 'Per-shot duration average',
   },
   {
     key: 'tt',
-    label: 'Avg. Target Temperature',
-    unit: '\u2103',
-    colorClass: 'text-[var(--analyzer-target-temp-text)]',
-    accentColor: 'var(--analyzer-target-temp-text)',
-    icon: 'sliders-horizontal',
+    label: 'Target temperature',
+    unit: '°C',
+    tone: 'heat',
     averageDescription: 'Time-weighted average target temperature',
   },
   {
     key: 't',
     label: 'Temperature',
-    unit: '\u2103',
-    colorClass: 'text-[var(--analyzer-temp-text)]',
-    accentColor: 'var(--analyzer-temp-text)',
-    icon: 'thermometer',
+    unit: '°C',
+    tone: 'heat',
     averageDescription: 'Time-weighted average temperature',
   },
   {
     key: 'ttDelta',
-    label: 'Target Temp \u0394',
-    unit: '\u2103',
-    colorClass: 'text-[var(--analyzer-target-temp-text)]',
-    accentColor: 'var(--analyzer-target-temp-text)',
-    icon: 'sliders-horizontal',
+    label: 'Target temperature Δ',
+    unit: '°C',
+    tone: 'heat',
     digits: 2,
     averageDescription: 'Per-shot absolute delta between measured and target average temperature',
   },
@@ -53,68 +44,54 @@ const METRIC_ROWS = [
     key: 'p',
     label: 'Pressure',
     unit: 'bar',
-    colorClass: 'text-[var(--analyzer-pressure-text)]',
-    accentColor: 'var(--analyzer-pressure-text)',
-    icon: 'gauge',
+    tone: 'primary',
     averageDescription: 'Time-weighted average pressure',
   },
   {
     key: 'pPeak',
-    label: 'Avg. Peak Pressure',
+    label: 'Peak pressure',
     unit: 'bar',
-    colorClass: 'text-[var(--analyzer-pressure-text)]',
-    accentColor: 'var(--analyzer-pressure-text)',
-    icon: 'gauge',
+    tone: 'primary',
     averageDescription: 'Average of each shot peak pressure',
   },
   {
     key: 'f',
-    label: 'Pump Flow',
+    label: 'Pump flow',
     unit: 'ml/s',
-    colorClass: 'text-[var(--analyzer-flow-text)]',
-    accentColor: 'var(--analyzer-flow-text)',
-    icon: 'droplet',
+    tone: 'flow',
     averageDescription: 'Time-weighted average flow',
   },
   {
     key: 'water',
-    label: 'Pumped Water',
+    label: 'Pumped water',
     unit: 'ml',
-    colorClass: 'text-[var(--statistics-summary-water)]',
-    accentColor: 'var(--statistics-summary-water)',
-    icon: 'droplet',
+    tone: 'flow',
     averageDescription: 'Per-shot water drawn average',
   },
   {
     key: 'pf',
-    label: 'Puck Flow',
+    label: 'Puck flow',
     unit: 'ml/s',
-    colorClass: 'text-[var(--analyzer-puckflow-text)]',
-    accentColor: 'var(--analyzer-puckflow-text)',
-    icon: 'sliders-horizontal',
+    tone: 'flow',
     averageDescription: 'Time-weighted average puck flow',
   },
   {
     key: 'pr',
-    label: 'Puck Resistance',
-    unit: 's·√bar/mL',
-    colorClass: 'text-[var(--analyzer-puckresistance-text)]',
-    accentColor: 'var(--analyzer-puckresistance-text)',
-    icon: 'gauge',
+    label: 'Puck resistance',
+    unit: 's·√bar/ml',
     averageDescription: 'Time-weighted average puck resistance',
     requiresData: true,
   },
   {
     key: 'lr',
-    label: 'Liquid Resistance',
-    unit: 'bar·s/mL',
-    colorClass: 'text-[var(--analyzer-liquidresistance-text)]',
-    accentColor: 'var(--analyzer-liquidresistance-text)',
-    icon: 'gauge',
+    label: 'Liquid resistance',
+    unit: 'bar·s/ml',
     averageDescription: 'Time-weighted average liquid resistance',
     requiresData: true,
   },
 ];
+
+const RANGE_SEGMENTS = 24;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -122,31 +99,12 @@ function clamp(value, min, max) {
 
 function formatMetricValue(value, row) {
   const formatted = fmt(value, row.digits);
-  if (formatted === '-') return formatted;
+  if (formatted === MISSING) return formatted;
   return `${row.avgPrefix || ''}${formatted}`;
 }
 
-function getSpreadRatio(metric) {
-  if (!metric) return 0;
-  const stdDev = Number(metric.stdDev);
-  const min = Number(metric.min);
-  const max = Number(metric.max);
-  if (!Number.isFinite(stdDev) || stdDev <= 0) return 0;
-
-  const range = max - min;
-  if (Number.isFinite(range) && range > 0) {
-    return clamp(stdDev / range, 0, 1);
-  }
-
-  const avg = Math.abs(Number(metric.avg));
-  if (Number.isFinite(avg) && avg > 0) {
-    return clamp(stdDev / avg, 0, 1);
-  }
-
-  return 0;
-}
-
-function getMetricPositions(metric) {
+// Where the average and the band of one standard deviation sit between min and max, in segments.
+function getRangeSegments(metric) {
   const min = Number(metric?.min);
   const max = Number(metric?.max);
   const avg = Number(metric?.avg);
@@ -154,94 +112,68 @@ function getMetricPositions(metric) {
   const range = max - min;
 
   if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(avg) || range <= 0) {
-    return {
-      avgPos: 50,
-      stdStart: 50,
-      stdWidth: 0,
-      hasRange: false,
-    };
+    return null;
   }
 
-  const avgPos = clamp(((avg - min) / range) * 100, 0, 100);
-  const low = clamp(((avg - stdDev - min) / range) * 100, 0, 100);
-  const high = clamp(((avg + stdDev - min) / range) * 100, 0, 100);
+  const toSegment = value =>
+    clamp(Math.round(((value - min) / range) * (RANGE_SEGMENTS - 1)), 0, RANGE_SEGMENTS - 1);
 
   return {
-    avgPos,
-    stdStart: low,
-    stdWidth: Math.max(0, high - low),
-    hasRange: true,
+    average: toSegment(avg),
+    from: stdDev > 0 ? toSegment(avg - stdDev) : -1,
+    to: stdDev > 0 ? toSegment(avg + stdDev) : -1,
   };
 }
 
-function MetricRangeViz({ row, metric }) {
-  const spreadRatio = getSpreadRatio(metric);
-  const positions = getMetricPositions(metric);
-  const stdBandPct = Math.round(14 + spreadRatio * 26);
+/**
+ * The spread of a metric between its lowest and highest shot: the lit run is one standard
+ * deviation either side of the average, and the ink mark above the row is the average.
+ */
+function MetricRange({ row, metric }) {
+  const segments = getRangeSegments(metric);
+  const low = fmt(metric.min, row.digits);
+  const high = fmt(metric.max, row.digits);
 
   return (
-    <div className='app-card-surface flex h-full min-h-[11rem] flex-col rounded-xl p-3 transition-colors'>
-      <StatisticsMetricHeader
-        accentColor={row.accentColor}
-        icon={row.icon}
-        label={row.label}
-        unit={row.unit}
-        value={formatMetricValue(metric.avg, row)}
-      />
-
+    <div className='flex flex-col gap-1'>
       <div
-        className='mt-3 rounded-lg px-3 py-2'
-        style={{
-          background: 'var(--statistics-summary-surface-strong)',
-        }}
+        className={cx('bm-segbar bm-segbar--fill st-range', row.tone && `bm-segbar--${row.tone}`)}
+        role='img'
+        aria-label={`${row.label}: lowest ${low}, highest ${high}, standard deviation ${fmt(metric.stdDev, row.digits)} ${row.unit}`}
       >
-        <div className='flex items-center justify-between gap-2'>
-          <div className={STATISTICS_SMALL_LABEL_CLASS}>Range</div>
-          <div className='text-right'>
-            <div className='text-[10px] text-[var(--ink-muted)]'>Std Dev</div>
-            <div className={`text-xs ${STATISTICS_DENSE_VALUE_CLASS}`}>
-              {fmt(metric.stdDev, row.digits)}
-            </div>
-          </div>
-        </div>
-
-        <div className='mt-2 flex items-center gap-2'>
-          <div className={`shrink-0 text-[11px] opacity-65 ${STATISTICS_DENSE_VALUE_CLASS}`}>
-            {fmt(metric.min, row.digits)}
-          </div>
-          <div className='relative h-5 min-w-0 flex-1'>
-            <div className='bg-base-content/20 absolute top-1/2 right-0 left-0 h-px -translate-y-1/2' />
-            <div className='bg-base-content/30 absolute top-1/2 left-0 h-2 w-px -translate-y-1/2' />
-            <div className='bg-base-content/30 absolute top-1/2 right-0 h-2 w-px -translate-y-1/2' />
-            {positions.hasRange && positions.stdWidth > 0 && (
-              <div
-                className='absolute top-1/2 h-2 -translate-y-1/2 rounded-full'
-                style={{
-                  left: `${positions.stdStart}%`,
-                  width: `${positions.stdWidth}%`,
-                  background: `color-mix(in srgb, ${row.accentColor} ${stdBandPct}%, transparent)`,
-                  border: `1px solid color-mix(in srgb, ${row.accentColor} ${Math.min(
-                    42,
-                    stdBandPct + 10,
-                  )}%, transparent)`,
-                }}
-              />
-            )}
-            <div
-              className='absolute top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full'
-              style={{
-                left: `calc(${positions.avgPos}% - 1px)`,
-                backgroundColor: row.accentColor,
-                outline: `2px solid color-mix(in srgb, ${row.accentColor} 18%, transparent)`,
-              }}
-            />
-          </div>
-          <div className={`shrink-0 text-[11px] opacity-65 ${STATISTICS_DENSE_VALUE_CLASS}`}>
-            {fmt(metric.max, row.digits)}
-          </div>
-        </div>
+        {Array.from({ length: RANGE_SEGMENTS }, (_, index) => (
+          <i
+            key={index}
+            className={
+              cx(
+                segments && index >= segments.from && index <= segments.to && 'on',
+                segments && index === segments.average && 'target',
+              ) || undefined
+            }
+          />
+        ))}
+      </div>
+      <div className='an-tick flex items-baseline justify-between gap-2'>
+        <span>{low}</span>
+        <span>± {fmt(metric.stdDev, row.digits)}</span>
+        <span>{high}</span>
       </div>
     </div>
+  );
+}
+
+function MetricTile({ row, metric }) {
+  return (
+    <Tile title={undefined} data-statistics-metric={row.key}>
+      <Stat
+        label={row.label}
+        value={formatMetricValue(metric.avg, row)}
+        unit={row.unit}
+        size='sm'
+      />
+      <MetricRange row={row} metric={metric} />
+      <p className='an-caption'>{row.averageDescription}</p>
+    </Tile>
   );
 }
 
@@ -249,16 +181,14 @@ export function MetricsTable({ metrics }) {
   if (!metrics || Object.keys(metrics).length === 0) return null;
 
   return (
-    <div>
-      <div className='grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'>
-        {METRIC_ROWS.map(row => {
-          const metric = metrics[row.key];
-          if (!metric) return null;
-          const count = Number(metric.count);
-          if (row.requiresData && (Number.isNaN(count) || count <= 0)) return null;
-          return <MetricRangeViz key={row.key} row={row} metric={metric} />;
-        })}
-      </div>
+    <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-3 lg:gap-3'>
+      {METRIC_ROWS.map(row => {
+        const metric = metrics[row.key];
+        if (!metric) return null;
+        const count = Number(metric.count);
+        if (row.requiresData && (Number.isNaN(count) || count <= 0)) return null;
+        return <MetricTile key={row.key} row={row} metric={metric} />;
+      })}
     </div>
   );
 }
