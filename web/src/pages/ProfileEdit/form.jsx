@@ -68,11 +68,28 @@ export function FormField({ id, label, help, unit, multiline = false, className,
   const error = useContext(Errors)[id];
   const Control = multiline ? Textarea : Input;
 
+  // A number is typed through texts that are not that number yet: '18.' on its way to '18.5', an
+  // empty field on its way to a new value. While the field has focus it shows what was typed and
+  // not what the form made of it, which would take the point away and move the caret. The form's
+  // value shows again when focus leaves. Kept by id: one field serves each phase in turn.
+  const [typed, setTyped] = useState(null);
+  const keepsText = !multiline && props.type === 'number';
+  const draft = keepsText && typed?.id === id ? typed.text : null;
+
   return (
     <Field label={label} htmlFor={id} help={error ? undefined : help} className={className}>
       <Control
         {...props}
         id={id}
+        value={draft ?? props.value}
+        onInput={event => {
+          if (keepsText) setTyped({ id, text: event.target.value });
+          props.onInput?.(event);
+        }}
+        onBlur={event => {
+          if (keepsText) setTyped(null);
+          props.onBlur?.(event);
+        }}
         unit={multiline ? undefined : unit}
         aria-invalid={error ? 'true' : undefined}
         aria-describedby={error ? `${id}-error` : undefined}

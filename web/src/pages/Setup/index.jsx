@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { Button } from '../../components/Button.jsx';
 import { Chip } from '../../components/Chip.jsx';
@@ -238,6 +238,9 @@ export function Setup() {
     route('/', true);
   };
 
+  // Stable, so the wait for the machine keeps its clock when this page draws again.
+  const showConnected = useCallback(() => setStep(3), []);
+
   const save = () => {
     const body = new FormData();
     body.append('wifiSsid', ssid.trim());
@@ -269,7 +272,7 @@ export function Setup() {
           />
         )}
         {step === 2 && (
-          <JoiningStep ssid={ssid.trim()} hostname={hostname} onReconnected={() => setStep(3)} />
+          <JoiningStep ssid={ssid.trim()} hostname={hostname} onReconnected={showConnected} />
         )}
         {step === 3 && <ConnectedStep ssid={ssid.trim()} hostname={hostname} onFinish={leave} />}
       </div>
