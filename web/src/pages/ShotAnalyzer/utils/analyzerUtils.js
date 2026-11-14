@@ -7,9 +7,6 @@ export {
   MAX_AUTO_DETECTED_DOSE_GRAMS,
   TIMESTAMP_SECONDS_THRESHOLD,
   groups,
-  utilityColors,
-  analyzerUiColors,
-  getNotesTasteStyle,
   groupColors,
 } from './constants';
 

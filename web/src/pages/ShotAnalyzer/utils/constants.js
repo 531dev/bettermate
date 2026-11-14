@@ -43,37 +43,6 @@ export const groups = {
   system: 'System Info',
 };
 
-// Transitional: callers that still import these read plain tokens. Warnings are `warning`
-// notices and Chips, a stop is a fact in ink, and a source is told by its glyph and word.
-export const utilityColors = {
-  stopRed: 'var(--analyzer-stop)',
-  warningOrange: 'var(--warning)',
-};
-
-export const analyzerUiColors = {
-  warningOrange: 'var(--warning)',
-  warningOrangeStrong: 'var(--warning)',
-  sourceBadgeGmBg: 'var(--surface-2)',
-  sourceBadgeGmBorder: 'var(--line)',
-  sourceBadgeGmText: 'var(--ink-muted)',
-  sourceBadgeWebBg: 'var(--surface-2)',
-  sourceBadgeWebBorder: 'var(--line)',
-  sourceBadgeWebText: 'var(--ink)',
-  brewByTimeLabelBg: 'var(--surface-2)',
-  brewByTimeLabelBorder: 'var(--line)',
-  brewByTimeLabelText: 'var(--ink-muted)',
-  brewByWeightLabelBg: 'var(--surface-2)',
-  brewByWeightLabelBorder: 'var(--line)',
-  brewByWeightLabelText: 'var(--ink-muted)',
-  notesTasteBitter: 'var(--ink)',
-  notesTasteBalanced: 'var(--ink)',
-  notesTasteSour: 'var(--ink)',
-  phaseLine: 'var(--analyzer-phase)',
-  stopLabel: 'var(--analyzer-stop)',
-};
-
-export const getNotesTasteStyle = () => null;
-
 // The mark colour of each column group: a series token, or neutral ink for facts.
 export const groupColors = {
   basics: { anchor: 'var(--ink-muted)' },
