@@ -137,7 +137,7 @@ function ShotMediaExportMenu({
           <Button size='sm' onClick={onCloseExportMenu}>
             Cancel
           </Button>
-          <Button size='sm' variant='primary' onClick={onExportAction}>
+          <Button size='sm' variant='ink' onClick={onExportAction}>
             Export
           </Button>
         </div>

@@ -21,9 +21,7 @@ export default function PumpFlowCalibration({ currentCoeffs, onApplied }) {
 
       {logs.length > 0 && <LogPanel logs={logs} />}
 
-      {phase === PHASE.DONE && results && (
-        <ResultsPanel results={results} currentCoeffs={currentCoeffs} />
-      )}
+      {phase === PHASE.DONE && results && <ResultsPanel results={results} />}
 
       <Footer
         phase={phase}

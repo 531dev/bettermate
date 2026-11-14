@@ -126,6 +126,7 @@
 /* Profiles: SortableJS and the drag handlers name these classes for the dragged rows and the
    drop target. */
 .profile-list-drag-selected-item {
+  border-radius: var(--radius-md);
   outline: var(--outline) solid var(--focus);
   outline-offset: -2px;
 }

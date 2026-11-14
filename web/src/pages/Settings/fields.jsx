@@ -97,16 +97,14 @@ export function SelectField({ id, label, help, children, ...select }) {
 }
 
 /**
- * A choice of two or three, across the tile's width. The items keep 8px beside their word instead
- * of the recipe's 16px, so three of them still fit the tile of a 320px phone; with room to spare
- * they share the width as before.
+ * A choice of two or three, across the tile's width.
  *   name      names the group for screen readers when `label` is not plain text
  *   children  follow the help, such as a link
  */
 export function SegmentedField({ label, name, help, className, children, ...segmented }) {
   return (
     <Field label={label} as='div' className={className}>
-      <Segmented block label={name ?? label} className='*:px-2' {...segmented} />
+      <Segmented block label={name ?? label} {...segmented} />
       {help && <span className='bm-help block'>{help}</span>}
       {children}
     </Field>

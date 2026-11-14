@@ -824,6 +824,14 @@
   background: var(--ink);
   color: var(--on-ink);
 }
+/* Items that share the width need no room beside their word, and three of them still fit the
+   tile of a 320px phone. A word too long for its share is cut at the item's edge; give it
+   `truncate` in a span to end it with an ellipsis. */
+.bm-seg--block .bm-seg__item {
+  min-width: 0;
+  padding: 0 8px;
+  overflow: hidden;
+}
 /* More items than the row holds: the track scrolls sideways instead of wrapping. */
 .bm-seg--scroll {
   max-width: 100%;
@@ -835,6 +843,27 @@
 }
 .bm-seg--scroll .bm-seg__item {
   flex-shrink: 0;
+}
+
+/* A tile's head keeps its title on one line: an end too wide to sit beside it (a long Chip on a
+   phone) moves under it. */
+.bm-tile__head {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+/* A reading's target and a stepper's value are one word each: '/ 145', '136 px'. */
+.bm-stat__target,
+.bm-stepper__value {
+  white-space: nowrap;
+}
+
+/* A phase name too long for its bar ends in an ellipsis. The name is a flex row (check, word), so
+   the word carries the cut itself: `.bm-stages__name > span`. */
+.bm-stages__name > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Dial: ticks recolour in duration-fast. The reading snaps. */
@@ -952,6 +981,16 @@ button.bm-item {
 }
 .bm-input--group > input::placeholder {
   color: var(--ink-faint);
+}
+
+/* A number beside its unit has no spin buttons between the two; the arrow keys still step it. */
+.bm-input--group > input[type='number'] {
+  appearance: textfield;
+}
+.bm-input--group > input[type='number']::-webkit-inner-spin-button,
+.bm-input--group > input[type='number']::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
 }
 
 /* Checkbox and radio: a native input over a drawn box. Checked is an ink fill with on-ink. */

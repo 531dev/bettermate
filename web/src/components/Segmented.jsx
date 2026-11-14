@@ -3,7 +3,8 @@ import { Icon } from './Icon.jsx';
 
 /**
  * A pill-shaped choice of two or three that applies at once. The selected item is ink.
- *   options   [{ value, label, icon?, disabled? }], or plain strings
+ *   options   [{ value, label, icon?, disabled?, title? }], or plain strings; `title` is the
+ *             item's hover hint
  *   value, onChange(value)
  *   label     names the group for screen readers
  *   block     the items share the full width
@@ -34,6 +35,7 @@ export function Segmented({
             type='button'
             className='bm-seg__item'
             aria-pressed={selected}
+            title={item.title}
             disabled={disabled || item.disabled}
             onClick={() => !selected && onChange?.(item.value)}
           >

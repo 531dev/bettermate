@@ -75,17 +75,28 @@ const hasWeight = status => !!(status.volumetricAvailable && status.brewTarget);
 
 const shotTick = (value, index) => (index ? value : `${value} s`);
 
-const clock = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' });
-// 9:41 on the minute and :15 between, so the strip reads like a clock.
-function clockTick(ms) {
+// One formatter per clock: the locale's own, 12-hour and 24-hour.
+const clocks = {};
+function clockFor(hour12) {
+  const key = hour12 == null ? 'locale' : hour12 ? 'h12' : 'h23';
+  clocks[key] ??= new Intl.DateTimeFormat([], {
+    hour: 'numeric',
+    minute: '2-digit',
+    ...(hour12 == null ? {} : { hourCycle: key }),
+  });
+  return clocks[key];
+}
+// 9:41 on the minute and :15 between, so the strip reads like a clock. `hour12` is the machine's
+// clock setting: false reads 21:41, true 9:41, and left out the browser's locale decides.
+function clockTick(ms, hour12) {
   const date = new Date(ms);
   if (date.getSeconds()) return `:${String(date.getSeconds()).padStart(2, '0')}`;
-  const parts = clock.formatToParts(date);
+  const parts = clockFor(hour12).formatToParts(date);
   const part = type => parts.find(p => p.type === type)?.value;
   return `${part('hour')}:${part('minute')}`;
 }
 
-function createLiveChart(withWeight) {
+function createLiveChart(withWeight, clockSetting) {
   // `points` are the arrays the chart draws; a reading is pushed onto each and nothing else changes.
   const tracks = LINES.filter(track => withWeight || track.series !== 'weight').map(track => ({
     ...track,
@@ -204,7 +215,8 @@ function createLiveChart(withWeight) {
     } else {
       Object.assign(scales.x, { min: view.start, max: view.start + STRIP });
       scales.x.ticks.stepSize = STRIP_STEP;
-      scales.x.ticks.callback = value => clockTick(view.origin + value * 1000);
+      scales.x.ticks.callback = value =>
+        clockTick(view.origin + value * 1000, clockSetting.current);
     }
 
     // The value axes hold everything on the chart, so they only change when a reading leaves them.
@@ -229,14 +241,26 @@ function createLiveChart(withWeight) {
   return { config, sync };
 }
 
-export function OverviewChart() {
+/**
+ * The live chart of the machine's readings.
+ *   hour12  the clock of the strip's ticks between shots: false for 24-hour, true for 12-hour;
+ *           left out, the browser's locale decides
+ */
+export function OverviewChart({ hour12 }) {
   const [withWeight, setWithWeight] = useState(() => hasWeight(machine.peek().status));
+  // Read by the tick callback each time it draws, so a changed setting needs no new chart.
+  const clockSetting = useRef(hour12);
+  clockSetting.current = hour12;
   const live = useMemo(() => {
-    const created = createLiveChart(withWeight);
+    const created = createLiveChart(withWeight, clockSetting);
     created.sync(machine.peek());
     return created;
   }, [withWeight]);
   const chart = useRef(null);
+
+  useEffect(() => {
+    chart.current?.update('none');
+  }, [hour12]);
 
   // Readings reach the chart here, without rendering this component again.
   useEffect(

@@ -46,10 +46,15 @@ const RedirectTo = to =>
     return null;
   };
 
+// Setup covers the whole window until it is done, so the shell's own controls are left out there:
+// nothing behind the page can take focus, a key press or a screen reader's cursor.
+const coversShell = path => path === '/setup' || path === '/setup/';
+
 // The shell stays while pages change: the navigation (a sidebar tile from 1024px, the top bar's
 // menu below that), the scrolling page, and the mode bar floating over its bottom edge.
 function Shell() {
   const { path } = useLocation();
+  const bare = coversShell(path);
   const [navOpen, setNavOpen] = useState(false);
   const closeNav = useCallback(() => setNavOpen(false), []);
 
@@ -63,16 +68,18 @@ function Shell() {
 
   return (
     <>
-      <a
-        href='#main'
-        className='bm-btn bm-btn--primary sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-90'
-      >
-        Skip to content
-      </a>
+      {!bare && (
+        <a
+          href='#main'
+          className='bm-btn bm-btn--primary sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-90'
+        >
+          Skip to content
+        </a>
+      )}
       <div className='flex h-dvh overflow-hidden'>
-        <Navigation open={navOpen} onClose={closeNav} />
+        {!bare && <Navigation open={navOpen} onClose={closeNav} />}
         <div className='relative flex min-w-0 flex-1 flex-col' inert={navOpen}>
-          <AppBar onOpenNav={() => setNavOpen(true)} navOpen={navOpen} />
+          {!bare && <AppBar onOpenNav={() => setNavOpen(true)} navOpen={navOpen} />}
           <main
             id='main'
             tabIndex={-1}
@@ -109,7 +116,7 @@ function Shell() {
               </div>
             </div>
           </main>
-          <ModeBar />
+          {!bare && <ModeBar />}
         </div>
       </div>
     </>

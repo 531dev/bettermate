@@ -39,7 +39,7 @@ export function PhaseTabs({ phases, current, onSelect }) {
           role='tab'
           id={`tab-${index}`}
           aria-selected={index === current}
-          aria-controls={`panel-${index}`}
+          aria-controls={index === current ? `panel-${index}` : undefined}
           className='bm-seg__item'
           onClick={() => onSelect(index)}
         >

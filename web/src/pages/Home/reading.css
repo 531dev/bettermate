@@ -1,7 +1,7 @@
 /* A reading in a narrow tile, such as one of two to a row on a phone: the unit stays raised and
    the target sits under it, at the foot of the numeral. `140.7 °C / 145` and `2.1 ml/s / 4.0`
    then hold beside the numeral instead of breaking the target in two. A wider tile keeps the
-   recipe's one line. Tokens and the recipe's own metrics only; a candidate for `bm-stat`. */
+   recipe's one line. Tokens and the recipe's own metrics only. */
 .home-reading {
   container-type: inline-size;
 }
@@ -23,6 +23,5 @@
     grid-row: 2;
     grid-column: 2;
     margin-bottom: 3px;
-    white-space: nowrap;
   }
 }

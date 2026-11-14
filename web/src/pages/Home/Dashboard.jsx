@@ -70,13 +70,13 @@ function Reading({ stat, className }) {
   );
 }
 
-function ChartTile({ title, className, tall }) {
+function ChartTile({ title, className, tall, hour12 }) {
   return (
     <Tile aria-label='Live chart' title={title} className={className}>
       <div
         className={cx('flex h-64 min-h-0 flex-col', tall ? 'lg:h-[min(60dvh,520px)]' : 'lg:h-72')}
       >
-        <OverviewChart />
+        <OverviewChart hour12={hour12} />
       </div>
     </Tile>
   );
@@ -174,6 +174,7 @@ export function Dashboard({ view: mode }) {
       <ChartTile
         tall
         title={chartTitle}
+        hour12={hour12}
         // Beside the controls the chart stays in sight while they scroll.
         className={cx(ROW, 'lg:sticky lg:top-3 lg:col-span-7 lg:self-start')}
       />
@@ -250,7 +251,9 @@ export function Dashboard({ view: mode }) {
             className={cx(ROW_BELOW_DESKTOP, CURVE)}
           />
         )}
-        {showChart && <ChartTile title={chartTitle} className={cx(ROW_BELOW_DESKTOP, CHART)} />}
+        {showChart && (
+          <ChartTile title={chartTitle} hour12={hour12} className={cx(ROW_BELOW_DESKTOP, CHART)} />
+        )}
         <RecentShots
           recent={recent}
           // Simple keeps the list to the last three.

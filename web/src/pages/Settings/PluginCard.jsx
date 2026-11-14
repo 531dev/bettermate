@@ -106,7 +106,7 @@ export function WakeSchedules({ schedules, onAdd, onRemove, onTimeChange, onDayC
                 <button
                   key={day}
                   type='button'
-                  className='bm-seg__item min-w-0 px-0'
+                  className='bm-seg__item px-0'
                   aria-pressed={!!schedule.days[dayIndex]}
                   aria-label={day}
                   title={day}

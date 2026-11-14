@@ -1,42 +1,43 @@
+import { Button } from '../Button.jsx';
 import { Spinner } from '../Spinner.jsx';
-import { PrimaryButton, SecondaryButton } from './Buttons.jsx';
 import { PHASE } from './constants.js';
 
+// A calibration run is a secondary action of its tile: the page's one primary Button is Save.
 export default function Footer({ phase, saving, saved, connected, onClose, onStart, onApply }) {
   return (
     <div className='flex flex-wrap justify-end gap-2'>
       {phase === PHASE.IDLE && (
         <>
-          <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
-          <PrimaryButton
+          <Button onClick={onClose}>Cancel</Button>
+          <Button
             onClick={onStart}
             disabled={!connected}
             title={connected ? undefined : 'Not connected to the machine'}
           >
             Start calibration
-          </PrimaryButton>
+          </Button>
         </>
       )}
       {(phase === PHASE.RUNNING || phase === PHASE.ANALYZING) && (
-        <PrimaryButton disabled>
+        <Button disabled>
           <Spinner size={4} />
           {phase === PHASE.RUNNING ? 'Running shot' : 'Analyzing'}
-        </PrimaryButton>
+        </Button>
       )}
       {phase === PHASE.DONE && !saved && (
         <>
-          <SecondaryButton onClick={onClose}>Discard</SecondaryButton>
-          <PrimaryButton onClick={onApply} disabled={saving}>
+          <Button onClick={onClose}>Discard</Button>
+          <Button onClick={onApply} disabled={saving}>
             {saving && <Spinner size={4} />}
             {saving ? 'Saving' : 'Save to machine'}
-          </PrimaryButton>
+          </Button>
         </>
       )}
-      {phase === PHASE.DONE && saved && <PrimaryButton onClick={onClose}>Done</PrimaryButton>}
+      {phase === PHASE.DONE && saved && <Button onClick={onClose}>Done</Button>}
       {phase === PHASE.ERROR && (
         <>
-          <SecondaryButton onClick={onClose}>Back</SecondaryButton>
-          <PrimaryButton onClick={onStart}>Retry</PrimaryButton>
+          <Button onClick={onClose}>Back</Button>
+          <Button onClick={onStart}>Retry</Button>
         </>
       )}
     </div>

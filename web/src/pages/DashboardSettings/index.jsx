@@ -123,7 +123,7 @@ export function DashboardSettings() {
             help='For a profile that sets a pressure or a flow.'
           >
             <Stepper
-              value={<span className='whitespace-nowrap'>{curveHeight} px</span>}
+              value={`${curveHeight} px`}
               onDecrease={() => changeCurveHeight(curveHeight - PROFILE_CHART_HEIGHT.STEP)}
               onIncrease={() => changeCurveHeight(curveHeight + PROFILE_CHART_HEIGHT.STEP)}
               canDecrease={curveHeight > PROFILE_CHART_HEIGHT.MIN}

@@ -1,3 +1,4 @@
+import { forwardRef } from 'preact/compat';
 import { cx } from './cx.js';
 
 /**
@@ -11,18 +12,22 @@ import { cx } from './cx.js';
  *   iconOnly  a round button holding one Icon; give it an aria-label
  *   block     full width
  *   href      renders a link
+ * A ref reaches the button or the link, for a Popover's anchor or to return focus.
  */
-export function Button({
-  variant,
-  size,
-  iconOnly = false,
-  block = false,
-  href,
-  type = 'button',
-  className,
-  children,
-  ...rest
-}) {
+export const Button = forwardRef(function Button(
+  {
+    variant,
+    size,
+    iconOnly = false,
+    block = false,
+    href,
+    type = 'button',
+    className,
+    children,
+    ...rest
+  },
+  ref,
+) {
   const classes = cx(
     'bm-btn',
     variant && `bm-btn--${variant}`,
@@ -33,12 +38,12 @@ export function Button({
   );
 
   return href ? (
-    <a {...rest} href={href} className={classes}>
+    <a {...rest} ref={ref} href={href} className={classes}>
       {children}
     </a>
   ) : (
-    <button {...rest} type={type} className={classes}>
+    <button {...rest} ref={ref} type={type} className={classes}>
       {children}
     </button>
   );
-}
+});

@@ -26,7 +26,7 @@ export function StageTrack({ stages, className, ...rest }) {
             </div>
             <span className='bm-stages__name'>
               {done && <Icon name='check' size={14} />}
-              {stage.name}
+              <span>{stage.name}</span>
             </span>
           </div>
         );

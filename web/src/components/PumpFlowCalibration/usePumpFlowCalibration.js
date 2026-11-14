@@ -27,7 +27,7 @@ import { CALIBRATION_PROFILE, CALIBRATION_PROFILE_ID } from './profile.js';
  * Returns:
  * - phase: PHASE — current state (use the exported PHASE enum to compare)
  * - logs: Array<{ key, msg, tone }> — append-only progress log
- * - results: { oneBar, nineBar, newCoeffs } | null — populated when phase is DONE
+ * - results: { oneBar, nineBar, newCoeffs, previousCoeffs } | null — populated when phase is DONE
  * - saving: boolean — true while POST /api/settings is in flight
  * - saved: boolean — true after a successful save
  * - busy: boolean — convenience: phase === RUNNING || ANALYZING
@@ -230,7 +230,7 @@ export function usePumpFlowCalibration({ currentCoeffs, onApplied }) {
       const oneBar = analyze(shot.samples, 1);
       const nineBar = analyze(shot.samples, 9);
       const newCoeffs = `${(c1 * oneBar.factor).toFixed(3)},${(c9 * nineBar.factor).toFixed(3)}`;
-      setResults({ oneBar, nineBar, newCoeffs });
+      setResults({ oneBar, nineBar, newCoeffs, previousCoeffs: currentCoeffs });
 
       pushLog('Analysis complete.', 'ok');
       setPhase(PHASE.DONE);

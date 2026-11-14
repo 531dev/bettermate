@@ -40,7 +40,8 @@ export default function TabBar({ tabs, activeTab, onTabChange, basePath, classNa
             onTouchStart={() => tab.preload?.()}
             role='tab'
             aria-selected={isActive}
-            aria-controls={`panel-${tab.id}`}
+            // Only the selected tab's panel is on the page.
+            aria-controls={isActive ? `panel-${tab.id}` : undefined}
             id={`tab-${tab.id}`}
             className='bm-seg__item'
           >
