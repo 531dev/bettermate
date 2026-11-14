@@ -168,17 +168,27 @@ function ScaleList({ waiting, failed, scaleData, onConnect }) {
     <>
       <List>
         {scaleData.map(scale => {
-          const battery =
-            scale.connected && scale.hasBattery && typeof scale.battery === 'number'
-              ? ` · ${scale.battery}%`
-              : '';
+          const hasBattery =
+            scale.connected && scale.hasBattery && typeof scale.battery === 'number';
           return (
             <ListRow
               key={scale.uuid}
               icon='scale'
               current={!!scale.connected}
               title={scale.name || 'Unknown scale'}
-              meta={`${scale.uuid}${battery}`}
+              meta={
+                // The battery follows the address on one line where the row has the width, and
+                // takes a line of its own on a phone, where the row would cut it off.
+                <>
+                  {scale.uuid}
+                  {hasBattery && (
+                    <span className='block sm:inline'>
+                      <span className='hidden sm:inline'> · </span>
+                      Battery {scale.battery}%
+                    </span>
+                  )}
+                </>
+              }
               end={
                 scale.connected ? (
                   <Chip tone='success' dot>

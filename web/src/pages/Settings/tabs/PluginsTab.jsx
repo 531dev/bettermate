@@ -71,25 +71,28 @@ export function PluginsTab({
         checked={formData.boilerFillActive}
         onChange={onChange('boilerFillActive')}
       >
-        <div className='grid grid-cols-2 gap-3'>
-          <TextField
-            id='startupFillTime'
-            label='On startup'
-            unit='s'
-            type='number'
-            placeholder='0'
-            value={formData.startupFillTime}
-            onChange={onChange('startupFillTime')}
-          />
-          <TextField
-            id='steamFillTime'
-            label='On steam deactivate'
-            unit='s'
-            type='number'
-            placeholder='0'
-            value={formData.steamFillTime}
-            onChange={onChange('steamFillTime')}
-          />
+        {/* Side by side from 288px of tile; narrower, the second label would wrap and its input drop. */}
+        <div className='@container'>
+          <div className='grid grid-cols-1 gap-3 @2xs:grid-cols-2'>
+            <TextField
+              id='startupFillTime'
+              label='On startup'
+              unit='s'
+              type='number'
+              placeholder='0'
+              value={formData.startupFillTime}
+              onChange={onChange('startupFillTime')}
+            />
+            <TextField
+              id='steamFillTime'
+              label='On steam deactivate'
+              unit='s'
+              type='number'
+              placeholder='0'
+              value={formData.steamFillTime}
+              onChange={onChange('steamFillTime')}
+            />
+          </div>
         </div>
       </PluginCard>
 

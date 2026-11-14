@@ -387,15 +387,10 @@ export function SystemTab() {
     return <SystemTabSkeleton />;
   }
 
-  const updateAvailable = formData.displayUpdateAvailable || formData.controllerUpdateAvailable;
-
   return (
     <div className={TILE_GRID}>
-      <Tile
-        title='System version & updates'
-        end={updateAvailable && <Chip>Update available</Chip>}
-        className='@container md:row-span-2'
-      >
+      {/* An update is named in its version cell; a Chip beside this title would wrap it on a phone. */}
+      <Tile title='System version & updates' className='@container md:row-span-2'>
         <form onSubmit={onSubmit} className='flex flex-col gap-3'>
           <SegmentedField
             label='Update channel'
