@@ -1,10 +1,13 @@
-import { Icon } from '../../../../components/Icon.jsx';
 /**
  * ColumnControls.jsx
- * UI component to toggle specific columns in the analysis table.
+ * Which columns the analysis table shows: the standard set, presets, and every column by group.
  */
 
 import { useState, useEffect } from 'preact/hooks';
+import { Button } from '../../../../components/Button.jsx';
+import { Checkbox, Select } from '../../../../components/Field.jsx';
+import { Icon } from '../../../../components/Icon.jsx';
+import { Cell } from '../../../../components/Tile.jsx';
 import {
   ANALYZER_DB_KEYS,
   groups,
@@ -15,36 +18,15 @@ import {
   saveToStorage,
   loadFromStorage,
 } from '../../utils/analyzerUtils';
+import { IconButton } from '../../ui/IconButton.jsx';
 import { getAnalyzerGroupCardVisuals } from './analyzerGroupVisuals';
-import {
-  ANALYZER_ACTION_GROUP_CLASSES,
-  ANALYZER_ACTION_ICON_BUTTON_CLASS,
-  ANALYZER_ACTION_ICON_CLASS,
-  ANALYZER_ACTION_ICON_STYLE,
-  getAnalyzerIconButtonClasses,
-  getAnalyzerSurfaceTriggerClasses,
-  getAnalyzerTextButtonClasses,
-} from '../analyzerControlStyles';
 
 const BUILT_IN_PRESET_IDS = {
   ALL_METRICS: 'ALL_METRICS',
   SYSTEM_INFO: 'SYSTEM_INFO',
 };
 
-const TABLE_TOOLBAR_TEXT_BUTTON_CLASS =
-  'h-8 min-h-0 px-3 text-sm font-normal tracking-normal normal-case !text-base-content/75 hover:!text-primary';
-const TABLE_TOOLBAR_SELECT_CLASS =
-  'h-8 min-h-0 w-[7rem] max-w-[7rem] appearance-none border-0 bg-transparent px-3 pr-7 text-sm font-normal tracking-normal normal-case  outline-none !text-base-content/75 hover:!text-primary';
-const COLUMN_GROUP_HEADER_CLASS =
-  'border-base-content/10 text-base-content col-span-2 mb-1.5 border-b pb-1 text-xs leading-tight font-medium tracking-normal normal-case';
-const COLUMN_OPTION_TEXT_CLASS = 'text-base-content/90 leading-tight font-medium tracking-normal';
-
-export function ColumnControls({
-  activeColumns,
-  onColumnsChange,
-  isIntegrated = false,
-  headerChildren = null,
-}) {
+export function ColumnControls({ activeColumns, onColumnsChange, headerChildren = null }) {
   const [expanded, setExpanded] = useState(false);
   const [presets, setPresets] = useState([]);
   const [selectedPresetId, setSelectedPresetId] = useState('');
@@ -124,9 +106,9 @@ export function ColumnControls({
    */
   const getDetailedLabel = col => {
     let suffix = '';
-    if (col.type === 'se') suffix = ' Start/End';
-    else if (col.type === 'mm') suffix = ' Min/Max';
-    else if (col.type === 'avg') suffix = ' Avg (tw)';
+    if (col.type === 'se') suffix = ' start/end';
+    else if (col.type === 'mm') suffix = ' min/max';
+    else if (col.type === 'avg') suffix = ' average';
     return col.label + suffix;
   };
 
@@ -138,247 +120,119 @@ export function ColumnControls({
     setExpanded(false);
   };
 
-  // Dynamic container styles
-  const containerClasses = isIntegrated
-    ? 'bg-base-100 rounded-t-lg border-b border-base-content/10'
-    : 'bg-[var(--surface-2)]  rounded-xl  border border-base-content/10 mb-5';
+  const isCustomPreset =
+    selectedPresetId && !Object.values(BUILT_IN_PRESET_IDS).includes(selectedPresetId);
 
   return (
-    <div
-      className={`overflow-hidden transition-colors ${isIntegrated ? '' : '-mt-4 pt-4'} ${containerClasses}`}
-    >
-      {/* Header Bar - Toggle for Expand/Collapse */}
-      <div
-        className={`relative flex items-center justify-between gap-4 select-none ${isIntegrated ? 'py-2' : ''}`}
-      >
-        <button
-          type='button'
-          className='hover:bg-base-content/5 absolute inset-0 z-0 cursor-pointer rounded-md transition-colors duration-150'
-          onClick={handleHeaderToggle}
-          aria-label={expanded ? 'Collapse column settings' : 'Expand column settings'}
-          aria-expanded={expanded}
-        />
-        {/* Left Side: Toggle & Controls */}
-        <div className='pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-2 sm:gap-4'>
-          {/* Header Actions & Preset Selector */}
-          <div className='pointer-events-auto flex items-center gap-2'>
-            <div className={ANALYZER_ACTION_GROUP_CLASSES}>
-              <button
-                type='button'
-                onClick={e => {
-                  e.stopPropagation();
-                  handleHeaderToggle();
-                }}
-                className={getAnalyzerIconButtonClasses({
-                  className: ANALYZER_ACTION_ICON_BUTTON_CLASS,
-                })}
-                title={expanded ? 'Collapse column settings' : 'Expand column settings'}
-                aria-label={expanded ? 'Collapse column settings' : 'Expand column settings'}
-              >
-                <Icon
-                  name={expanded ? 'minus' : 'plus'}
-                  className={ANALYZER_ACTION_ICON_CLASS}
-                  style={ANALYZER_ACTION_ICON_STYLE}
-                />
-              </button>
+    <div className='flex flex-col gap-3' data-analysis-columns>
+      <div className='flex flex-wrap items-center justify-between gap-2'>
+        <div className='flex min-w-0 flex-wrap items-center gap-2'>
+          <Button
+            size='sm'
+            variant={expanded ? 'ink' : undefined}
+            aria-expanded={expanded}
+            onClick={handleHeaderToggle}
+            title={expanded ? 'Collapse column settings' : 'Expand column settings'}
+          >
+            <Icon name='sliders-horizontal' size={18} />
+            Columns
+          </Button>
 
-              <button
-                type='button'
-                onClick={applyStandard}
-                className={getAnalyzerTextButtonClasses({
-                  className: `hidden sm:inline-flex ${TABLE_TOOLBAR_TEXT_BUTTON_CLASS}`,
-                })}
-              >
-                Standard
-              </button>
+          <Button size='sm' className='max-sm:hidden' onClick={applyStandard}>
+            Standard
+          </Button>
 
-              <div className='relative flex h-8 min-h-0 items-center'>
-                <select
-                  value={selectedPresetId}
-                  onChange={e => {
-                    const val = e.target.value;
-                    if (val === BUILT_IN_PRESET_IDS.ALL_METRICS) {
-                      applyAll();
-                    } else if (val === BUILT_IN_PRESET_IDS.SYSTEM_INFO) {
-                      applySystemInfo();
-                    } else {
-                      const p = presets.find(x => x.id === val);
-                      if (p) {
-                        onColumnsChange(new Set(p.columns));
-                        setSelectedPresetId(p.id);
-                      }
-                    }
-                  }}
-                  onClick={e => e.stopPropagation()}
-                  className={getAnalyzerSurfaceTriggerClasses({
-                    className: TABLE_TOOLBAR_SELECT_CLASS,
-                  })}
-                >
-                  <option value='' disabled>
-                    Presets...
-                  </option>
-                  <option value={BUILT_IN_PRESET_IDS.ALL_METRICS}>All Metrics</option>
-                  <option value={BUILT_IN_PRESET_IDS.SYSTEM_INFO}>System Info</option>
-                  <option disabled>──────────</option>
-                  {presets.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-                <span className='text-base-content/75 pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-sm'>
-                  <Icon name={'chevron-down'} />
-                </span>
-              </div>
+          <Select
+            className='an-input--sm an-table__preset'
+            aria-label='Column preset'
+            value={selectedPresetId}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === BUILT_IN_PRESET_IDS.ALL_METRICS) {
+                applyAll();
+              } else if (val === BUILT_IN_PRESET_IDS.SYSTEM_INFO) {
+                applySystemInfo();
+              } else {
+                const p = presets.find(x => x.id === val);
+                if (p) {
+                  onColumnsChange(new Set(p.columns));
+                  setSelectedPresetId(p.id);
+                }
+              }
+            }}
+          >
+            <option value='' disabled>
+              Presets
+            </option>
+            <option value={BUILT_IN_PRESET_IDS.ALL_METRICS}>All metrics</option>
+            <option value={BUILT_IN_PRESET_IDS.SYSTEM_INFO}>System info</option>
+            {presets.length > 0 && <option disabled>──────────</option>}
+            {presets.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
 
-              {selectedPresetId &&
-                !Object.values(BUILT_IN_PRESET_IDS).includes(selectedPresetId) && (
-                  <button
-                    type='button'
-                    onClick={deletePreset}
-                    className={getAnalyzerIconButtonClasses({
-                      tone: 'error',
-                      className: ANALYZER_ACTION_ICON_BUTTON_CLASS,
-                    })}
-                    title='Delete preset'
-                    aria-label='Delete preset'
-                  >
-                    <Icon
-                      name={'trash-2'}
-                      className={ANALYZER_ACTION_ICON_CLASS}
-                      style={ANALYZER_ACTION_ICON_STYLE}
-                    />
-                  </button>
-                )}
-            </div>
-          </div>
+          {isCustomPreset && (
+            <IconButton icon='trash-2' label='Delete preset' onClick={deletePreset} />
+          )}
         </div>
 
-        {/* Right Side: Injected Content (Zoom/Scroll) */}
-        {headerChildren && (
-          <div className='relative z-10 flex items-center gap-2'>{headerChildren}</div>
-        )}
+        {headerChildren}
       </div>
 
-      {/* Expandable Selection Area */}
       {expanded && (
-        <div className='border-base-content/10 animate-fade-in bg-base-100/50 border-t border-b px-4 pt-5 pb-5'>
-          <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+        <div className='an-cols flex flex-col gap-3'>
+          <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'>
             {Object.keys(groupedColumns).map(groupKey => {
               const cols = groupedColumns[groupKey];
               const groupVisuals = getAnalyzerGroupCardVisuals(groupKey);
 
               return (
-                <div key={groupKey} className='border-base-content/10 rounded-md border p-2.5'>
-                  <div className='grid grid-cols-[minmax(0,1fr)_auto] gap-x-3'>
-                    <h4 className={COLUMN_GROUP_HEADER_CLASS}>{groups[groupKey]}</h4>
-
-                    <div className='min-w-0'>
-                      <div className='space-y-1'>
-                        {cols.map(col => (
-                          <label
-                            key={col.id}
-                            className={getAnalyzerSurfaceTriggerClasses({
-                              className:
-                                'group !text-base-content flex cursor-pointer items-center gap-1.5 px-1 py-0.5 text-xs',
-                            })}
-                          >
-                            <input
-                              type='checkbox'
-                              checked={activeColumns.has(col.id)}
-                              onChange={e => toggleColumn(col.id, e.target.checked)}
-                              className='checkbox checkbox-primary checkbox-xs border-base-content/20 rounded-sm'
-                            />
-                            <span className={COLUMN_OPTION_TEXT_CLASS}>
-                              {getDetailedLabel(col)}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div
-                      className={`flex shrink-0 items-center justify-center self-center ${groupVisuals.length > 1 ? 'flex-col gap-1.5' : ''}`}
-                    >
+                <Cell key={groupKey} className='gap-1'>
+                  <div className='flex items-center justify-between gap-2'>
+                    <span className='bm-eyebrow'>{groups[groupKey]}</span>
+                    <span className='flex shrink-0 items-center gap-1'>
                       {groupVisuals.map((groupVisual, index) => (
-                        <span
+                        <Icon
                           key={`${groupKey}-${index}`}
-                          className='inline-flex items-center justify-center leading-none'
-                          style={{ color: groupVisual.color, lineHeight: 0 }}
-                        >
-                          <Icon
-                            name={groupVisual.icon}
-                            className={
-                              groupVisuals.length > 1
-                                ? 'text-[0.95rem]'
-                                : 'text-[1.25rem] sm:text-[1.45rem]'
-                            }
-                          />
-                        </span>
+                          name={groupVisual.icon}
+                          size={18}
+                          style={{ color: groupVisual.color }}
+                        />
                       ))}
-                    </div>
+                    </span>
                   </div>
-                </div>
+                  {cols.map(col => (
+                    <Checkbox
+                      key={col.id}
+                      checked={activeColumns.has(col.id)}
+                      onChange={e => toggleColumn(col.id, e.target.checked)}
+                    >
+                      {getDetailedLabel(col)}
+                    </Checkbox>
+                  ))}
+                </Cell>
               );
             })}
           </div>
 
-          {/* Control Footer */}
-          <div className='border-base-content/10 relative -mx-4 mt-5 flex items-center justify-between border-t px-4 py-2.5'>
-            <button
-              type='button'
-              className='hover:bg-base-content/5 absolute inset-0 z-0 cursor-pointer transition-colors duration-150'
-              onClick={collapseControls}
-              aria-label='Collapse column settings'
-            />
-            {/* Left Actions: Reset - Wrapped to stop propagation */}
-            <div className='relative z-10 flex items-center gap-2'>
-              <button
-                type='button'
-                onClick={applyFactoryReset}
-                className={getAnalyzerTextButtonClasses({
-                  tone: 'error',
-                  className:
-                    '!text-base-content/75 h-8 min-h-0 gap-1.5 px-3 text-sm font-normal tracking-normal normal-case hover:!text-[var(--danger)]',
-                })}
-              >
-                <Icon name={'refresh-cw'} /> Reset Defaults
-              </button>
-            </div>
-
-            {/* Center Action: Close Indicator */}
-            <button
-              type='button'
-              onClick={collapseControls}
-              className={getAnalyzerIconButtonClasses({
-                className: `relative z-10 ${ANALYZER_ACTION_ICON_BUTTON_CLASS}`,
-              })}
-              title='Collapse column settings'
-              aria-label='Collapse column settings'
-            >
-              <Icon name={'minus'} />
-            </button>
-
-            {/* Right Actions: Save - Wrapped to stop propagation */}
-            <div className='relative z-10 flex items-center gap-2'>
-              <button
-                type='button'
-                onClick={saveAsStandard}
-                className={getAnalyzerTextButtonClasses({
-                  className: TABLE_TOOLBAR_TEXT_BUTTON_CLASS,
-                })}
-              >
-                Save as Standard
-              </button>
-              <button
-                type='button'
-                onClick={saveAsPreset}
-                className={getAnalyzerTextButtonClasses({
-                  className: `border-base-content/10 bg-transparent ${TABLE_TOOLBAR_TEXT_BUTTON_CLASS}`,
-                })}
-              >
-                Save as New Preset
-              </button>
+          <div className='flex flex-wrap items-center justify-between gap-2'>
+            <Button size='sm' variant='danger' onClick={applyFactoryReset}>
+              <Icon name='refresh-cw' size={18} />
+              Reset defaults
+            </Button>
+            <div className='flex flex-wrap items-center gap-2'>
+              <Button size='sm' onClick={saveAsStandard}>
+                Save as standard
+              </Button>
+              <Button size='sm' onClick={saveAsPreset}>
+                Save as preset
+              </Button>
+              <Button size='sm' variant='ink' onClick={collapseControls}>
+                Done
+              </Button>
             </div>
           </div>
         </div>

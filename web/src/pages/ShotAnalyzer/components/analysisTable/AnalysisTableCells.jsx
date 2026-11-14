@@ -1,10 +1,11 @@
 import { Icon } from '../../../../components/Icon.jsx';
-import { getDisplayStopReasonParts, utilityColors } from '../../utils/analyzerUtils';
+import { cx } from '../../../../components/cx.js';
+import { getDisplayStopReasonParts } from '../../utils/analyzerUtils';
 import { isSafetyExitReason } from '../../services/analyzer/exitReasons.js';
 
 export function ComparePhaseLabel({ phase, results }) {
   if (!phase) {
-    return <div className='leading-tight font-medium text-[var(--ink-muted)]'>-</div>;
+    return <span className='text-(--ink-muted)'>—</span>;
   }
 
   const { skipNotice, stopReason } = getDisplayStopReasonParts(phase.exit?.reason);
@@ -12,42 +13,25 @@ export function ComparePhaseLabel({ phase, results }) {
 
   return (
     <>
-      <div className='text-base-content/90 mb-0.5 leading-none font-medium'>
-        {phase.displayName}
-      </div>
-      {skipNotice ? (
-        <div
-          className='leading-tight font-medium text-[var(--ink-muted)]'
-          style={{ fontSize: '0.8em' }}
-        >
-          {skipNotice}
-        </div>
-      ) : null}
+      <span className='an-label block'>{phase.displayName}</span>
+      {skipNotice ? <span className='an-tick block'>{skipNotice}</span> : null}
+      {/* A stop reason is a fact, set in ink. A safety stop is a warning. */}
       {stopReason ? (
-        <div
-          className='font-normal'
-          style={{
-            fontSize: '0.85em',
-            color: safetyStop ? utilityColors.warningOrange : utilityColors.stopRed,
-          }}
-        >
-          {stopReason}
-        </div>
+        <span className={cx('an-table__stop', safetyStop && 'an-table__warn')}>{stopReason}</span>
       ) : null}
       {phase.isFinalExecuted && (
-        <div
-          className='leading-tight font-medium text-[var(--ink-muted)]'
-          style={{
-            fontSize: '0.8em',
-            color: results?.completionTone === 'warning' ? utilityColors.warningOrange : undefined,
-          }}
+        <span
+          className={cx('an-tick block', results?.completionTone === 'warning' && 'an-table__warn')}
         >
           {results?.completionLabel || results?.brewModeLabel}
-        </div>
+        </span>
       )}
     </>
   );
 }
+
+// A missing value, as the design writes it.
+const MISSING = '—';
 
 const DIRECT_CELL_FIELDS = {
   duration: { path: 'duration', unit: 's' },
@@ -91,17 +75,13 @@ const SYSTEM_VALUE_CELL_FIELDS = {
 
 function formatCellNumber(value, digits = 1) {
   const numericValue = Number(value);
-  return value != null && Number.isFinite(numericValue) ? numericValue.toFixed(digits) : '-';
+  return value != null && Number.isFinite(numericValue) ? numericValue.toFixed(digits) : MISSING;
 }
 
 function renderCellBoolean(value) {
-  if (value === true) {
-    return <Icon name={'check'} className='text-[1em] text-[var(--success)]' />;
-  }
-  if (value === false) {
-    return <Icon name={'x'} className='text-[1em] text-[var(--danger)]' />;
-  }
-  return <span className='font-medium text-[var(--ink-muted)]'>-</span>;
+  if (value === true) return <Icon name='check' size={16} title='Yes' />;
+  if (value === false) return <Icon name='x' size={16} title='No' className='text-(--ink-muted)' />;
+  return <span className='text-(--ink-muted)'>{MISSING}</span>;
 }
 
 function formatSystemCellValue(colId, value) {
@@ -109,7 +89,7 @@ function formatSystemCellValue(colId, value) {
     return formatCellNumber(value, 0);
   }
   if (value == null || value === '') {
-    return '-';
+    return MISSING;
   }
   return String(value);
 }
@@ -117,7 +97,7 @@ function formatSystemCellValue(colId, value) {
 function getMetricCellValue(stats, metricKey, partKey) {
   const metric = stats?.[metricKey];
   const parts = CELL_METRIC_PARTS[partKey];
-  if (!parts) return '-';
+  if (!parts) return MISSING;
 
   const formatPart = part => {
     const value = metric?.[part];
@@ -138,7 +118,7 @@ function resolveCellValue({ data, stats, col, isSkipped = false }) {
   ) {
     const metricMatch = /^([a-z]+)_(se|mm|avg)$/.exec(col.id);
     return {
-      mainValue: '-',
+      mainValue: MISSING,
       unit: metricMatch
         ? CELL_METRIC_UNITS[metricMatch[1]] || ''
         : DIRECT_CELL_FIELDS[col.id]?.unit || '',
@@ -159,7 +139,7 @@ function resolveCellValue({ data, stats, col, isSkipped = false }) {
 
   if (col.id === 'sys_raw') {
     return {
-      mainValue: stats?.sys_raw ?? '-',
+      mainValue: stats?.sys_raw ?? MISSING,
       unit: '',
       isBoolean: false,
       booleanContent: null,
@@ -180,7 +160,7 @@ function resolveCellValue({ data, stats, col, isSkipped = false }) {
   const booleanField = BOOLEAN_CELL_FIELDS[col.id];
   if (booleanField) {
     return {
-      mainValue: '-',
+      mainValue: MISSING,
       unit: '',
       isBoolean: true,
       booleanContent: renderCellBoolean(stats?.[booleanField]),
@@ -190,7 +170,7 @@ function resolveCellValue({ data, stats, col, isSkipped = false }) {
   const metricMatch = /^([a-z]+)_(se|mm|avg)$/.exec(col.id);
   if (!metricMatch) {
     return {
-      mainValue: '-',
+      mainValue: MISSING,
       unit: '',
       isBoolean: false,
       booleanContent: null,
@@ -206,14 +186,11 @@ function resolveCellValue({ data, stats, col, isSkipped = false }) {
   };
 }
 
-function TargetDeltaDisplay({ targetVal, unit, subTextSize }) {
+function TargetDeltaDisplay({ targetVal, unit }) {
   return (
-    <div
-      style={subTextSize}
-      className='mt-0.5 leading-tight font-medium tracking-normal whitespace-nowrap text-[var(--ink-muted)] italic'
-    >
+    <span className='an-tick block whitespace-nowrap'>
       Target {targetVal} {unit}
-    </div>
+    </span>
   );
 }
 
@@ -225,15 +202,9 @@ function findPhaseTarget(phase, col) {
   });
 }
 
-function getTargetDisplay({ phase, col, unit, subTextSize }) {
+function getTargetDisplay({ phase, col, unit }) {
   if (col.id === 'duration' && phase?.profilePhase?.duration > 0) {
-    return (
-      <TargetDeltaDisplay
-        targetVal={phase.profilePhase.duration}
-        unit={unit}
-        subTextSize={subTextSize}
-      />
-    );
+    return <TargetDeltaDisplay targetVal={phase.profilePhase.duration} unit={unit} />;
   }
 
   if (!col.targetType) return null;
@@ -241,7 +212,7 @@ function getTargetDisplay({ phase, col, unit, subTextSize }) {
   const target = findPhaseTarget(phase, col);
   if (!target) return null;
 
-  return <TargetDeltaDisplay targetVal={target.value} unit={unit} subTextSize={subTextSize} />;
+  return <TargetDeltaDisplay targetVal={target.value} unit={unit} />;
 }
 
 function getTargetCalcEntry(phase, col) {
@@ -267,36 +238,29 @@ function replaceCellValueWithCalc({ mainValue, calcEntry, col }) {
   return calcValue;
 }
 
-function getWeightWarnings({ phase, isWeightCol, subTextSize }) {
+function CellWarning({ children }) {
+  return (
+    <span className='an-table__warn an-tick flex items-center justify-end gap-1'>
+      <Icon name='triangle-alert' size={14} />
+      {children}
+    </span>
+  );
+}
+
+function getWeightWarnings({ phase, isWeightCol }) {
   if (!isWeightCol) return [];
 
   const warnings = [];
   if (phase.scaleLost) {
-    warnings.push(
-      <div
-        key='scale-lost-warning'
-        style={{ ...subTextSize, color: utilityColors.warningOrange }}
-        className='mt-0.5 flex items-center justify-end gap-1 font-bold'
-      >
-        <Icon name={'triangle-alert'} />
-        <span>Scale Lost</span>
-      </div>,
-    );
+    warnings.push(<CellWarning key='scale-lost-warning'>Scale lost</CellWarning>);
   }
 
   if (phase.highScaleDelay) {
     warnings.push(
-      <div
-        key='high-scale-delay-warning'
-        style={{ ...subTextSize, color: utilityColors.warningOrange }}
-        className='mt-0.5 flex items-center justify-end gap-1 font-bold'
-      >
-        <Icon name={'triangle-alert'} />
-        <span>
-          High Scale Delay
-          {phase.estimatedScaleDelayMs ? ` (${phase.estimatedScaleDelayMs} ms)` : ''}
-        </span>
-      </div>,
+      <CellWarning key='high-scale-delay-warning'>
+        High scale delay
+        {phase.estimatedScaleDelayMs ? ` (${phase.estimatedScaleDelayMs} ms)` : ''}
+      </CellWarning>,
     );
   }
 
@@ -304,12 +268,9 @@ function getWeightWarnings({ phase, isWeightCol, subTextSize }) {
 }
 
 function renderTotalCellContent({ isBoolean, booleanContent, mainValue, unit, warning = false }) {
-  if (isBoolean) return <div className='flex justify-end'>{booleanContent}</div>;
+  if (isBoolean) return <span className='flex justify-end'>{booleanContent}</span>;
   return (
-    <span
-      className='text-base-content/90 font-medium'
-      style={warning ? { color: utilityColors.warningOrange } : undefined}
-    >
+    <span className={warning ? 'an-table__warn' : undefined}>
       {mainValue} {unit}
     </span>
   );
@@ -323,31 +284,27 @@ function getCellHitState({ phase, col }) {
   return phase.exit?.type === col.targetType;
 }
 
-function renderBooleanCellContent({ booleanContent, booleanAnomaly, subTextSize }) {
+function renderBooleanCellContent({ booleanContent, booleanAnomaly }) {
   return (
-    <div className='flex h-full flex-col items-end justify-center pb-1'>
-      <div className='flex items-center'>{booleanContent}</div>
+    <>
+      <span className='flex justify-end'>{booleanContent}</span>
       {booleanAnomaly && (
-        <div
-          style={subTextSize}
-          className='mt-0.5 flex flex-col items-end leading-tight font-medium tracking-normal text-[var(--ink-muted)]'
+        <span
+          className='an-tick block text-right'
           title={`Sample ${booleanAnomaly.sampleInPhase}: ${String(booleanAnomaly.value)}`}
         >
-          <span>
-            Sample {booleanAnomaly.sampleInPhase}
-            {Number.isFinite(booleanAnomaly.sampleCountInPhase)
-              ? ` (${booleanAnomaly.sampleCountInPhase})`
-              : ''}
-          </span>
-          <span className='font-normal text-[var(--ink-muted)]'>
-            {String(booleanAnomaly.value)}
-          </span>
-        </div>
+          Sample {booleanAnomaly.sampleInPhase}
+          {Number.isFinite(booleanAnomaly.sampleCountInPhase)
+            ? ` (${booleanAnomaly.sampleCountInPhase})`
+            : ''}
+          <span className='block'>{String(booleanAnomaly.value)}</span>
+        </span>
       )}
-    </div>
+    </>
   );
 }
 
+// The value a phase stopped on is the fact of the row: it is set in ink at weight 600.
 function renderMetricCellValue({
   isHit,
   calcIsStopReason,
@@ -357,18 +314,9 @@ function renderMetricCellValue({
   warning = false,
 }) {
   const isStopValue = mainValueIsCalculated ? calcIsStopReason : isHit && !calcIsStopReason;
-  let style = {};
-  if (warning) {
-    style = { color: utilityColors.warningOrange };
-  } else if (isStopValue) {
-    style = { color: utilityColors.stopRed };
-  }
 
   return (
-    <span
-      className={isStopValue ? 'font-normal' : 'text-base-content/90 font-medium'}
-      style={style}
-    >
+    <span className={cx(warning && 'an-table__warn', !warning && isStopValue && 'an-table__stop')}>
       {mainValue} {unit}
     </span>
   );
@@ -378,7 +326,7 @@ export function CellContent({ phase, col, results, isTotal = false }) {
   const data = isTotal ? results?.total : phase;
   const stats = isTotal ? results?.total : phase?.stats;
 
-  if (!data) return <span>-</span>;
+  if (!data) return <span>{MISSING}</span>;
 
   const { mainValue, unit, isBoolean, booleanContent } = resolveCellValue({
     data,
@@ -403,27 +351,20 @@ export function CellContent({ phase, col, results, isTotal = false }) {
   const isWeightCol = col.id === 'weight';
   const isHit = getCellHitState({ phase, col });
 
-  // Keep secondary text proportional to the table text.
-  const subTextSize = { fontSize: '0.85em' };
   const booleanAnomaly = isBoolean ? stats?.sys_anomalies?.[col.id] : null;
   const calcEntry = getTargetCalcEntry(phase, col);
   const displayMainValue = isBoolean
     ? mainValue
     : replaceCellValueWithCalc({ mainValue, calcEntry, col });
   const mainValueIsCalculated = !isBoolean && Boolean(calcEntry);
-  const targetDisplay = getTargetDisplay({
-    phase,
-    col,
-    unit,
-    subTextSize,
-  });
+  const targetDisplay = getTargetDisplay({ phase, col, unit });
   const calcIsStopReason = Boolean(calcEntry?.isStopReason);
-  const warningDisplays = getWeightWarnings({ phase, isWeightCol, subTextSize });
+  const warningDisplays = getWeightWarnings({ phase, isWeightCol });
 
   return (
-    <div className='flex min-h-[2em] flex-col items-end justify-center'>
+    <>
       {isBoolean
-        ? renderBooleanCellContent({ booleanContent, booleanAnomaly, subTextSize })
+        ? renderBooleanCellContent({ booleanContent, booleanAnomaly })
         : renderMetricCellValue({
             isHit,
             calcIsStopReason,
@@ -434,6 +375,6 @@ export function CellContent({ phase, col, results, isTotal = false }) {
           })}
       {targetDisplay}
       {warningDisplays}
-    </div>
+    </>
   );
 }

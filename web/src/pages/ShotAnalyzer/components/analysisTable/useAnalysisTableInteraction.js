@@ -2,11 +2,6 @@
 
 import { useEffect, useState } from 'preact/hooks';
 
-export const ANALYSIS_SCROLLBAR_HIDE_STYLE = {
-  scrollbarWidth: 'none',
-  msOverflowStyle: 'none',
-};
-
 export function getAnalysisTouchInteractionStyle(isTouchOptimized) {
   if (!isTouchOptimized) {
     return { touchAction: 'pan-y' };

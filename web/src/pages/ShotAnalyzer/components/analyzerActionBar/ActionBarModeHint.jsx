@@ -1,158 +1,77 @@
 /* global globalThis */
 
-import { createPortal } from 'preact/compat';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { analyzerUiColors } from '../../utils/analyzerUtils';
+import { Popover } from '../../ui/Popover.jsx';
 
-function getModeHintCopy(nextMode) {
-  return nextMode === 'browser'
-    ? 'Save to Browser. Imported shots and profiles will now be saved to the browser library.'
-    : 'View temporarily. Imported shots and profiles will now open temporarily in the analyzer.';
-}
+const MODE_HINT_MS = 4200;
 
-export function ModeHintPortal({
-  modeHint,
-  modeHintBadgeStyle,
-  modeHintPosition,
-  modeHintVariant,
-}) {
-  if (!modeHint) return null;
+const MODE_HINTS = {
+  browser: {
+    title: 'Save to browser',
+    body: 'Imported shots and profiles are now saved to the browser library.',
+  },
+  temp: {
+    title: 'View temporarily',
+    body: 'Imported shots and profiles now open in the analyzer without being saved.',
+  },
+};
 
-  return createPortal(
-    <div
-      className='border-base-content/10 bg-base-100/95 pointer-events-none fixed z-[10000] rounded-xl border px-3 py-2'
-      style={{
-        top: `${modeHintPosition.top}px`,
-        left: `${modeHintPosition.left}px`,
-        width: 'min(22rem, calc(100vw - 2rem))',
-      }}
+/** What the import mode just became, said once under the control that changed it. */
+export function ModeHint({ hint, anchor, onClose }) {
+  const copy = MODE_HINTS[hint] || MODE_HINTS.temp;
+
+  return (
+    <Popover
+      open={Boolean(hint)}
+      onClose={onClose}
+      anchor={anchor}
+      placement='bottom-end'
+      role='status'
+      label={copy.title}
+      width='min(22rem, calc(100vw - 24px))'
+      className='an-libbar-hint'
     >
-      <div className='text-base-content/80 flex items-center gap-2 text-xs leading-5'>
-        <span
-          className='inline-flex h-5 shrink-0 items-center rounded-full border px-2 text-xs font-medium'
-          style={modeHintBadgeStyle}
-        >
-          {modeHintVariant === 'browser' ? 'SAVE' : 'VIEW'}
-        </span>
-        <span className='min-w-0'>{modeHint}</span>
-      </div>
-    </div>,
-    document.body,
+      <span className='an-label'>{copy.title}</span>
+      <span className='bm-help'>{copy.body}</span>
+    </Popover>
   );
 }
 
-export function useAnalyzerActionBarModeHint({ importMode, onImportModeChange }) {
-  const modeButtonRef = useRef(null);
-  const modeHintAnchorRef = useRef(null);
-  const modeHintAnchorRectRef = useRef(null);
-  const modeHintTimerRef = useRef(null);
-  const modeHintDismissArmTimerRef = useRef(null);
-  const modeHintDismissReadyRef = useRef(false);
-  const [modeHint, setModeHint] = useState('');
-  const [modeHintVariant, setModeHintVariant] = useState('temp');
-  const [modeHintPosition, setModeHintPosition] = useState({ top: 0, left: 12 });
+/**
+ * Changes the import mode and says what it became for a few seconds, under the control that
+ * changed it. `changeMode(nextMode, anchorElement)`.
+ */
+export function useAnalyzerActionBarModeHint({ onImportModeChange }) {
+  const anchor = useRef(null);
+  const timer = useRef(null);
+  const [hint, setHint] = useState('');
 
-  const clearModeHintTimers = useCallback(() => {
-    if (modeHintTimerRef.current) {
-      globalThis.clearTimeout(modeHintTimerRef.current);
-      modeHintTimerRef.current = null;
-    }
-    if (modeHintDismissArmTimerRef.current) {
-      globalThis.clearTimeout(modeHintDismissArmTimerRef.current);
-      modeHintDismissArmTimerRef.current = null;
+  const clearTimer = useCallback(() => {
+    if (timer.current) {
+      globalThis.clearTimeout(timer.current);
+      timer.current = null;
     }
   }, []);
 
-  const updateModeHintPosition = useCallback(() => {
-    const anchorElement = modeHintAnchorRef.current || modeButtonRef.current;
-    const rect = anchorElement?.isConnected
-      ? anchorElement.getBoundingClientRect()
-      : modeHintAnchorRectRef.current;
-    if (!rect) return;
-    const viewportWidth = globalThis.innerWidth || 0;
-    const hintWidth = Math.min(352, Math.max(0, viewportWidth - 32));
-    const maxLeft = Math.max(12, viewportWidth - hintWidth - 12);
-    setModeHintPosition({
-      top: rect.bottom + 10,
-      left: Math.min(Math.max(12, rect.left), maxLeft),
-    });
-  }, []);
+  const closeHint = useCallback(() => {
+    clearTimer();
+    setHint('');
+  }, [clearTimer]);
 
-  const showModeHint = useCallback(
-    nextMode => {
-      const browserMode = nextMode === 'browser';
-      setModeHintVariant(browserMode ? 'browser' : 'temp');
-      setModeHint(getModeHintCopy(nextMode));
-      updateModeHintPosition();
-      clearModeHintTimers();
-      modeHintDismissReadyRef.current = false;
-      modeHintDismissArmTimerRef.current = globalThis.setTimeout(() => {
-        modeHintDismissReadyRef.current = true;
-      }, 180);
-      modeHintTimerRef.current = globalThis.setTimeout(() => {
-        setModeHint('');
-      }, 4200);
-    },
-    [clearModeHintTimers, updateModeHintPosition],
-  );
-
-  const handleModeToggle = useCallback(
-    event => {
-      event.preventDefault();
-      event.stopPropagation();
+  const changeMode = useCallback(
+    (nextMode, anchorElement) => {
       if (!onImportModeChange) return;
-      modeHintAnchorRef.current = event.currentTarget;
-      modeHintAnchorRectRef.current = event.currentTarget.getBoundingClientRect();
-      const nextMode = importMode === 'browser' ? 'temp' : 'browser';
-      onImportModeChange(nextMode);
-      showModeHint(nextMode);
+      const mode = nextMode === 'browser' ? 'browser' : 'temp';
+      anchor.current = anchorElement || null;
+      onImportModeChange(mode);
+      clearTimer();
+      setHint(anchor.current ? mode : '');
+      timer.current = globalThis.setTimeout(() => setHint(''), MODE_HINT_MS);
     },
-    [importMode, onImportModeChange, showModeHint],
+    [clearTimer, onImportModeChange],
   );
 
-  useEffect(() => {
-    return () => {
-      clearModeHintTimers();
-    };
-  }, [clearModeHintTimers]);
+  useEffect(() => clearTimer, [clearTimer]);
 
-  useEffect(() => {
-    if (!modeHint) return;
-    updateModeHintPosition();
-    const handleViewportChange = () => updateModeHintPosition();
-    globalThis.addEventListener('resize', handleViewportChange);
-    globalThis.addEventListener('scroll', handleViewportChange, true);
-    return () => {
-      globalThis.removeEventListener('resize', handleViewportChange);
-      globalThis.removeEventListener('scroll', handleViewportChange, true);
-    };
-  }, [modeHint, updateModeHintPosition]);
-
-  useEffect(() => {
-    if (!modeHint) return;
-    const dismissHint = () => {
-      if (!modeHintDismissReadyRef.current) return;
-      setModeHint('');
-    };
-    document.addEventListener('pointerdown', dismissHint, true);
-    return () => {
-      document.removeEventListener('pointerdown', dismissHint, true);
-    };
-  }, [modeHint]);
-
-  return {
-    modeButtonRef,
-    modeHint,
-    modeHintVariant,
-    modeHintPosition,
-    modeHintBadgeStyle:
-      modeHintVariant === 'browser'
-        ? {
-            backgroundColor: analyzerUiColors.sourceBadgeWebBg,
-            borderColor: analyzerUiColors.sourceBadgeWebBorder,
-            color: analyzerUiColors.sourceBadgeWebText,
-          }
-        : undefined,
-    handleModeToggle,
-  };
+  return { hint, hintAnchor: anchor, changeMode, closeHint };
 }

@@ -3,7 +3,9 @@
 /* global globalThis */
 
 import { useCallback, useEffect, useRef } from 'preact/hooks';
-import { getAnalyzerIconButtonClasses } from '../analyzerControlStyles';
+import { cx } from '../../../../components/cx.js';
+import { Icon } from '../../../../components/Icon.jsx';
+import { SegmentBar } from '../../../../components/SegmentBar.jsx';
 import { getShotNotesKey } from '../useShotNotesState';
 import {
   ActionBarCompareButton,
@@ -11,7 +13,7 @@ import {
   ActionBarNavigationButtons,
   ActionBarStatisticsAction,
 } from './ActionBarButtons';
-import { ModeHintPortal, useAnalyzerActionBarModeHint } from './ActionBarModeHint';
+import { ModeHint, useAnalyzerActionBarModeHint } from './ActionBarModeHint';
 import { MobileStatusActionsMenu } from './MobileStatusActionsMenu';
 import {
   getAnalyzerActionBarDisplayState,
@@ -40,17 +42,13 @@ export function AnalyzerActionBar({
   isProfilePending = false,
   showImportModeToggle = true,
   enableKeyboardNavigation = true,
+  isFileDragActive = false,
+  dropzoneProps,
 }) {
   const fileInputRef = useRef(null);
-  const {
-    modeButtonRef,
-    modeHint,
-    modeHintVariant,
-    modeHintPosition,
-    modeHintBadgeStyle,
-    handleModeToggle,
-  } = useAnalyzerActionBarModeHint({
-    importMode,
+  const desktopModeAnchorRef = useRef(null);
+  const mobileModeAnchorRef = useRef(null);
+  const { hint, hintAnchor, changeMode, closeHint } = useAnalyzerActionBarModeHint({
     onImportModeChange,
   });
 
@@ -58,7 +56,7 @@ export function AnalyzerActionBar({
     currentShot,
     selectedShot,
   });
-  const { loadIndicatorVisible, loadIndicatorWidth } = useAnalyzerActionBarLoadIndicator({
+  const { loadIndicatorVisible, loadIndicatorProgress } = useAnalyzerActionBarLoadIndicator({
     isSelectionPending,
     isProfilePending,
   });
@@ -114,19 +112,7 @@ export function AnalyzerActionBar({
     enableKeyboardNavigation,
   ]);
 
-  const borderClasses = 'border-base-content/5 border-t';
-
-  const navButtonClasses = getAnalyzerIconButtonClasses({
-    className: 'btn btn-sm btn-ghost h-8 min-h-0 w-8 flex-shrink-0 rounded-lg p-0 text-sm',
-  });
-  const actionButtonClasses = getAnalyzerIconButtonClasses({
-    className:
-      'btn btn-sm btn-ghost h-8 min-h-0 flex-shrink-0 gap-1.5 rounded-lg px-2.5 text-sm font-medium hover:opacity-100',
-  });
-
-  const handleImportClick = event => {
-    event.preventDefault();
-    event.stopPropagation();
+  const handleImportClick = () => {
     if (isImporting) return;
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -143,80 +129,73 @@ export function AnalyzerActionBar({
   };
 
   return (
-    <div>
-      <div className={`overflow-hidden transition-all duration-200 ${borderClasses}`}>
-        <div className='shot-analyzer-action-scroll shot-analyzer-status-actions flex w-full items-center gap-1.5 overflow-x-auto overflow-y-hidden px-1.5 py-1 sm:px-2'>
-          <ActionBarNavigationButtons
-            navButtonClasses={navButtonClasses}
-            canGoPrev={canGoPrev}
-            canGoNext={canGoNext}
-            currentIndex={currentIndex}
-            onNavigateToIndex={handleNavigateToIndex}
-          />
+    <div className='an-libbar__foot' {...dropzoneProps}>
+      <div className={cx('an-libbar__actions', isFileDragActive && 'invisible')}>
+        <ActionBarNavigationButtons
+          canGoPrev={canGoPrev}
+          canGoNext={canGoNext}
+          currentIndex={currentIndex}
+          onNavigateToIndex={handleNavigateToIndex}
+        />
 
-          {showCompareButton ? (
-            <ActionBarCompareButton
-              actionButtonClasses={actionButtonClasses}
-              compareAvailable={compareAvailable}
-              compareMode={compareMode}
-              onCompareModeToggle={onCompareModeToggle}
-            />
-          ) : null}
-
-          <ActionBarStatisticsAction
-            actionButtonClasses={actionButtonClasses}
+        {showCompareButton ? (
+          <ActionBarCompareButton
+            compareAvailable={compareAvailable}
             compareMode={compareMode}
-            statisticsAvailable={statisticsAvailable}
-            statsHref={statsHref}
-            onShowStats={onShowStats}
+            onCompareModeToggle={onCompareModeToggle}
           />
+        ) : null}
 
-          <MobileStatusActionsMenu
-            buttonClasses={`${actionButtonClasses} px-2.5 sm:hidden`}
-            handleImportClick={handleImportClick}
-            handleModeToggle={handleModeToggle}
-            importMode={importMode}
-            isImporting={isImporting}
-            showImportModeToggle={showImportModeToggle}
-          />
+        <ActionBarStatisticsAction
+          compareMode={compareMode}
+          statisticsAvailable={statisticsAvailable}
+          statsHref={statsHref}
+          onShowStats={onShowStats}
+        />
 
-          <ActionBarImportActions
-            actionButtonClasses={actionButtonClasses}
-            handleImportClick={handleImportClick}
-            handleModeToggle={handleModeToggle}
-            importMode={importMode}
-            isImporting={isImporting}
-            modeButtonRef={modeButtonRef}
-            showImportModeToggle={showImportModeToggle}
-          />
+        <MobileStatusActionsMenu
+          anchorRef={mobileModeAnchorRef}
+          onImportClick={handleImportClick}
+          onImportModeChange={mode => changeMode(mode, mobileModeAnchorRef.current)}
+          importMode={importMode}
+          isImporting={isImporting}
+          showImportModeToggle={showImportModeToggle}
+        />
 
-          <input
-            ref={fileInputRef}
-            type='file'
-            multiple
-            accept='.slog,.json'
-            onChange={handleFileSelect}
-            className='hidden'
-            disabled={isImporting}
-          />
-        </div>
+        <ActionBarImportActions
+          onImportClick={handleImportClick}
+          onImportModeChange={mode => changeMode(mode, desktopModeAnchorRef.current)}
+          importMode={importMode}
+          isImporting={isImporting}
+          modeAnchorRef={desktopModeAnchorRef}
+          showImportModeToggle={showImportModeToggle}
+        />
 
-        {loadIndicatorVisible && (
-          <div className='bg-primary/15 h-0.5 w-full overflow-hidden'>
-            <div
-              className='bg-primary h-full rounded-full transition-[width] duration-200 ease-out'
-              style={{ width: loadIndicatorWidth }}
-            />
-          </div>
-        )}
+        <input
+          ref={fileInputRef}
+          type='file'
+          multiple
+          accept='.slog,.json'
+          onChange={handleFileSelect}
+          className='hidden'
+          disabled={isImporting}
+        />
       </div>
 
-      <ModeHintPortal
-        modeHint={modeHint}
-        modeHintBadgeStyle={modeHintBadgeStyle}
-        modeHintPosition={modeHintPosition}
-        modeHintVariant={modeHintVariant}
-      />
+      {isFileDragActive && (
+        <p className='an-libbar__drop an-label'>
+          <Icon name='upload' size={18} />
+          Drop shot or profile files to open them
+        </p>
+      )}
+
+      {loadIndicatorVisible && (
+        <div className='an-libbar__load'>
+          <SegmentBar total={24} value={loadIndicatorProgress} label='Loading the shot' />
+        </div>
+      )}
+
+      <ModeHint hint={hint} anchor={hintAnchor} onClose={closeHint} />
     </div>
   );
 }

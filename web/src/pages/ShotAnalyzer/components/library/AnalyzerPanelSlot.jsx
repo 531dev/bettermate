@@ -143,7 +143,9 @@ function useFileDropzone({ onImport, isImporting = false }) {
 function SecondaryStatusRow({ statusBarProps, onImport, isImporting }) {
   const { isDropzoneActive, dropzoneProps } = useFileDropzone({ onImport, isImporting });
 
-  return <StatusBar {...statusBarProps} isDropTarget={isDropzoneActive} dropzoneProps={dropzoneProps} />;
+  return (
+    <StatusBar {...statusBarProps} isDropTarget={isDropzoneActive} dropzoneProps={dropzoneProps} />
+  );
 }
 
 export function LibraryPanelStatusSlots({

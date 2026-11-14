@@ -6,7 +6,9 @@ import {
   isProfilePinned,
   isShotPinned,
 } from '../../utils/analyzerUtils';
-import { getAnalyzerTextButtonClasses } from '../analyzerControlStyles';
+import { cx } from '../../../../components/cx.js';
+import { usePresence } from '../../../../components/motion.js';
+import { Segmented } from '../../../../components/Segmented.jsx';
 import { LibrarySection } from './LibrarySection';
 import { doesProfileLabelMatchShot, doesProfileMatchProfile } from './libraryData';
 import {
@@ -22,70 +24,50 @@ function getNextLibrarySortState(currentSort, key, order) {
   };
 }
 
-function getLibrarySectionVisibilityClass(activeSection, section) {
-  return activeSection === section ? 'block lg:block' : 'hidden lg:block';
+// Below 1024px one section shows at a time; from there both do.
+function LibrarySectionSlot({ active, children }) {
+  return <div className={cx('min-h-0 lg:flex', active ? 'flex' : 'hidden')}>{children}</div>;
 }
 
-function LibraryMobileSectionTabs({ activeSection, onSectionChange }) {
-  const getTabClassName = section =>
-    `flex-1 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-      activeSection === section
-        ? 'bg-base-100 text-base-content '
-        : getAnalyzerTextButtonClasses({
-            className: 'justify-center',
-          })
-    }`;
+const MOBILE_SECTION_OPTIONS = [
+  { value: 'shots', label: 'Shots' },
+  { value: 'profiles', label: 'Profiles' },
+];
 
-  return (
-    <div className='px-4 pt-4 lg:hidden'>
-      <div className='flex items-center gap-1 rounded-lg bg-[var(--surface-2)] p-1'>
-        <button
-          type='button'
-          className={getTabClassName('shots')}
-          onClick={() => onSectionChange('shots')}
-        >
-          Shots
-        </button>
-        <button
-          type='button'
-          className={getTabClassName('profiles')}
-          onClick={() => onSectionChange('profiles')}
-        >
-          Profiles
-        </button>
-      </div>
-    </div>
-  );
-}
-
+/**
+ * The library, hanging from the library bar over a scrim: shots and profiles side by side from
+ * 1024px, one of them at a time below that. It enters and leaves with the scrim.
+ */
 export function LibraryDropdown({
   children,
-  dropdownStyle,
+  open,
+  style,
   mobileActiveSection,
   onClose,
   onMobileSectionChange,
 }) {
+  const { mounted, shown } = usePresence(open);
+  if (!mounted) return null;
+
   return (
     <>
-      <button
-        type='button'
-        className='fixed inset-0 cursor-pointer border-0 bg-black/20 p-0'
-        style={{ zIndex: 40 }}
-        onClick={onClose}
-        aria-label='Close library'
-      />
-      <div style={dropdownStyle}>
-        <div className='library-panel-dropdown-surface app-card-surface animate-fade-in-down origin-top overflow-hidden rounded-b-xl'>
-          <LibraryMobileSectionTabs
-            activeSection={mobileActiveSection}
-            onSectionChange={onMobileSectionChange}
-          />
-          <div className='max-h-[75vh] overflow-y-auto overscroll-contain lg:max-h-none lg:overflow-hidden'>
-            <div className='grid grid-cols-1 gap-x-4 gap-y-4 p-4 lg:grid-cols-2 lg:gap-x-1.5'>
-              {children}
-            </div>
-          </div>
-        </div>
+      <div className={cx('bm-scrim', shown && 'is-open')} onClick={onClose} />
+      <div
+        className={cx('an-lib', shown && 'is-open')}
+        style={style}
+        role='dialog'
+        aria-label='Library'
+        data-tool-portal='library'
+      >
+        <Segmented
+          block
+          className='lg:hidden'
+          label='Library section'
+          options={MOBILE_SECTION_OPTIONS}
+          value={mobileActiveSection}
+          onChange={onMobileSectionChange}
+        />
+        <div className='an-lib__body'>{children}</div>
       </div>
     </>
   );
@@ -149,12 +131,11 @@ export function LibraryShotsPanelSection({
   };
 
   return (
-    <div className={getLibrarySectionVisibilityClass(mobileActiveSection, 'shots')}>
+    <LibrarySectionSlot active={mobileActiveSection === 'shots'}>
       <LibrarySection
         title='Shots'
         items={shots}
         isShot={true}
-        compareMode={compareMode}
         sectionHeight={desktopSectionHeight}
         searchValue={shotsSearch}
         sortKey={shotsSort.key}
@@ -178,7 +159,6 @@ export function LibraryShotsPanelSection({
             compareSecondaryShotKey,
           })
         }
-        onCompareToggle={onCompareShotToggle}
         isLoading={loading}
         onExportAll={handleExportAllShots}
         onDeleteAll={handleDeleteAllShots}
@@ -201,7 +181,7 @@ export function LibraryShotsPanelSection({
         onPinnedFirstToggle={() => setShotsPinnedFirst(value => !value)}
         onPinToggle={handleShotPinToggle}
       />
-    </div>
+    </LibrarySectionSlot>
   );
 }
 
@@ -261,12 +241,11 @@ export function LibraryProfilesPanelSection({
   };
 
   return (
-    <div className={getLibrarySectionVisibilityClass(mobileActiveSection, 'profiles')}>
+    <LibrarySectionSlot active={mobileActiveSection === 'profiles'}>
       <LibrarySection
         title='Profiles'
         items={profiles}
         isShot={false}
-        compareMode={compareMode}
         sectionHeight={desktopSectionHeight}
         searchValue={profilesSearch}
         sortKey={profilesSort.key}
@@ -315,6 +294,6 @@ export function LibraryProfilesPanelSection({
         onPinnedFirstToggle={() => setProfilesPinnedFirst(value => !value)}
         onPinToggle={handleProfilePinToggle}
       />
-    </div>
+    </LibrarySectionSlot>
   );
 }

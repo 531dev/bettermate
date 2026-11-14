@@ -1,16 +1,19 @@
-import { Icon } from '../../../../components/Icon.jsx';
 /**
  * LibrarySection.jsx
+ * One list of the library (shots or profiles) with its search, sort and source filter.
  */
 
+import { cx } from '../../../../components/cx.js';
+import { Input, Select } from '../../../../components/Field.jsx';
+import { Icon } from '../../../../components/Icon.jsx';
+import { Segmented } from '../../../../components/Segmented.jsx';
+import { Spinner } from '../../../../components/Spinner.jsx';
+import { Cell } from '../../../../components/Tile.jsx';
+import { getShotIdentityKey } from '../../utils/analyzerUtils';
+import { IconButton } from '../../ui/IconButton.jsx';
+import { PinIcon } from '../../ui/PinIcon.jsx';
 import { LibraryRow } from './LibraryRow';
 import { LibraryActionsMenu } from './LibraryActionsMenu';
-import { getShotIdentityKey } from '../../utils/analyzerUtils';
-import {
-  getAnalyzerIconButtonClasses,
-  getAnalyzerSurfaceTriggerClasses,
-} from '../analyzerControlStyles';
-import { SourceMarker } from '../SourceMarker';
 import './LibrarySection.css';
 
 function getLibraryItemKey(item, isShot) {
@@ -39,55 +42,26 @@ function getLibraryItemKey(item, isShot) {
 }
 
 const SOURCE_FILTER_OPTIONS = [
-  { value: 'all', label: 'ALL' },
-  { value: 'gaggimate', label: 'GM' },
-  { value: 'browser', label: 'WEB' },
+  { value: 'all', label: 'All' },
+  { value: 'gaggimate', label: 'Machine', icon: 'coffee' },
+  { value: 'browser', label: 'Browser', icon: 'monitor' },
 ];
 
-function closeParentDetails(target) {
-  const details = target.closest('details');
-  if (details) details.open = false;
-}
-
-function renderLibrarySourceOptionContent(value) {
-  if (value === 'gaggimate') {
-    return (
-      <span className='inline-flex items-center gap-1.5'>
-        <SourceMarker source='gaggimate' variant='compact' />
-        <span>GM</span>
-      </span>
-    );
-  }
-
-  if (value === 'browser') {
-    return (
-      <span className='inline-flex items-center gap-1.5'>
-        <SourceMarker source='browser' variant='compact' />
-        <span>WEB</span>
-      </span>
-    );
-  }
-
-  return <span>ALL</span>;
-}
-
-function renderLibrarySourceHeaderContent(value) {
-  if (value === 'gaggimate' || value === 'browser') {
-    return <SourceMarker source={value} variant='compact' />;
-  }
-
+/** A column head that sorts by its column: the chevron shows the direction while it is the key. */
+function SortHead({ label, column, sortKey, sortOrder, onSortChange, className }) {
+  const isActive = sortKey === column;
   return (
-    <span className='inline-flex items-center gap-1'>
-      <SourceMarker source='gaggimate' variant='compact' />
-      <SourceMarker source='browser' variant='compact' />
-    </span>
+    <button
+      type='button'
+      className={cx('an-lib__sort', className)}
+      aria-pressed={isActive}
+      title={`Sort by ${label.toLowerCase()}`}
+      onClick={() => onSortChange(column)}
+    >
+      {label}
+      {isActive && <Icon name={sortOrder === 'asc' ? 'chevron-up' : 'chevron-down'} size={14} />}
+    </button>
   );
-}
-
-function getLibraryColumnLayout(isShot, showCompareSelection) {
-  return {
-    columnCount: (showCompareSelection ? 1 : 0) + 1 + 1 + 1 + (isShot ? 2 : 0) + 1,
-  };
 }
 
 function getLibraryCompareState({
@@ -134,8 +108,6 @@ export function LibrarySection({
   compareSelectionKeys = new Set(),
   comparePendingKeys = [],
   compareReferenceKey = '',
-  compareMode = false,
-  onCompareToggle,
   onShowStats,
   getMatchStatus,
   getCompareStatus,
@@ -148,221 +120,128 @@ export function LibrarySection({
   onPinnedFirstToggle,
   isLoading,
 }) {
-  const getSortIcon = k => {
-    const isActive = sortKey === k;
-    return (
-      <svg
-        className={`ml-1 inline-block h-2.5 w-2.5 transition-all ${isActive && sortOrder === 'asc' ? 'rotate-180' : ''} ${isActive ? 'text-primary opacity-100' : 'opacity-20'}`}
-        viewBox='0 0 10 10'
-      >
-        <path d='M5 10L0 0L10 0L5 10Z' fill='currentColor' />
-      </svg>
-    );
-  };
-
-  // Keep the name column flexible because pinning and compare badges both live
-  // inside that cell instead of adding separate narrow columns.
-  const showCompareSelection = false;
-  const { columnCount } = getLibraryColumnLayout(isShot, showCompareSelection);
-  const hasCompareBadges = items.some(item => Boolean(getCompareBadgeNumber?.(item)));
+  const lowerTitle = title.toLowerCase();
+  const gridClass = isShot ? 'an-lib__grid--shot' : 'an-lib__grid--profile';
 
   return (
-    <div
-      className='library-section bg-base-100/30 border-base-content/5 relative flex h-full flex-col rounded-lg border'
+    <Cell
+      className='an-lib__section'
       style={sectionHeight ? { height: sectionHeight } : undefined}
+      data-library-section={isShot ? 'shots' : 'profiles'}
     >
-      {/* Toolbar */}
-      <div className='border-base-content/5 space-y-3 border-b p-3'>
-        <div className='flex items-center justify-between'>
-          <h3 className='text-base-content flex items-center gap-2 text-base font-bold'>
-            {title}{' '}
-            <span className='bg-base-content/10 rounded-full px-1.5 py-0.5 text-[10px] font-normal'>
-              {items.length}
-            </span>
-          </h3>
-          <LibraryActionsMenu
-            ariaLabel={`Open ${title.toLowerCase()} actions menu`}
-            buttonClassName='h-7 w-7 p-1.5'
-            actions={[
-              {
-                label: 'Export All',
-                icon: 'save',
-                onSelect: onExportAll,
-              },
-              {
-                label: 'Delete All',
-                icon: 'trash-2',
-                tone: 'error',
-                onSelect: onDeleteAll,
-              },
-            ]}
-          />
-        </div>
-        <div className='flex min-w-0 gap-2'>
-          <input
-            type='text'
-            placeholder={`Search ${title.toLowerCase()}...`}
-            value={searchValue}
-            onInput={e => onSearchChange(e.target.value)}
-            className='library-toolbar-field bg-base-100/50 border-base-content/10 focus:border-primary h-9 min-w-0 flex-1 rounded-md border px-3 text-sm outline-none'
-          />
-          <select
-            value={`${sortKey}-${sortOrder}`}
-            onChange={e => {
-              const [k, o] = e.target.value.split('-');
-              onSortChange(k, o);
-            }}
-            className='library-toolbar-field bg-base-100/50 border-base-content/10 hover:bg-base-content/5 hover:border-base-content/20 focus:border-primary h-9 max-w-[8.5rem] shrink-0 cursor-pointer rounded-md border px-2 text-xs transition-colors outline-none sm:max-w-none'
-          >
-            {isShot && <option value='shotDate-desc'>Date (New)</option>}
-            {isShot && <option value='shotDate-asc'>Date (Old)</option>}
-            <option value='name-asc'>Name (A-Z)</option>
-            <option value='name-desc'>Name (Z-A)</option>
-            {isShot && <option value='data.rating-desc'>Rating (High)</option>}
-            {isShot && <option value='data.rating-asc'>Rating (Low)</option>}
-            {isShot && <option value='duration-desc'>Length (Long)</option>}
-            {isShot && <option value='duration-asc'>Length (Short)</option>}
-          </select>
-        </div>
+      <div className='flex items-center justify-between gap-2'>
+        <h3 className='bm-sub flex items-center gap-2'>
+          {title} <span className='bm-data'>{items.length}</span>
+        </h3>
+        <LibraryActionsMenu
+          ariaLabel={`Open ${lowerTitle} actions menu`}
+          actions={[
+            { label: 'Export all', icon: 'download', onSelect: onExportAll },
+            { label: 'Delete all', icon: 'trash-2', tone: 'error', onSelect: onDeleteAll },
+          ]}
+        />
       </div>
 
-      <div
-        className='scrollbar-thin relative h-96 overflow-y-auto px-2 lg:h-auto lg:min-h-0 lg:flex-1'
-        style={{ scrollbarGutter: 'stable' }}
-      >
+      <div className='flex min-w-0 flex-wrap items-center gap-2'>
+        <Input
+          type='search'
+          placeholder={`Search ${lowerTitle}`}
+          aria-label={`Search ${lowerTitle}`}
+          value={searchValue}
+          onInput={e => onSearchChange(e.target.value)}
+          className='an-lib__field an-input--sm min-w-32 flex-1'
+        />
+        <Select
+          value={`${sortKey}-${sortOrder}`}
+          aria-label={`Sort ${lowerTitle}`}
+          onChange={e => {
+            const [k, o] = e.target.value.split('-');
+            onSortChange(k, o);
+          }}
+          className='an-lib__field an-input--sm shrink-0'
+        >
+          {isShot && <option value='shotDate-desc'>Newest first</option>}
+          {isShot && <option value='shotDate-asc'>Oldest first</option>}
+          <option value='name-asc'>Name A to Z</option>
+          <option value='name-desc'>Name Z to A</option>
+          {isShot && <option value='data.rating-desc'>Highest rating</option>}
+          {isShot && <option value='data.rating-asc'>Lowest rating</option>}
+          {isShot && <option value='duration-desc'>Longest</option>}
+          {isShot && <option value='duration-asc'>Shortest</option>}
+        </Select>
+        <Segmented
+          onTile
+          className='an-seg--sm'
+          label={`Source of the ${lowerTitle}`}
+          options={SOURCE_FILTER_OPTIONS}
+          value={sourceFilter}
+          onChange={onSourceFilterChange}
+        />
+      </div>
+
+      <div className='an-lib__list an-scroll'>
         {isLoading && (
-          <div className='bg-base-100/90 absolute inset-0 z-20 flex items-center justify-center'>
-            <Icon name={'refresh-cw'} spin className='text-primary text-3xl' />
+          <div className='absolute inset-0 z-20 grid place-items-center bg-(--surface-2)'>
+            <Spinner size={12} className='text-(--ink-muted)' />
           </div>
         )}
 
-        <table className='relative w-full border-separate border-spacing-0'>
-          <thead className='sticky top-0 z-20 text-xs font-medium tracking-normal'>
-            <tr>
-              <th colSpan={columnCount} className='library-table-header-cell relative z-20 p-0'>
-                <div
-                  className={`library-row-grid library-row-grid--${isShot ? 'shot' : 'profile'} library-row-grid--header min-h-9 px-3`}
-                >
-                  <button
-                    type='button'
-                    className={getAnalyzerSurfaceTriggerClasses({
-                      className:
-                        'library-row-grid__name flex h-full w-full min-w-0 cursor-pointer items-center gap-1 p-0 text-left text-xs font-medium tracking-normal',
-                    })}
-                    onClick={() => onSortChange('name')}
-                  >
-                    <span className='truncate'>Name</span>
-                    {getSortIcon('name')}
-                  </button>
-                  {onPinnedFirstToggle ? (
-                    <button
-                      type='button'
-                      className={getAnalyzerIconButtonClasses({
-                        tone: pinnedFirstEnabled ? 'primary' : 'subtle',
-                        className: `library-row-grid__pin h-full min-h-full w-5 shrink-0 justify-self-end rounded-none bg-transparent p-0 text-xs ${
-                          pinnedFirstEnabled ? 'text-primary hover:text-primary' : ''
-                        }`,
-                      })}
-                      onClick={event => {
-                        event.stopPropagation();
-                        // Header pinning is a view-level promotion toggle; it
-                        // does not mutate the pinned items themselves.
-                        onPinnedFirstToggle();
-                      }}
-                      aria-label={`Toggle pinned ${isShot ? 'shots' : 'profiles'} first`}
-                      title={`Toggle pinned ${isShot ? 'shots' : 'profiles'} first`}
-                    >
-                      <Icon name={'check'} />
-                    </button>
-                  ) : (
-                    <span className='library-row-grid__pin' aria-hidden='true' />
-                  )}
-                  <details className='library-row-grid__source dropdown block h-full w-full'>
-                    <summary
-                      className={getAnalyzerSurfaceTriggerClasses({
-                        className:
-                          'flex h-full w-full cursor-pointer list-none items-center justify-center gap-1 px-1 py-2 text-xs font-medium outline-none [&::-webkit-details-marker]:hidden',
-                      })}
-                      aria-label='Filter library source'
-                      title='Filter library source'
-                    >
-                      {renderLibrarySourceHeaderContent(sourceFilter)}
-                      <Icon
-                        name={'chevron-down'}
-                        className='library-source-filter-chevron text-[10px] opacity-60'
-                      />
-                    </summary>
-
-                    <div className='dropdown-content app-card-surface z-[65] mt-2 w-28 rounded-xl p-1.5'>
-                      <div className='grid gap-1'>
-                        {SOURCE_FILTER_OPTIONS.map(option => (
-                          <button
-                            key={option.value}
-                            type='button'
-                            className={getAnalyzerSurfaceTriggerClasses({
-                              className: `flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[10px] font-bold ${
-                                sourceFilter === option.value
-                                  ? 'bg-base-content/6 text-base-content'
-                                  : 'text-[var(--ink-muted)]'
-                              }`,
-                            })}
-                            onClick={event => {
-                              onSourceFilterChange(option.value);
-                              closeParentDetails(event.currentTarget);
-                            }}
-                          >
-                            {renderLibrarySourceOptionContent(option.value)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </details>
-                  {isShot ? (
-                    <button
-                      type='button'
-                      className={getAnalyzerSurfaceTriggerClasses({
-                        className:
-                          'library-row-grid__date flex h-full w-full cursor-pointer items-center gap-1 p-0 text-left text-xs font-medium tracking-normal',
-                      })}
-                      onClick={() => onSortChange('shotDate')}
-                    >
-                      <span>Date</span>
-                      {getSortIcon('shotDate')}
-                    </button>
-                  ) : null}
-                  {isShot ? (
-                    <span className='library-row-grid__profile text-left text-xs font-medium tracking-normal text-[var(--ink-muted)]'>
-                      Profile
-                    </span>
-                  ) : null}
-                  <span className='library-row-grid__actions' aria-hidden='true' />
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody className='text-sm'>
-            {hasCompareBadges ? (
-              <tr>
-                <td colSpan={columnCount} className='h-1.5 p-0' />
-              </tr>
+        <div className={cx('an-lib__head', gridClass)}>
+          <span className='an-lib__mark' aria-hidden='true' />
+          <SortHead
+            label='Name'
+            column='name'
+            sortKey={sortKey}
+            sortOrder={sortOrder}
+            onSortChange={onSortChange}
+          />
+          <span className='an-lib__pin'>
+            {onPinnedFirstToggle ? (
+              <IconButton
+                size='sm'
+                pressed={pinnedFirstEnabled}
+                label={`Show pinned ${lowerTitle} first`}
+                onClick={event => {
+                  event.stopPropagation();
+                  // Header pinning is a view-level promotion toggle; it
+                  // does not mutate the pinned items themselves.
+                  onPinnedFirstToggle();
+                }}
+              >
+                <PinIcon size={16} />
+              </IconButton>
             ) : null}
+          </span>
+          <span className='an-lib__source' aria-hidden='true' />
+          {isShot ? (
+            <SortHead
+              label='Date'
+              column='shotDate'
+              sortKey={sortKey}
+              sortOrder={sortOrder}
+              onSortChange={onSortChange}
+              className='an-lib__date'
+            />
+          ) : null}
+          {isShot ? <span className='an-lib__profile bm-eyebrow'>Profile</span> : null}
+          <span className='an-lib__actions' aria-hidden='true' />
+        </div>
+
+        {items.length === 0 && !isLoading ? (
+          <p className='bm-help px-2 py-6 text-center'>No {lowerTitle} here.</p>
+        ) : (
+          <ul className='an-lib__rows'>
             {items.map(item => {
-              const {
-                isCompareSelected,
-                isComparePending,
-                isCompareReference,
-                isCompareSelectionDisabled,
-                isCompareRelated,
-                compareBadgeNumber,
-              } = getLibraryCompareState({
-                item,
-                isShot,
-                compareSelectionKeys,
-                comparePendingKeys,
-                compareReferenceKey,
-                getCompareStatus,
-                getCompareBadgeNumber,
-              });
+              const { isCompareSelected, isComparePending, isCompareRelated, compareBadgeNumber } =
+                getLibraryCompareState({
+                  item,
+                  isShot,
+                  compareSelectionKeys,
+                  comparePendingKeys,
+                  compareReferenceKey,
+                  getCompareStatus,
+                  getCompareBadgeNumber,
+                });
 
               return (
                 <LibraryRow
@@ -373,13 +252,8 @@ export function LibrarySection({
                   isMatch={getMatchStatus(item)}
                   isCompareRelated={isCompareRelated}
                   isActive={getActiveStatus ? getActiveStatus(item) : false}
-                  showCompareSelection={showCompareSelection}
                   isCompareSelected={isCompareSelected}
                   isComparePending={isComparePending}
-                  isCompareReference={isCompareReference}
-                  isCompareSelectionDisabled={isCompareSelectionDisabled}
-                  compareMode={compareMode}
-                  onCompareToggle={checked => onCompareToggle?.(item, checked)}
                   onShowStats={onShowStats}
                   onLoad={() => onLoad(item)}
                   onExport={onExport}
@@ -387,13 +261,12 @@ export function LibrarySection({
                   isPinned={Boolean(getPinStatus?.(item))}
                   pinDisabledReason={getPinDisabledReason?.(item) || ''}
                   onPinToggle={onPinToggle}
-                  columnCount={columnCount}
                 />
               );
             })}
-          </tbody>
-        </table>
+          </ul>
+        )}
       </div>
-    </div>
+    </Cell>
   );
 }

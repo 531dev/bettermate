@@ -536,7 +536,8 @@ function addPhaseBackgroundRanges({
         startX: boundaries[boundaryIndex],
         endX: boundaries[boundaryIndex + 1],
         visible: visibility.phaseNames,
-        shaded: rangeIndex % 2 === 0,
+        // The first phase keeps the tile's ground; the second, fourth ... stand on the band.
+        shaded: rangeIndex % 2 === 1,
       });
       rangeIndex += 1;
     }

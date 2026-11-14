@@ -2,7 +2,10 @@
 
 import { Fragment } from 'preact';
 import { useRef } from 'preact/hooks';
+import { Tile } from '../../../../components/Tile.jsx';
 import { cleanName, columnConfig } from '../../utils/analyzerUtils';
+import { ShotBadge } from '../../ui/ShotBadge.jsx';
+import './analysisTable.css';
 import { ColumnControls } from './ColumnControls';
 import {
   AnalysisTableHeader,
@@ -12,12 +15,10 @@ import {
 import { CellContent, ComparePhaseLabel } from './AnalysisTableCells';
 import {
   buildAnalysisWarningBadges,
-  getCompareRowStyle,
   getMaxComparePhaseCount,
   hasAnalysisProfilePhaseStops,
 } from './analysisTableModel';
 import {
-  ANALYSIS_SCROLLBAR_HIDE_STYLE,
   getAnalysisTouchInteractionStyle,
   scrollAnalysisTable,
   scrollAnalysisTableToBound,
@@ -49,301 +50,168 @@ export function AnalysisTable({
 
   if (!results?.phases && !compareMode) return null;
 
-  // --- Styles ---
   const touchInteractionStyle = getAnalysisTouchInteractionStyle(isTouchOptimized);
-
-  const subtleDividerClass = 'border-base-content/5';
-  const strongDividerClass = 'border-base-content/12 border-r-2';
-  const tableHeaderTextClass = 'text-base-content leading-tight font-medium tracking-normal';
-  const tableHeaderSubtextClass =
-    'text-[var(--ink-muted)] leading-tight font-medium tracking-normal';
-  const primaryTableTextClass = 'text-base-content/90 font-medium';
-  const tableSubtextClass = 'text-[var(--ink-muted)] leading-tight font-medium';
-  const tableLegendTextClass = 'text-base-content/75 text-xs font-normal tracking-normal';
   const analysisWarningBadges = buildAnalysisWarningBadges(results);
-  return (
-    <div className='flex w-full flex-col'>
-      {/* Inject CSS to hide Webkit Scrollbars */}
-      <style>{`
-                .no-scrollbar::-webkit-scrollbar { display: none; }
-                .analysis-table-compare-row:hover {
-                  background: color-mix(
-                    in srgb,
-                    var(--color-base-content) 5%,
-                    transparent
-                  );
-                }
-                .analysis-table-compare-marker {
-                  background: var(--compare-shot-color);
-                  opacity: var(--compare-shot-marker-opacity, 1);
-                }
-                .analysis-table-compare-badge {
-                  background: var(--compare-shot-color);
-                  opacity: var(--compare-shot-marker-opacity, 1);
-                  color: var(--color-primary-content);
-                }
-                .analysis-table-compare-label {
-                  color: var(--color-base-content);
-                }
-            `}</style>
 
-      {/* Keep the top strip focused on global warnings and phase-review hints only. */}
-      <div className='relative z-0 -mb-1 flex flex-wrap gap-1.5 px-2'>
-        {analysisWarningBadges.map(badge => (
-          <StatusBadge
-            key={badge.key}
-            label={badge.label}
-            style={badge.style}
-            colorClass={badge.colorClass}
-            details={badge.details}
-          />
-        ))}
+  const compareShotCell = (entry, compareIndex, withProfile) => (
+    <td className='whitespace-nowrap'>
+      <span className='flex min-w-0 items-center gap-2'>
+        <ShotBadge number={compareIndex + 1} />
+        <span className='an-label min-w-0 truncate'>{entry.label}</span>
+      </span>
+      {withProfile && entry.profileName && entry.profileName !== 'No Profile Loaded' ? (
+        <span className='an-tick block'>{cleanName(entry.profileName)}</span>
+      ) : null}
+    </td>
+  );
+
+  return (
+    <Tile data-analysis-table>
+      <div className='bm-tile__head flex-wrap'>
+        <span className='bm-eyebrow'>Phase analysis</span>
+        {analysisWarningBadges.length > 0 && (
+          <div className='flex flex-wrap items-center gap-1.5'>
+            {analysisWarningBadges.map(badge => (
+              <StatusBadge
+                key={badge.key}
+                label={badge.label}
+                tone={badge.tone}
+                details={badge.details}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* 2. MAIN CARD WRAPPER */}
-      <div className='app-card-surface relative isolate z-[1] flex flex-col overflow-hidden rounded-xl px-1.5 sm:px-2'>
-        {/* A. Top Toolbar: Column Controls + Actions (Zoom/Scroll) */}
-        <ColumnControls
-          activeColumns={activeColumns}
-          onColumnsChange={onColumnsChange}
-          isIntegrated={true}
-          headerChildren={
-            <AnalysisTableToolbarActions
-              onScrollTable={scrollTable}
-              onScrollToBound={scrollToBound}
-            />
-          }
-        />
+      <ColumnControls
+        activeColumns={activeColumns}
+        onColumnsChange={onColumnsChange}
+        headerChildren={
+          <AnalysisTableToolbarActions
+            onScrollTable={scrollTable}
+            onScrollToBound={scrollToBound}
+          />
+        }
+      />
 
-        {/* B. Table Container (Middle) */}
-        <div
-          ref={tableContainerRef}
-          // removed 'overscroll-*' classes to prevent latching
-          className='no-scrollbar my-1.5 block h-auto min-h-0 w-full overflow-x-auto overflow-y-hidden sm:my-2'
-          style={{
-            scrollBehavior: 'smooth',
-            ...ANALYSIS_SCROLLBAR_HIDE_STYLE,
-            ...touchInteractionStyle,
-          }}
-        >
-          {/* Dynamic Font Size applied to Table */}
-          <table
-            className='text-base-content w-full border-collapse transition-all duration-200'
-            style={{ fontSize: '12px', lineHeight: '1.4' }}
-          >
-            <AnalysisTableHeader
-              compareMode={compareMode}
-              hasProfilePhaseStops={hasProfilePhaseStops}
-              visibleColumns={visibleColumns}
-              subtleDividerClass={subtleDividerClass}
-              strongDividerClass={strongDividerClass}
-              tableHeaderTextClass={tableHeaderTextClass}
-              tableHeaderSubtextClass={tableHeaderSubtextClass}
-            />
+      <div
+        ref={tableContainerRef}
+        // no overscroll containment here: it would latch the page's own scroll
+        className='an-scroll--none w-full overflow-x-auto overflow-y-hidden'
+        style={{ scrollBehavior: 'smooth', ...touchInteractionStyle }}
+      >
+        <table className='bm-table an-table'>
+          <AnalysisTableHeader
+            compareMode={compareMode}
+            hasProfilePhaseStops={hasProfilePhaseStops}
+            visibleColumns={visibleColumns}
+          />
 
-            {compareMode ? (
-              <tbody>
-                {Array.from({ length: maxComparePhaseCount }, (_, phaseIndex) => (
-                  <Fragment key={`phase-group-${phaseIndex}`}>
-                    <tr className='bg-[var(--surface-2)]'>
-                      <td
-                        colSpan={compareTableColumnCount}
-                        className={`border-base-content/10 px-3 py-2 text-left text-xs ${tableHeaderTextClass}`}
-                      >
-                        Phase {phaseIndex + 1}
-                      </td>
-                    </tr>
-                    {compareEntries.map((entry, compareIndex) => {
-                      const phase = entry?.results?.phases?.[phaseIndex] || null;
+          {compareMode ? (
+            <tbody>
+              {Array.from({ length: maxComparePhaseCount }, (_, phaseIndex) => (
+                <Fragment key={`phase-group-${phaseIndex}`}>
+                  <tr className='an-table__group'>
+                    <td colSpan={compareTableColumnCount}>Phase {phaseIndex + 1}</td>
+                  </tr>
+                  {compareEntries.map((entry, compareIndex) => {
+                    const phase = entry?.results?.phases?.[phaseIndex] || null;
 
-                      return (
-                        <tr
-                          key={`${entry.key}-phase-${phaseIndex}`}
-                          className='analysis-table-compare-row border-base-content/5 group border-b align-top transition-colors'
-                          style={getCompareRowStyle(entry, compareIndex)}
-                        >
+                    return (
+                      <tr key={`${entry.key}-phase-${phaseIndex}`} className='an-table__row'>
+                        {compareShotCell(entry, compareIndex, true)}
+                        <td className='whitespace-nowrap'>
+                          <ComparePhaseLabel
+                            phase={phase}
+                            phaseIndex={phaseIndex}
+                            results={entry.results}
+                          />
+                        </td>
+                        {visibleColumns.map(col => (
                           <td
-                            className={`px-2 py-2 text-left whitespace-nowrap ${subtleDividerClass}`}
+                            key={`${entry.key}-${phaseIndex}-${col.id}`}
+                            className='text-right whitespace-nowrap'
                           >
-                            <div className='flex min-w-0 items-center gap-1.5'>
-                              <span
-                                className={[
-                                  'analyzer-compare-shot-badge analysis-table-compare-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs leading-none font-semibold tabular-nums',
-                                  compareIndex === 1 ? 'analyzer-compare-shot-badge--striped' : '',
-                                ]
-                                  .filter(Boolean)
-                                  .join(' ')}
-                                aria-label={`Shot ${compareIndex + 1}`}
-                              >
-                                {compareIndex + 1}
-                              </span>
-                              <div
-                                className={`analysis-table-compare-label min-w-0 truncate ${tableHeaderTextClass}`}
-                              >
-                                {entry.label}
-                              </div>
-                            </div>
-                            {entry.profileName && entry.profileName !== 'No Profile Loaded' ? (
-                              <div className={`text-xs ${tableSubtextClass}`}>
-                                {cleanName(entry.profileName)}
-                              </div>
-                            ) : null}
+                            <CellContent phase={phase} col={col} results={entry.results} />
                           </td>
-                          <td
-                            className={`px-2 py-2 text-left whitespace-nowrap ${strongDividerClass}`}
-                          >
-                            <ComparePhaseLabel
-                              phase={phase}
-                              phaseIndex={phaseIndex}
-                              results={entry.results}
-                            />
-                          </td>
-                          {visibleColumns.map(col => (
-                            <td
-                              key={`${entry.key}-${phaseIndex}-${col.id}`}
-                              className={`border-l px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums ${subtleDividerClass}`}
-                            >
-                              <CellContent phase={phase} col={col} results={entry.results} />
-                            </td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                  </Fragment>
-                ))}
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </Fragment>
+              ))}
 
-                <tr className='bg-[var(--surface-2)]'>
-                  <td
-                    colSpan={compareTableColumnCount}
-                    className={`border-base-content/10 border-t-2 px-3 py-2 text-left text-xs ${tableHeaderTextClass}`}
-                  >
-                    Totals
-                  </td>
-                </tr>
-                {compareEntries.map((entry, compareIndex) => (
-                  <tr
-                    key={`${entry.key}-total`}
-                    className='analysis-table-compare-row border-base-content/5 group border-b align-top transition-colors'
-                    style={getCompareRowStyle(entry, compareIndex)}
-                  >
-                    <td className={`px-2 py-2 text-left whitespace-nowrap ${subtleDividerClass}`}>
-                      <div className='flex min-w-0 items-center gap-1.5'>
-                        <span
-                          className={[
-                            'analyzer-compare-shot-badge analysis-table-compare-badge inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full font-mono text-xs leading-none font-semibold tabular-nums',
-                            compareIndex === 1 ? 'analyzer-compare-shot-badge--striped' : '',
-                          ]
-                            .filter(Boolean)
-                            .join(' ')}
-                          aria-label={`Shot ${compareIndex + 1}`}
-                        >
-                          {compareIndex + 1}
-                        </span>
-                        <div
-                          className={`analysis-table-compare-label min-w-0 truncate ${tableHeaderTextClass}`}
-                        >
-                          {entry.label}
-                        </div>
-                      </div>
-                    </td>
+              <tr className='an-table__group'>
+                <td colSpan={compareTableColumnCount}>Totals</td>
+              </tr>
+              {compareEntries.map((entry, compareIndex) => (
+                <tr key={`${entry.key}-total`} className='an-table__row an-table__total'>
+                  {compareShotCell(entry, compareIndex, false)}
+                  <td className='whitespace-nowrap'>Total</td>
+                  {visibleColumns.map(col => (
                     <td
-                      className={`px-2 py-2 text-left whitespace-nowrap ${strongDividerClass} ${primaryTableTextClass}`}
+                      key={`${entry.key}-total-${col.id}`}
+                      className='text-right whitespace-nowrap'
                     >
-                      Total
+                      <CellContent phase={null} col={col} results={entry.results} isTotal={true} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          ) : (
+            <>
+              <tbody>
+                {results.phases.map((phase, idx) => (
+                  <tr
+                    key={
+                      phase.key ||
+                      [
+                        phase.number,
+                        phase.displayName || phase.name,
+                        phase.start,
+                        phase.end,
+                        phase.exit?.reason,
+                      ]
+                        .filter(value => value !== null && value !== undefined && value !== '')
+                        .join('-')
+                    }
+                    className='an-table__row'
+                  >
+                    <td className='an-table__index'>{idx + 1}</td>
+                    <td className='whitespace-nowrap'>
+                      <ComparePhaseLabel phase={phase} phaseIndex={idx} results={results} />
                     </td>
                     {visibleColumns.map(col => (
-                      <td
-                        key={`${entry.key}-total-${col.id}`}
-                        className={`border-l px-3 py-2 text-right font-mono tabular-nums ${subtleDividerClass} ${primaryTableTextClass}`}
-                      >
-                        <CellContent
-                          phase={null}
-                          col={col}
-                          results={entry.results}
-                          isTotal={true}
-                        />
+                      <td key={col.id} className='text-right whitespace-nowrap'>
+                        <CellContent phase={phase} col={col} results={results} />
                       </td>
                     ))}
                   </tr>
                 ))}
               </tbody>
-            ) : (
-              <>
-                <tbody>
-                  {results.phases.map((phase, idx) => (
-                    <tr
-                      key={
-                        phase.key ||
-                        [
-                          phase.number,
-                          phase.displayName || phase.name,
-                          phase.start,
-                          phase.end,
-                          phase.exit?.reason,
-                        ]
-                          .filter(value => value !== null && value !== undefined && value !== '')
-                          .join('-')
-                      }
-                      className='border-base-content/5 hover:bg-base-content/5 group border-b align-top transition-colors'
-                    >
-                      <td
-                        className={`border-r pt-2.5 text-center select-none ${subtleDividerClass} ${tableHeaderTextClass}`}
-                      >
-                        {idx + 1}
-                      </td>
-                      <td className={`px-2 py-2 text-left whitespace-nowrap ${strongDividerClass}`}>
-                        <ComparePhaseLabel phase={phase} phaseIndex={idx} results={results} />
-                      </td>
-                      {visibleColumns.map(col => (
-                        <td
-                          key={col.id}
-                          className={`border-l px-3 py-2 text-right font-mono whitespace-nowrap tabular-nums ${subtleDividerClass}`}
-                        >
-                          <CellContent phase={phase} col={col} results={results} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
 
-                <tfoot className='border-base-content/10 text-base-content border-t-2'>
-                  <tr>
-                    <td className={`border-r ${subtleDividerClass}`} />
-                    <td
-                      className={`px-2 py-2 text-left ${strongDividerClass} ${tableHeaderTextClass}`}
-                    >
-                      Total
+              <tfoot>
+                <tr className='an-table__total'>
+                  <td />
+                  <td>Total</td>
+                  {visibleColumns.map(col => (
+                    <td key={col.id} className='text-right whitespace-nowrap'>
+                      <CellContent phase={null} col={col} results={results} isTotal={true} />
                     </td>
-                    {visibleColumns.map(col => (
-                      <td
-                        key={col.id}
-                        className={`border-l px-3 py-2 text-right font-mono tabular-nums ${subtleDividerClass} ${primaryTableTextClass}`}
-                      >
-                        <CellContent phase={null} col={col} results={results} isTotal={true} />
-                      </td>
-                    ))}
-                  </tr>
-                </tfoot>
-              </>
-            )}
-          </table>
-        </div>
-
-        {/* C. Footer legend */}
-        <div className='bg-base-100 border-base-content/10 flex rounded-b-lg border-t py-2 text-xs sm:justify-end'>
-          <div className='text-base-content grid w-full grid-cols-3 gap-x-3 gap-y-1 select-none sm:ml-auto sm:flex sm:w-auto sm:items-center sm:gap-4'>
-            <span className={`leading-tight whitespace-normal ${tableLegendTextClass}`}>
-              Avg Average (time weighted)
-            </span>
-            <span className={`leading-tight whitespace-normal ${tableLegendTextClass}`}>
-              S/E Start/End
-            </span>
-            <span className={`leading-tight whitespace-normal ${tableLegendTextClass}`}>
-              Range Min/Max
-            </span>
-          </div>
-        </div>
+                  ))}
+                </tr>
+              </tfoot>
+            </>
+          )}
+        </table>
       </div>
-    </div>
+
+      <p className='an-caption flex flex-wrap gap-x-4 gap-y-1'>
+        <span>Avg: time-weighted average</span>
+        <span>S/E: start and end</span>
+        <span>Min/max: lowest and highest</span>
+      </p>
+    </Tile>
   );
 }

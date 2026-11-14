@@ -36,9 +36,14 @@ export function MobileChartScrubber({
   return (
     <div
       ref={scrubberRef}
-      className={`shot-chart-mobile-scrubber shot-chart-mobile-scrubber--${variant} ${
-        active ? 'shot-chart-mobile-scrubber--active' : ''
-      }`}
+      className={[
+        'shot-chart-mobile-scrubber',
+        variant === 'compare' && 'shot-chart-mobile-scrubber--compare',
+        active && 'shot-chart-mobile-scrubber--active',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      data-variant={variant}
       style={{
         marginLeft: `${insets.left}px`,
         marginRight: `${insets.right}px`,

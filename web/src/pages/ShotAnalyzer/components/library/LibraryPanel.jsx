@@ -575,7 +575,7 @@ export function LibraryPanel({
           setProfilesSort={setProfilesSort}
           setProfilesSourceFilter={setProfilesSourceFilter}
         />
-        </LibraryDropdown>
+      </LibraryDropdown>
     </div>
   );
 }

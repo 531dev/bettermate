@@ -16,7 +16,7 @@ const GROUP_ICON_BY_KEY = {
   system: 'settings',
 };
 
-const WATER_ICON_COLOR = 'var(--statistics-summary-water)';
+const WATER_ICON_COLOR = 'var(--analyzer-water)';
 
 export function getAnalyzerGroupVisual(groupKey) {
   const colors = groupColors[groupKey] || groupColors.basics;

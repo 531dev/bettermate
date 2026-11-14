@@ -1,10 +1,3 @@
-import { utilityColors } from '../../utils/analyzerUtils';
-
-const NEUTRAL_STATUS_BADGE_CLASS = 'bg-base-content/10 text-base-content/80 border-base-content/15';
-const WARNING_BADGE_HIGH_SCALE_LABEL = 'HIGH SCALE DELAY';
-const WARNING_BADGE_SCALE_LOST_LABEL = 'SCALE LOST';
-const WARNING_BADGE_SLOW_SAMPLING_LABEL = 'SLOW SAMPLING';
-
 const WARNING_HELP_COPY = {
   delayReview:
     'Review the stop reason for this phase. The algorithm was only able to identify it after several intermediate calculations.',
@@ -18,10 +11,14 @@ const WARNING_HELP_COPY = {
 
 function getDelayReviewLabel(results) {
   return results?.delayReviewPhaseNumber
-    ? `REVIEW PHASE ${results.delayReviewPhaseNumber}`
-    : 'PHASE REVIEW ADVISED';
+    ? `Review phase ${results.delayReviewPhaseNumber}`
+    : 'Phase review advised';
 }
 
+/**
+ * What the analysis has to say about the shot as a whole, as chips above the table.
+ * `tone` is 'warning' for something that puts the numbers in doubt; a hint has none.
+ */
 export function buildAnalysisWarningBadges(results) {
   const badges = [];
 
@@ -34,26 +31,18 @@ export function buildAnalysisWarningBadges(results) {
         : '';
     badges.push({
       key: 'slow-sampling',
-      label: `${WARNING_BADGE_SLOW_SAMPLING_LABEL}${intervalSuffix}`,
-      colorClass: 'text-white ',
+      label: `Slow sampling${intervalSuffix}`,
+      tone: 'warning',
       details: WARNING_HELP_COPY.slowSampling,
-      style: {
-        backgroundColor: utilityColors.warningOrange,
-        borderColor: utilityColors.warningOrange,
-      },
     });
   }
 
   if (results?.globalScaleLost) {
     badges.push({
       key: 'scale-lost',
-      label: WARNING_BADGE_SCALE_LOST_LABEL,
-      colorClass: 'text-white ',
+      label: 'Scale lost',
+      tone: 'warning',
       details: WARNING_HELP_COPY.scaleLost,
-      style: {
-        backgroundColor: utilityColors.warningOrange,
-        borderColor: utilityColors.warningOrange,
-      },
     });
   }
 
@@ -61,13 +50,9 @@ export function buildAnalysisWarningBadges(results) {
     const delaySuffix = results.highScaleDelayMs ? ` (${results.highScaleDelayMs} ms)` : '';
     badges.push({
       key: 'high-scale-delay',
-      label: `${WARNING_BADGE_HIGH_SCALE_LABEL}${delaySuffix}`,
-      colorClass: 'text-white ',
+      label: `High scale delay${delaySuffix}`,
+      tone: 'warning',
       details: WARNING_HELP_COPY.highScaleDelay,
-      style: {
-        backgroundColor: utilityColors.warningOrange,
-        borderColor: utilityColors.warningOrange,
-      },
     });
   }
 
@@ -75,7 +60,6 @@ export function buildAnalysisWarningBadges(results) {
     badges.push({
       key: 'delay-review',
       label: getDelayReviewLabel(results),
-      colorClass: NEUTRAL_STATUS_BADGE_CLASS,
       details: results.delayReviewMessage || WARNING_HELP_COPY.delayReview,
     });
   }
@@ -92,45 +76,24 @@ function stripTrailingParentheticalSuffix(value) {
 
 function getAnalysisHeaderBaseLabel(col) {
   if (col.id === 'duration') return 'Time';
-  if (col.id === 'water') return 'Pumped Water (phase)';
+  if (col.id === 'water') return 'Pumped water (phase)';
   if (col.id === 'weight') return 'Weight (total)';
-  if (col.group === 'flow') return 'Pump Flow';
-  if (col.group === 'target_flow') return 'Target Pump Flow';
-  if (col.group === 'puckflow') return 'Puck Flow';
+  if (col.group === 'flow') return 'Pump flow';
+  if (col.group === 'target_flow') return 'Target pump flow';
+  if (col.group === 'puckflow') return 'Puck flow';
   if (col.group === 'temp') return 'Temperature';
-  if (col.group === 'target_temp') return 'Target Temp';
+  if (col.group === 'target_temp') return 'Target temperature';
   return stripTrailingParentheticalSuffix(col.label);
 }
 
 export function getAnalysisHeaderLabel(col) {
   const suffixByType = {
     se: ' S/E',
-    mm: ' Min/Max',
-    avg: ' Avg ∅',
+    mm: ' min/max',
+    avg: ' avg',
   };
 
   return `${getAnalysisHeaderBaseLabel(col)}${suffixByType[col.type] || ''}`;
-}
-
-function getCompareAccentColor(entry, index) {
-  return entry?.accentColor || (index === 0 ? 'var(--color-primary)' : 'var(--color-secondary)');
-}
-
-function getCompareAccentStrength(entry) {
-  return Number.isFinite(Number(entry?.accentStrength)) ? Number(entry.accentStrength) : 1;
-}
-
-export function getCompareRowStyle(entry, index) {
-  const strength = getCompareAccentStrength(entry);
-  const statusbarStrength = Math.round(100 * strength);
-  const accentColor = getCompareAccentColor(entry, index);
-
-  return {
-    '--compare-shot-color': accentColor,
-    '--analyzer-compare-shot-color': accentColor,
-    '--compare-shot-label-color': `${statusbarStrength}%`,
-    '--compare-shot-marker-opacity': '1',
-  };
 }
 
 export function getMaxComparePhaseCount(compareMode, compareEntries) {

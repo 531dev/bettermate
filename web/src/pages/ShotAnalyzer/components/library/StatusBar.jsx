@@ -55,11 +55,7 @@ function Slot({
 }) {
   return (
     <div
-      className={cx(
-        'an-slot an-on-cell',
-        empty && 'an-slot--empty',
-        warning && 'an-slot--warning',
-      )}
+      className={cx('an-slot an-on-cell', empty && 'an-slot--empty', warning && 'an-slot--warning')}
       data-slot={kind}
     >
       <button

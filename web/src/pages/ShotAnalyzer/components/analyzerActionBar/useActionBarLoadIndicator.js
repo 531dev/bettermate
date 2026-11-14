@@ -8,11 +8,6 @@ function getLoadIndicatorTargetProgress({ isSelectionPending, isProfilePending }
   return 1;
 }
 
-function getLoadIndicatorWidth(loadIndicatorVisible, loadIndicatorProgress) {
-  if (!loadIndicatorVisible) return '0%';
-  return `${Math.min(100, Math.max(loadIndicatorProgress * 100, 8))}%`;
-}
-
 export function useAnalyzerActionBarLoadIndicator({ isSelectionPending, isProfilePending }) {
   const loadIndicatorHideTimerRef = useRef(null);
   const [loadIndicatorVisible, setLoadIndicatorVisible] = useState(false);
@@ -64,6 +59,7 @@ export function useAnalyzerActionBarLoadIndicator({ isSelectionPending, isProfil
 
   return {
     loadIndicatorVisible,
-    loadIndicatorWidth: getLoadIndicatorWidth(loadIndicatorVisible, loadIndicatorProgress),
+    // The share of the load that is done, 0 to 1: the shot first, then its profile.
+    loadIndicatorProgress: loadIndicatorVisible ? loadIndicatorProgress : 0,
   };
 }

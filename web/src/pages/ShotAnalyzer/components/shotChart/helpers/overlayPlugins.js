@@ -39,10 +39,11 @@ export const hoverGuidePlugin = {
 };
 
 // Every other phase stands on a band one tone above the tile, so phases read without a line
-// between them. The band is a flat surface-2, never a tint.
+// between them. The band is a flat surface-2, never a tint, and it is drawn before the scales,
+// so the grid lines run over it.
 export const phaseBackgroundOverlayPlugin = {
   id: 'phaseBackgroundOverlay',
-  beforeDatasetsDraw(chart, _args, pluginOptions = {}) {
+  beforeDraw(chart, _args, pluginOptions = {}) {
     const theme = getChartTheme(chart);
     if (!theme || !chart?.chartArea || !chart?.scales) return;
 
