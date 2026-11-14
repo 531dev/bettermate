@@ -43,13 +43,14 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 | --- | --- | --- | --- |
 | Dashboard (Home, DashboardSettings, 404) | yes, no old class left | no | The agent had not reported. |
 | Profiles and Setup | yes, no old class left | no | It was cleaning up hook dependencies in the editor when stopped. |
-| Settings | yes, no old class left | no | It had found fixes to apply, starting with a `Segmented` overflowing at 320 px. |
+| Settings | yes, no old class left | yes, 2026-11-14 (`da54fe15`) | Six tabs checked in Chromium against the simulator at 390 and 1440 px, light and dark, plus overflow at 13 widths from 320 px. Settings round-trip through the page and `GET /api/settings` on General, Machine and Plugins; autotune and the pump flow calibration ran for real; the update channel and the theme survive a reload. Mocked because the simulator cannot do them: Bluetooth scan/connect, OTA, history rebuild progress, restart. For integration: promote the pieces in `fields.jsx`, `SaveBar.jsx` and `PluginCard.jsx`; shared fixes wanted in `bm-seg--block` (three items overflow at 320 px), `PumpFlowCalibration` (its buttons are `primary`, the log does not scroll to its last line, "Was" shows the new values after saving), `TabBar` (`aria-controls` for panels not in the DOM), number-input spin buttons beside the unit, `TileHead` (a wide `end` Chip wraps the title on a phone). |
 | Shot history and charts | yes, no old class left | no | The four shared chart components are part of this lane. |
 | Shot Analyzer and Statistics | about half | no | Left in class strings: Analyzer 7 daisyUI component and 53 color classes, 12 `--color-*` references; Statistics 25 and 47, 1 `--color-*`, 1 `"Jost"`. |
 
-- `npm run lint:check`: 0 errors (6 known warnings). **`vite build` fails**:
-  `src/pages/Statistics/components/toolbar/subcomponents.jsx` imports `getMenuItemClasses`, which
-  `toolbar/helpers.js` no longer exports (the Statistics lane was mid-edit). Nothing else is known to break the build.
+- `npm run lint:check`: 0 errors (6 known warnings). `vite build` passes again since `b760f232` (the Statistics
+  toolbar imported two helpers that `toolbar/helpers.js` no longer exported).
+- 2026-11-14, second session: the lanes are being finished three at a time. Settings is done; Analyzer/Statistics
+  and Shot history/charts are running; Dashboard and Profiles/Setup follow.
 
 ## 2. What is left, in order
 
