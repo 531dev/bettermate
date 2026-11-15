@@ -1,7 +1,9 @@
 # BetterMate v2 — status and handoff
 
-Written 2026-11-14 at the end of the session that started the redesign, so that new sessions can pick it up with a
-clean context. Branch `ui/v2`, local only (never push). Everything described here is committed; the tree is clean.
+Written 2026-11-14 at the end of the session that started the redesign, and kept current by the session that
+followed the same day: the web lanes, the web integration and the display loose ends are done in the simulator.
+What is left is the hardware session and the user's decisions (section 3; items 12 to 18 are from the second
+session). Branch `ui/v2`, local only (never push). Everything described here is committed; the tree is clean.
 
 **The task** (the user, 2026-11-11): implement the BetterMate v2 design system "in a way that's efficient and takes
 up less resources while allowing for clean animations. Tear down anything that's not needed and rewrite it for this
@@ -27,9 +29,9 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 - **Motion budget, measured in the simulator** (share of the panel repainted in one frame): a screen change 20 to
   23% in its largest frame (limit 25%; the host delays the incoming rank a frame when a pair of screens would exceed
   22%); the ring walk about 3%; a running shot at most 5.3%; modes running under 5%; the busy comet under 1%.
-- **Size.** `pio run -e display`: 3,227,117 bytes of flash (49.2%; was 3,838,157 before v2) and 84,000 bytes of
-  static RAM (was 94,312). One draw buffer instead of two frees a further 460 KB of PSRAM at run time. The firmware
-  image still embeds the **old** web bundle (see Web below).
+- **Size.** `pio run -e display` with the v2 web bundle embedded (2026-11-14): 3,057,197 bytes of flash (46.6%; was
+  3,838,157 before v2) and 84,000 bytes of static RAM (was 94,312). The packed web bundle is 440,454 bytes (67
+  assets; the old one was 611,015). One draw buffer instead of two frees a further 460 KB of PSRAM at run time.
 - **Panels.** The 480 px design sits on a stage centred on the LVGL screen, so it is centred on the 466 px AMOLED
   boards (`SIM_PANEL_SIZE=466`). In direct mode (AMOLED) the flush now pushes only the rows that changed.
 
@@ -51,16 +53,31 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
 - `npm run lint:check`: 0 errors (6 known warnings). `vite build` passes again since `b760f232` (the Statistics
   toolbar imported two helpers that `toolbar/helpers.js` no longer exported).
 - 2026-11-14, second session: the lanes are being finished three at a time. all five are done and verified
-  against Vite and the simulator (not against the embedded bundle). The display loose ends are done (section 2, item 4). The
-  web-only part of the integration pass is running; the embedded bundle, the rebuilds and the sizes follow it.
+  against Vite and the simulator (not against the embedded bundle). The integration pass and the display loose ends are
+  done too (section 2, items 2 and 4). What is left needs the user: the hardware session, and the decisions of
+  section 3.
 
 ## 2. What is left, in order
 
 1. **Web pages**: finish and verify the five lanes (`WEB-LANES.md`). The table in section 1 says which are done.
-2. **Web integration**, once the lanes are done: promote page-local pieces the lanes built into
-   `web/src/components` or `bm.css`; rewrite `scripts/verify_web_ui.mjs` for v2 (its selectors target the old shell)
-   and run it against Vite and against the embedded bundle; refresh `docs/webui/` (README and captures);
-   `scripts/build_webui.sh`; rebuild `display-sim` and `display` and record the sizes.
+2. **Web integration**: done 2026-11-14 (`b4777ead` shared fixes, `e2aab814` promotions, `9632fb4e`
+   `verify_web_ui.mjs`, `e4008dbf` `docs/webui/`, `6c30de97`).
+   - Every "shared fixes wanted" in the lane table is made, and what two or more pages used is promoted
+     (`IconButton`, `Popover`, `FormField` and its family, `PinnedAction`, `useMediaQuery`, the pin glyph, the
+     `bm-label`/`bm-caption`/`bm-metric`/`bm-tick` type helpers). `docs/v2/WEB.md`, last section, says what moved
+     and what stayed with its page and why. The "For integration" clauses in the table are history.
+   - `scripts/verify_web_ui.mjs <base URL> --playwright-module <path>` passes 624 assertions (shell 31, pages 576,
+     flows 17) against Vite plus a seeded simulator, and again against the bundle embedded in the simulator by
+     `scripts/build_webui.sh` and `pio run -e display-sim` (`docs/webui/results-embedded.json`). It needs a
+     disposable simulator on the `web-seed` state.
+   - The lanes' own checks (in the session scratch directory, not in the repository) were rerun after the shared
+     changes and pass, except where they assert what integration changed on purpose: 22 assertions of the Profiles
+     lane's `tab-setup.mjs` (Setup's Tab loop, gone because the shell is not rendered on `/setup`); one of the
+     History lane's weight check (it expects a curve tile for a standard profile, decision 14); four Analyzer
+     scripts select `.an-popover`/`.an-iconbtn`, now `.bm-popover`/`.bm-iconbtn`, and pass with that rename.
+   - `build_webui.sh` ran under Node 25.9, not the `.nvmrc`'s Node 22; the build and the check pass.
+   - Left for the web: nothing was run in Safari or on a phone, or served from an ESP32; `StageTrack`'s `is-done`
+     class has no rule (the design's markup).
 3. **Hardware**: flash `display-frame-stats`, read the `FrameStats` lines (pass mark: no line over 42 ms a frame or
    25% redrawn while something animates), check touch targets, the ring, a real shot, steam, the scale, the AMOLED
    flush if such a board is at hand. Back up the flash first, as on 2026-10-03 (`docs/hardware/2026-10-03.md`).
@@ -127,36 +144,29 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
     22% of the real panel.
 17. The stage row draws up to 16 bars (was 8, an array size), read from the design's "one bar per phase" and its
     220 px row.
+18. Web integration (2026-11-14): both forms show an error the same way (a danger notice under the control and a
+    danger hairline on the input, the help text staying); number fields in Settings keep what is typed while
+    focused, as the profile editor's do; the pump flow calibration's buttons are all secondary, so Cancel and
+    Start calibration look alike; Setup has no focus trap (the shell is not rendered under it, so Tab leaves for
+    the browser as on any page); a wide `end` in a tile head moves under the title.
 
 ## 4. Restarting — one prompt per session
 
 Usage credits ran out with nine agents at once. Run one session per item, or two or three in parallel at most; each
 prompt stands on its own.
 
-**A web page lane** (one of: Dashboard · Profiles and Setup · Settings · Shot history and charts · Shot Analyzer and
-Statistics):
-
-> Finish the **<lane>** lane of the BetterMate v2 web rewrite. Read `bettermate/docs/v2/STATUS.md`, then follow
-> `bettermate/docs/v2/WEB-LANES.md` ("For every lane" and the lane's own section) exactly. The lane's work so far is
-> committed (`f0ac9dd6`): start by reading what its directories hold, finish what is unfinished, then verify the whole
-> lane as the brief says. Commit when it passes, and update the lane's row in `STATUS.md`.
-
-**Web integration** (after the five lanes):
-
-> Do the web integration pass of BetterMate v2 described in `bettermate/docs/v2/STATUS.md`, section 2, item 2:
-> promote page-local pieces, rewrite `scripts/verify_web_ui.mjs` for the v2 shell and run it against Vite and the
-> embedded bundle, refresh `docs/webui/`, run `scripts/build_webui.sh`, rebuild `display-sim` and `display`, record the
-> sizes in `STATUS.md`, and commit.
+The web page lanes, the web integration and the display loose ends are done; their prompts are gone from here.
 
 **Display on hardware** (needs the user at the machine):
 
 > Help me flash and measure BetterMate v2 on the LilyGo T-RGB as `bettermate/docs/v2/STATUS.md`, section 2, item 3
 > describes. Back up the flash first. Ask me for the `FrameStats` serial lines before changing anything.
 
-**Display loose ends**:
+**A decision of section 3** (for instance the six Customize options, or more than 16 phases):
 
-> Work through the display loose ends in `bettermate/docs/v2/STATUS.md`, section 2, item 4, following
-> `bettermate/docs/v2/DISPLAY.md`. Keep all five `scripts/verify_display_*.py` passing and commit.
+> Read `bettermate/docs/v2/STATUS.md`, section 3, item <n>. I have decided: <decision>. Make that change, keep
+> `scripts/verify_web_ui.mjs` (web) or the five `scripts/verify_display_*.py` (display) passing, update `STATUS.md`
+> and commit.
 
 ## 5. Practical notes
 
@@ -168,9 +178,11 @@ Statistics):
   set `SIM_HTTP_PORT`.
 - Playwright for web checks: `/Users/mohamadsherif/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/index.mjs`.
 - Regenerating display assets needs `fonttools` and `brotli` in a Python environment, Pillow, `rsvg-convert` and Node.
-- The first session's scratch directory may still exist with the lanes' ad-hoc scripts and screenshots:
-  `/private/tmp/claude-501/-Users-mohamadsherif-Developer-betterMate/9e29bab1-a935-42cc-a0da-68edb046862e/scratchpad/`
-  (`web-home`, `web-profiles`, `web-settings`, `web-history`, `web-analyzer`, `web-a`). Nothing depends on it.
+- The second session's scratch directory may still exist with the lanes' check scripts, logs and screenshots:
+  `/private/tmp/claude-501/-Users-mohamadsherif-Developer-betterMate/9659251f-1b38-45e8-a15e-87e26884bb0a/scratchpad/`
+  (`web-home`, `web-profiles`, `web-settings`, `web-history`, `web-analyzer`, `web-integration`, `display-loose`,
+  `final`). Nothing depends on it; `scripts/verify_web_ui.mjs` and `scripts/verify_display_*.py` are the checks
+  that live in the repository.
 
 ## 6. Commits on `ui/v2`
 
@@ -188,3 +200,10 @@ Statistics):
 | `36b23a6b` | Profiles, Adjust, Save sheet. |
 | `e1e29a01` | Lanes integrated: step budget for screen changes, exception slot, `fit`/`clamp`, Steam's words. |
 | `f0ac9dd6` | Web page lanes, work in progress. |
+| `b760f232`, `b5050d6b`, `6a52b9f6`, `83100bb1`, `10d482d8` | Shot Analyzer and Statistics lane. |
+| `da54fe15` | Settings lane. |
+| `22533719`, `a9654880` | Shot history and charts lane. |
+| `8c5c42c4`, `9bdf6abd` | Profiles and Setup lane. |
+| `2014b256`, `abfb0e82`, `ee556143` | Dashboard lane. |
+| `90488c24`, `90034020`, `4cd810c7` | Display loose ends: 466 px, the origin repaint, up to 16 stage bars. |
+| `b4777ead`, `e2aab814`, `9632fb4e`, `e4008dbf`, `6c30de97` | Web integration: shared fixes, promotions, `verify_web_ui.mjs`, `docs/webui/`. |

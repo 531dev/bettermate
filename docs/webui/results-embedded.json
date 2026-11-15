@@ -1,0 +1,3751 @@
+{
+  "base": "http://127.0.0.1:8097/",
+  "assertions": 624,
+  "failed": 0,
+  "results": [
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "the document title names BetterMate",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop: the sidebar holds the four pages",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop: no top bar beside the sidebar",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "the mode bar holds the machine modes",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "every mode is at least 44 px tall",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "one mode is selected",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop: Profiles in the sidebar opens Profiles and is marked current",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop: History in the sidebar opens Shot history and is marked current",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop: Settings in the sidebar opens Settings and is marked current",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop: Dashboard in the sidebar opens Dashboard and is marked current",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "the Analyzer belongs to History in the sidebar",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "the mode bar floats over the Analyzer",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "Settings has no mode bar: its Save is pinned there",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "the profile editor has no mode bar",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "the skip link is the first stop and leads to the page",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop: no errors while navigating",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: the top bar is there",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: the navigation is closed at rest",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: the menu button opens the navigation with the current page focused",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: Escape closes it",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: a page chosen from the menu opens and the menu closes",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: a detail page has Back in place of the menu",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: Back on the Analyzer leads to Shot history",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: the mode bar floats inside the window",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone: no errors while navigating",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone, setup: no navigation, top bar, mode bar or skip link",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone, setup: Tab only visits the step's own controls",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "phone, setup: Skip for now leaves for the dashboard, and the shell is back",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop, setup: no navigation, top bar, mode bar or skip link",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop, setup: Tab only visits the step's own controls",
+      "detail": ""
+    },
+    {
+      "part": "shell",
+      "ok": true,
+      "label": "desktop, setup: Skip for now leaves for the dashboard, and the shell is back",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone light: the shell is left out",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, phone dark: the shell is left out",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, phone dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop light: the shell is left out",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: the light theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop light: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "dashboard-settings, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profiles, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-edit, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "profile-new, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-general, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-machine, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-calibration, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-plugins, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-bluetooth, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "settings-system, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "history, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "analyzer, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "statistics, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "setup, desktop dark: the shell is left out",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: loads with its title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: no errors in the console",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: one page title",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: nothing scrolls sideways",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: the dark theme is on the page",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: the two bundled faces are loaded",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: no shadow, blur, filter or gradient",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: no reading says NaN or undefined",
+      "detail": ""
+    },
+    {
+      "part": "pages",
+      "ok": true,
+      "label": "not-found, desktop dark: the shell is around the page",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "mode: Steam is selected on the machine and on the page",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "mode: Water is selected on the machine and on the page",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "mode: Grind is selected on the machine and on the page",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "mode: Brew is selected on the machine and on the page",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "brew: the dial names the mode and the profile",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "target: Raise and Lower move the target temperature on the machine and on the page",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "shot: Start shot starts one",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "shot: while it runs the banner is Stop shot with its progress, and the other modes lock",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "shot: Stop shot stops it, and Start shot is back",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "profile: a tap on a row selects it on the machine, and the In use Chip moves",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "profile: the dashboard names the selected profile, and First is selected again",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "setting: a changed standby timeout is saved, read back from the machine and from the page, and restored",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "history: a row opens its shot with the chart",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "analyzer: a shot picked from the library is charted",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "statistics: a query runs and shows its summary",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "mode: Standby puts the machine to rest",
+      "detail": ""
+    },
+    {
+      "part": "flows",
+      "ok": true,
+      "label": "no errors in the console through the flows",
+      "detail": ""
+    }
+  ]
+}

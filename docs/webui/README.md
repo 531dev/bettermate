@@ -118,7 +118,8 @@ table has four scroll buttons).
 Every PNG here is the v2 UI in Chromium, from Vite in front of a simulator on the seeded state
 (`scripts/fixtures/web-seed`: profiles First, Second and Bloom, two synthetic shots), taken on 2026-11-14 after the
 integration pass. Desktop is 1440 px wide, the tablet 900 px, the phone 390 px; a page longer than the window is
-shown whole. They do not come from the embedded production bundle: that build follows the integration pass.
+shown whole. They do not come from the embedded production bundle; the check has since run against that bundle too
+(Verification, below).
 
 | Desktop light | Desktop dark |
 | --- | --- |
@@ -134,7 +135,9 @@ shown whole. They do not come from the embedded production bundle: that build fo
 ## Verification
 
 `scripts/verify_web_ui.mjs` is the committed check of the web UI. It was rewritten for v2 on 2026-11-14 and passed
-**624 assertions, none failed**, against Vite in front of a simulator (`results.json`):
+**624 assertions, none failed**, twice: against Vite in front of a simulator (`results.json`), and against the
+production bundle embedded in the simulator by `scripts/build_webui.sh` and `pio run -e display-sim`
+(`results-embedded.json`; `web-build.log` and `firmware-build.log` are that build's logs). The parts:
 
 - **Shell** (31 assertions): the sidebar's four pages and which one is current, the top bar and its menu on a phone
   (open, focus, Escape, a choice), Back on detail pages, the mode bar's modes and where it is left out, the skip link,
@@ -156,8 +159,8 @@ the integration pass; `docs/v2/STATUS.md` records the result.
 `npm run lint:check` has no errors and six known hook warnings in Statistics (`lint.log`).
 
 Not covered: Chromium only, with phone emulation, so iOS Safari safe areas and address-bar behaviour are unchecked
-(the Dashboard's `reading.css` uses a container query). The check has not run against the embedded production bundle
-yet. A scale, Bluetooth, OTA and a real restart are not on the simulator. Nothing was flashed.
+(the Dashboard's `reading.css` uses a container query). A scale, Bluetooth, OTA and a real restart are not on the
+simulator. The embedded bundle was served by the simulator, not by an ESP32: nothing was flashed.
 
 ## Reproduce
 
@@ -178,6 +181,6 @@ node scripts/verify_web_ui.mjs http://127.0.0.1:5173/ \
 ```
 
 The first argument is the base URL. Against the embedded bundle, pass the simulator's own address
-(`http://127.0.0.1:8090/`) once `scripts/build_webui.sh` and `pio run -e display-sim` have embedded the v2 build.
+(`http://127.0.0.1:8090/`) after `scripts/build_webui.sh` and `pio run -e display-sim` have embedded the build.
 `--only shell,pages,flows` runs some of the parts; `--output` writes `results.json` and a picture of every page and
 state visited. It prints one line per failure and a tally per part, and exits 1 if anything failed.
