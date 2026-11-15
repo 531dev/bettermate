@@ -216,8 +216,8 @@ def check_menu(page, names, active, what, ink=INK, on_ink=ON_INK, muted=MUTED, c
 
 
 def slot(page):
-    """The exception glyph at 12 o'clock, or None. Its ground is a 40 px disc; it answers on 56 px."""
-    body = at(page, (220, 14, 259, 53))
+    """The exception glyph, at 6 o'clock on the menu, or None. Its ground is a 40 px disc; it answers on 56 px."""
+    body = at(page, (220, 426, 259, 465))
     glyphs = children(page, body, "img") if body else []
     return glyphs[0] if glyphs else None
 
@@ -265,19 +265,18 @@ def menu_from_standby():
         "shot menu.bmp; layout menu.json;"
         # The corner of a disc's box is not the disc.
         "tap 186 52; wait 500; expect screen menu; redraw skip.redraw;"
-        # The 14 px where the slot's touch disc and the top disc overlap belong to the slot.
-        "tap 240 55; wait 1300; expect screen warnings; redraw lens.redraw;"
+        "tap 240 446; wait 1300; expect screen warnings; redraw lens.redraw;"
         "tap 240 372; wait 1500; expect screen menu; redraw done.redraw; layout back.json;"
         "tap 240 240; wait 1700; expect screen standby; expect mode 0; redraw power.redraw; quit",
     )
     page = sim.layout("menu.json")
     check_menu(page, MODES, "BREW", "opened with WAKE")
     glyph = slot(page)
-    checks.true(glyph is not None and box(glyph) == (226, 20, 253, 47), "opened with WAKE: the warning glyph is 28 px at 12 o'clock")
+    checks.true(glyph is not None and box(glyph) == (226, 432, 253, 459), "opened with WAKE: the warning glyph is 28 px at 6 o'clock")
     if glyph is not None:
         checks.color(glyph["color"], WARNING, "opened with WAKE: the glyph is warning (flush recommended after waking)")
-        top = parent(page, page.find("BREW"))
-        checks.true(glyph["y2"] < top["y1"], "opened with WAKE: the glyph ends above the top disc and neither covers the other")
+        lowest = max(parent(page, page.find(name))["y2"] for name in ("WATER", "GRIND"))
+        checks.true(lowest < glyph["y1"] - 14, "opened with WAKE: the slot's touch disc is clear of the bottom discs")
     check_menu(sim.layout("back.json"), MODES, "BREW", "back from the warnings")
     budget(sim, "wake.redraw", "Standby to Menu (WAKE)")
     budget(sim, "lens.redraw", "Menu to Warnings (glyph)")
@@ -355,7 +354,7 @@ def menu_grinder():
     budget(sim, "off.redraw", "Menu re-spaced, five discs to four")
     budget(sim, "on.redraw", "Menu re-spaced, four discs to five")
 
-    # Started without a grinder, and with the flush reminder ignored: four discs and an empty 12 o'clock.
+    # Started without a grinder, and with the flush reminder ignored: four discs and an empty slot.
     drive(
         sim,
         "wait 3500; redraw skip.redraw; tap 240 362; wait 1300; expect screen menu; expect hidden GRIND; redraw wake.redraw;"
@@ -369,7 +368,7 @@ def menu_grinder():
     )
     page = sim.layout("four.json")
     check_menu(page, NO_GRINDER, "BREW", "no grinder")
-    checks.true(slot(page) is None, "no grinder, flush ignored: nothing at 12 o'clock while all is normal")
+    checks.true(slot(page) is None, "no grinder, flush ignored: no glyph while all is normal")
     budget(sim, "wake.redraw", "Standby to Menu (four discs)")
     budget(sim, "brew.redraw", "Menu to Brew (four discs)")
     budget(sim, "water.redraw", "Menu to Water (four discs)")
@@ -680,7 +679,7 @@ def light():
     drive(
         sim,
         "wait 3500; theme 1; wait 700; tap 240 362; wait 1300; expect screen menu; shot menu.bmp; layout menu.json;"
-        "tap 240 34; wait 1300; expect screen warnings; shot warnings.bmp; layout warnings.json;"
+        "tap 240 446; wait 1300; expect screen warnings; shot warnings.bmp; layout warnings.json;"
         "tap 240 372; wait 1500; expect screen menu; tap 113 199; wait 1500; expect screen info; shot info.bmp; layout info.json;"
         # A theme change rebuilds every screen: the code has to be drawn again.
         "theme 0; wait 700; expect screen info; shot rebuilt.bmp; layout rebuilt.json; quit",

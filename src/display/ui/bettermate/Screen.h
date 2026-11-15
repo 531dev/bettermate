@@ -115,8 +115,9 @@ class Screen {
     lv_obj_t *addHandle();
     // The exception slot at 12 o'clock: a warning glyph, or an arrow when an update waits (rank 0). Empty when
     // all is normal, and while a process runs so a stray tap at the top can never stop it. The flush reminder
-    // only matters before a shot, so every screen but Brew leaves it out (`awayFromBrew`).
-    void addException();
+    // only matters before a shot, so every screen but Brew leaves it out (`awayFromBrew`). The menu, which has
+    // no handle, puts it at 6 o'clock instead (`y`), to leave the top disc its whole circle.
+    void addException(int y = 34);
     void updateException(const UiState &state, bool awayFromBrew = false, bool running = false);
 
     Host &host;

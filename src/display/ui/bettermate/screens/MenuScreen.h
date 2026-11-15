@@ -50,7 +50,7 @@ class MenuScreen : public Screen {
     uint8_t regroup = 0;       // 0, or the step of a re-spacing under way
     int8_t active = NONE;      // the Item drawn in ink
     bool entering = false;     // the next update is the first of this visit: nothing is on the glass yet
-    bool slotShown = false;    // the exception slot above the top disc is on the glass
+    bool slotShown = false;    // the exception slot at 6 o'clock is on the glass
 
     // Leaving by touch: what the host will be asked for, the disc that was pressed, and the step reached.
     Intent departFor = Intent::Refresh;

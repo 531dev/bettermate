@@ -133,12 +133,12 @@ lv_obj_t *Screen::addHandle() {
     return part(handle, 2);
 }
 
-void Screen::addException() {
+void Screen::addException(int y) {
     // The single ring has no gap at 12 o'clock, so the glyph's ground is kept as small as the glyph: it hides
     // two or three ticks, not seven. The touch target is still 56 px.
     constexpr int RADIUS = 20;
-    const auto slot = [this](const lv_img_dsc_t *glyph, Tone ink, Intent intent) {
-        lv_obj_t *obj = ui::disc(root, 240, 34, RADIUS, glyph, Tone::Surface0, ink);
+    const auto slot = [this, y](const lv_img_dsc_t *glyph, Tone ink, Intent intent) {
+        lv_obj_t *obj = ui::disc(root, 240, y, RADIUS, glyph, Tone::Surface0, ink);
         lv_obj_set_ext_click_area(obj, tokens::DISPLAY_TOUCH / 2 - RADIUS);
         bind(obj, intent);
         return part(obj, 0);

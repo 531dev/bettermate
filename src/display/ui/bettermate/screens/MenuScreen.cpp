@@ -12,8 +12,9 @@ constexpr int RADIUS = 58;       // a 116 px disc
 constexpr int POWER_RADIUS = 44; // the power disc at the centre
 constexpr int GLYPH_RISE = 14;   // the icon's centre above the disc's
 constexpr int NAME_DROP = 32;    // the name's baseline below it
-// The exception slot of every screen is a 56 px touch disc at 12 o'clock (Screen::addException).
-constexpr int SLOT_Y = 34;
+// The exception slot is a 56 px touch disc (Screen::addException). Here it sits at 6 o'clock, where the other
+// screens keep the handle, so nothing crowds the top disc.
+constexpr int SLOT_Y = 446;
 constexpr int SLOT_RADIUS = tokens::DISPLAY_TOUCH / 2;
 // Frames to wait for the host's screen change before taking a refused tap back.
 constexpr uint8_t RETURN_AFTER = 4;
@@ -37,9 +38,10 @@ constexpr uint8_t only(unsigned item) { return static_cast<uint8_t>(1u << item);
 } // namespace
 
 void MenuScreen::build(lv_obj_t *root) {
-    // The slot goes in first, so the top disc is drawn over the lower edge of the slot's touch disc: the
-    // 28 px glyph ends at y 47 and the disc starts at y 48, and nothing of either is covered.
-    addException();
+    // The slot goes in first, so a disc at 6 o'clock (four discs, no grinder) is drawn over the upper edge of
+    // the slot's touch disc: the disc ends at y 431 and the 28 px glyph starts at y 432, and nothing of either
+    // is covered. Five discs leave the slot clear.
+    addException(SLOT_Y);
     for (unsigned i = 0; i < ItemCount; ++i) {
         const Entry &entry = ENTRIES[i];
         Disc &disc = discs[i];
@@ -64,7 +66,7 @@ void MenuScreen::onEnter(const UiState &state) {
     departWith = NONE;
 }
 
-// A disc answers inside its circle, not in the corners of its box. Where the top disc runs under the slot's
+// A disc answers inside its circle, not in the corners of its box. Where a bottom disc runs under the slot's
 // touch disc the slot answers: a finger that lands low on the glyph still opens what the glyph stands for.
 void MenuScreen::hitTest(lv_event_t *e) {
     const auto *self = static_cast<const MenuScreen *>(lv_event_get_user_data(e));
