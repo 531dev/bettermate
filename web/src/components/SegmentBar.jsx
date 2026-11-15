@@ -3,18 +3,21 @@ import { cx } from './cx.js';
 
 const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
 
-// One segment's width and the gap after it, as in the .bm-segbar recipe.
-const CELL = 15;
-const GAP = 3;
 const AUTO_FALLBACK = 20;
 
-/** How many fixed-size segments fit the row, following it as it resizes. Off when `enabled` is false. */
+/**
+ * How many ticks fit the row, following it as it resizes. Off when `enabled` is false.
+ * The tick's width (--seg-w) and the gap come from the .bm-segbar recipe.
+ */
 function useFittedCount(ref, enabled) {
   const [count, setCount] = useState(AUTO_FALLBACK);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!enabled || !el) return undefined;
-    const fit = width => setCount(Math.max(1, Math.floor((width + GAP) / (CELL + GAP))));
+    const style = getComputedStyle(el);
+    const tick = parseFloat(style.getPropertyValue('--seg-w')) || 4;
+    const gap = parseFloat(style.columnGap) || 0;
+    const fit = width => setCount(Math.max(1, Math.floor((width + gap) / (tick + gap))));
     fit(el.clientWidth);
     if (typeof ResizeObserver === 'undefined') return undefined;
     const observer = new ResizeObserver(([entry]) => fit(entry.contentRect.width));
@@ -26,9 +29,9 @@ function useFittedCount(ref, enabled) {
 
 /**
  * A quantity as a row of discrete segments: lit in a tone, unlit in track.
- * Every segment is the same fixed size across the app, so a wider row holds more of them.
+ * Every segment is the Dial's tick, one size across the app, so a wider row holds more of them.
  *   value   0 to 1, the lit share of the scale
- *   target  0 to 1, a short ink mark above one segment; only for a reading with a set point
+ *   target  0 to 1, a longer ink tick, as the Dial's notch; only for a reading with a set point
  *   total   a fixed count, for a scale whose steps mean something (a rating of 5) or a fill track;
  *           left out, the row holds as many segments as fit
  *   tone    'heat', 'primary', 'flow' or 'weight'; none is ink

@@ -202,12 +202,14 @@
   color: var(--ink);
 }
 .bm-cta .bm-segbar {
+  gap: 3px;
   height: 6px;
   margin-top: 8px;
   color: currentColor;
 }
 .bm-cta .bm-segbar i {
   flex-grow: 1;
+  border-radius: 2px;
   background: currentColor;
   opacity: 0.28;
 }
@@ -335,34 +337,41 @@
   background: currentColor;
 }
 
-/* Segment bar and dot matrix: every quantity is drawn in discrete marks */
+/* Segment bar and dot matrix: every quantity is drawn in discrete marks.
+   A segment is the Dial's tick laid in a row. On the dashboard's 300px Dial a ring tick is 3.75px
+   thick and 17.5px long with round caps, about 9.7px apart, so every bar uses that tick and pitch.
+   SegmentBar reads --seg-w and the gap to fit as many ticks as its row holds. */
 .bm-segbar {
+  --seg-w: 4px;
   display: flex;
   align-items: stretch;
-  gap: 3px;
-  height: 20px;
+  gap: 6px;
+  height: 18px;
   color: var(--ink);
 }
-/* Every segment is one fixed size; a bar narrower than its row leaves the rest empty. */
 .bm-segbar i {
   position: relative;
-  flex: 0 1 15px;
+  flex: 0 1 var(--seg-w);
   min-width: 2px;
-  border-radius: 2px;
+  border-radius: calc(var(--seg-w) / 2);
   background: var(--track);
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 .bm-segbar i.on {
   background: currentColor;
 }
+/* The target is the Dial's notch: an ink tick that reaches 5px further. */
+.bm-segbar i.target {
+  background: var(--ink);
+}
 .bm-segbar i.target::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  top: -6px;
-  height: 3px;
-  border-radius: 2px;
+  top: -5px;
+  bottom: 0;
+  border-radius: inherit;
   background: var(--ink);
 }
 .bm-segbar--heat {
@@ -377,8 +386,12 @@
 .bm-segbar--weight {
   color: var(--weight);
 }
+.bm-segbar--fill {
+  gap: 3px;
+}
 .bm-segbar--fill i {
   flex-grow: 1;
+  border-radius: 2px;
 }
 .bm-dots {
   display: grid;
