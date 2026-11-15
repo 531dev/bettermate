@@ -191,7 +191,7 @@ export function AnalyzerActionBar({
 
       {loadIndicatorVisible && (
         <div className='an-libbar__load'>
-          <SegmentBar total={24} value={loadIndicatorProgress} label='Loading the shot' />
+          <SegmentBar total={24} value={loadIndicatorProgress} fill label='Loading the shot' />
         </div>
       )}
 

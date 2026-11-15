@@ -188,12 +188,7 @@ export default function ShotNotes({ shot, onNotesUpdate, onNotesLoaded }) {
         {head}
         {notes.rating > 0 && (
           <div className='flex items-center gap-3'>
-            <SegmentBar
-              value={notes.rating / 5}
-              total={5}
-              fill={false}
-              label={`Rated ${notes.rating} of 5`}
-            />
+            <SegmentBar value={notes.rating / 5} total={5} label={`Rated ${notes.rating} of 5`} />
             <span className='bm-data'>{notes.rating}/5</span>
           </div>
         )}

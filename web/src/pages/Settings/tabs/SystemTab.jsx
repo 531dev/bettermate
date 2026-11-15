@@ -95,7 +95,7 @@ function OtaProgressView({ phase, progress }) {
               <span className='bm-stat__value'>{shown}</span>
               <span className='bm-stat__unit'>%</span>
             </div>
-            <SegmentBar value={shown / 100} total={24} />
+            <SegmentBar value={shown / 100} />
           </div>
         )}
         {(finished || failed) && <Button href='/'>Back</Button>}
@@ -240,7 +240,6 @@ function MaintenanceSection({
           </span>
           <SegmentBar
             value={rebuildProgress.total > 0 ? rebuildProgress.current / rebuildProgress.total : 0}
-            total={24}
           />
         </div>
       )}

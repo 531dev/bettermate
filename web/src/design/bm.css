@@ -207,7 +207,7 @@
   color: currentColor;
 }
 .bm-cta .bm-segbar i {
-  max-width: none;
+  flex-grow: 1;
   background: currentColor;
   opacity: 0.28;
 }
@@ -343,11 +343,11 @@
   height: 20px;
   color: var(--ink);
 }
+/* Every segment is one fixed size; a bar narrower than its row leaves the rest empty. */
 .bm-segbar i {
   position: relative;
-  flex: 1 1 0;
+  flex: 0 1 15px;
   min-width: 2px;
-  max-width: 6px;
   border-radius: 2px;
   background: var(--track);
   transition: background-color var(--duration-fast) var(--ease-out);
@@ -378,7 +378,7 @@
   color: var(--weight);
 }
 .bm-segbar--fill i {
-  max-width: none;
+  flex-grow: 1;
 }
 .bm-dots {
   display: grid;

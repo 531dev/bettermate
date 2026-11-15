@@ -137,7 +137,7 @@ function MetricRange({ row, metric }) {
   return (
     <div className='flex flex-col gap-1'>
       <div
-        className={cx('bm-segbar bm-segbar--fill st-range', row.tone && `bm-segbar--${row.tone}`)}
+        className={cx('bm-segbar st-range', row.tone && `bm-segbar--${row.tone}`)}
         role='img'
         aria-label={`${row.label}: lowest ${low}, highest ${high}, standard deviation ${fmt(metric.stdDev, row.digits)} ${row.unit}`}
       >

@@ -54,6 +54,7 @@ export function MobileChartScrubber({
       <SegmentBar
         value={fraction}
         total={SCRUBBER_SEGMENTS}
+        fill
         className='shot-chart-mobile-scrubber__track'
       />
       <div className='shot-chart-mobile-scrubber__hint' aria-hidden='true'>
