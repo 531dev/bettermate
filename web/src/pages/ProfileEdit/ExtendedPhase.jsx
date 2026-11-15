@@ -2,7 +2,7 @@ import { Fragment } from 'preact';
 import { Menu, MenuItem } from '../../components/Menu.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { ExtendedPhaseTarget, TargetTypes } from './ExtendedPhaseTarget.jsx';
-import { Choice, FormField } from './form.jsx';
+import { Choice, FormField } from '../../components/FormField.jsx';
 import { PHASE_TYPES, VALVE_STATES } from './StandardProfileForm.jsx';
 
 const RAMP_STYLES = [

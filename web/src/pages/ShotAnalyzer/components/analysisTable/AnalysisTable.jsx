@@ -57,10 +57,10 @@ export function AnalysisTable({
     <td className='whitespace-nowrap'>
       <span className='flex min-w-0 items-center gap-2'>
         <ShotBadge number={compareIndex + 1} />
-        <span className='an-label min-w-0 truncate'>{entry.label}</span>
+        <span className='bm-label min-w-0 truncate'>{entry.label}</span>
       </span>
       {withProfile && entry.profileName && entry.profileName !== 'No Profile Loaded' ? (
-        <span className='an-tick block'>{cleanName(entry.profileName)}</span>
+        <span className='bm-tick block'>{cleanName(entry.profileName)}</span>
       ) : null}
     </td>
   );
@@ -207,7 +207,7 @@ export function AnalysisTable({
         </table>
       </div>
 
-      <p className='an-caption flex flex-wrap gap-x-4 gap-y-1'>
+      <p className='bm-caption flex flex-wrap gap-x-4 gap-y-1'>
         <span>Avg: time-weighted average</span>
         <span>S/E: start and end</span>
         <span>Min/max: lowest and highest</span>

@@ -10,8 +10,7 @@ import { Segmented } from '../../../../components/Segmented.jsx';
 import { Spinner } from '../../../../components/Spinner.jsx';
 import { Cell } from '../../../../components/Tile.jsx';
 import { getShotIdentityKey } from '../../utils/analyzerUtils';
-import { IconButton } from '../../ui/IconButton.jsx';
-import { PinIcon } from '../../ui/PinIcon.jsx';
+import { IconButton } from '../../../../components/IconButton.jsx';
 import { LibraryRow } from './LibraryRow';
 import { LibraryActionsMenu } from './LibraryActionsMenu';
 import './LibrarySection.css';
@@ -208,7 +207,7 @@ export function LibrarySection({
                   onPinnedFirstToggle();
                 }}
               >
-                <PinIcon size={16} />
+                <Icon name='pin' size={16} />
               </IconButton>
             ) : null}
           </span>

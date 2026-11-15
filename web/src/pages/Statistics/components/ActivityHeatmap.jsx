@@ -222,7 +222,7 @@ export function ActivityHeatmap({ trends }) {
               key={i}
               x={labelWidth + m.week * step}
               y={10}
-              className='an-tick fill-(--ink-muted)'
+              className='bm-tick fill-(--ink-muted)'
             >
               {m.label}
             </text>
@@ -233,7 +233,7 @@ export function ActivityHeatmap({ trends }) {
               key={dow}
               x={0}
               y={topPadding + dow * step + cellSize - 1}
-              className='an-tick fill-(--ink-muted)'
+              className='bm-tick fill-(--ink-muted)'
             >
               {label}
             </text>
@@ -292,7 +292,7 @@ export function ActivityHeatmap({ trends }) {
         <HeatmapFact label='Current streak'>
           {data.stats.currentStreak} {data.stats.currentStreak === 1 ? 'day' : 'days'}
         </HeatmapFact>
-        <span className='an-tick ml-auto flex items-center gap-1' aria-hidden='true'>
+        <span className='bm-tick ml-auto flex items-center gap-1' aria-hidden='true'>
           0
           {LEVEL_GROUNDS.map(ground => (
             <i key={ground} className={`st-heat__swatch ${ground}`} />
@@ -315,7 +315,7 @@ export function ActivityHeatmap({ trends }) {
           <span className='an-data'>
             {tooltip.cell.count} {tooltip.cell.count === 1 ? 'shot' : 'shots'}
           </span>
-          <span className='an-caption'>
+          <span className='bm-caption'>
             {formatDateLocal(tooltip.cell.dayMs, TOOLTIP_DATE_OPTIONS)}
           </span>
         </div>

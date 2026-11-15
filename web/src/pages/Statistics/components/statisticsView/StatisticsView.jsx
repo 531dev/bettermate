@@ -385,7 +385,7 @@ export function StatisticsView({ initialContext }) {
         <Tile className='items-center text-center' role='status' data-statistics-progress>
           {progress.total > 0 ? (
             <>
-              <p className='an-label'>
+              <p className='bm-label'>
                 Analyzing shot {progress.current} of {progress.total}
               </p>
               <SegmentBar className='w-full max-w-xs' value={progress.current / progress.total} />
@@ -393,7 +393,7 @@ export function StatisticsView({ initialContext }) {
           ) : (
             <>
               <Spinner size={8} className='text-(--ink-muted)' />
-              <p className='an-label'>Preparing statistics</p>
+              <p className='bm-label'>Preparing statistics</p>
             </>
           )}
         </Tile>

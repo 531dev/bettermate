@@ -6,7 +6,7 @@ import { OverviewChart } from '../../../components/OverviewChart.jsx';
 import { Spinner } from '../../../components/Spinner.jsx';
 import { Cell, Tile } from '../../../components/Tile.jsx';
 import PumpFlowCalibration from '../../../components/PumpFlowCalibration/index.jsx';
-import { TextField } from '../fields.jsx';
+import { FormField } from '../../../components/FormField.jsx';
 
 // What the autotune accepts; outside these it cannot start.
 const TIME_RANGE = [30, 300];
@@ -127,7 +127,7 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
             </p>
 
             <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
-              <TextField
+              <FormField
                 id='testTime'
                 label='Test duration'
                 unit='s'
@@ -140,7 +140,7 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
                 value={autotuneTime}
                 onChange={e => setAutotuneTime(Number.parseInt(e.target.value, 10) || 0)}
               />
-              <TextField
+              <FormField
                 id='slopeWindow'
                 label='Slope window'
                 unit='samples'
@@ -153,7 +153,7 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
                 value={autotuneSamples}
                 onChange={e => setAutotuneSamples(Number.parseInt(e.target.value, 10) || 4)}
               />
-              <TextField
+              <FormField
                 id='heaterWattage'
                 label='Heater wattage'
                 unit='W'

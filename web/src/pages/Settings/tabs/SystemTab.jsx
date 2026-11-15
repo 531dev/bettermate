@@ -9,7 +9,8 @@ import { SystemTabSkeleton } from '../../../components/skeletons/SettingsSkeleto
 import { Spinner } from '../../../components/Spinner.jsx';
 import { Stat } from '../../../components/StatTile.jsx';
 import { Cell, Tile } from '../../../components/Tile.jsx';
-import { SegmentedField, TILE_GRID } from '../fields.jsx';
+import { SegmentedField } from '../../../components/FormField.jsx';
+import { TILE_GRID } from '../grid.js';
 
 const imageUrlToBase64 = async blob => {
   return new Promise((onSuccess, onError) => {

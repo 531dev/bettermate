@@ -3,7 +3,7 @@ import { Button } from '../../components/Button.jsx';
 import { Input, Switch } from '../../components/Field.jsx';
 import { Icon } from '../../components/Icon.jsx';
 import { Tile } from '../../components/Tile.jsx';
-import { FieldError, FormErrors } from './fields.jsx';
+import { FieldError, FormErrors } from '../../components/FormField.jsx';
 
 /**
  * One plugin: a tile with its name and one sentence on the left and its switch on the right. Its
@@ -106,7 +106,7 @@ export function WakeSchedules({ schedules, onAdd, onRemove, onTimeChange, onDayC
                 <button
                   key={day}
                   type='button'
-                  className='bm-seg__item px-0'
+                  className='bm-seg__item min-w-0 px-0'
                   aria-pressed={!!schedule.days[dayIndex]}
                   aria-label={day}
                   title={day}

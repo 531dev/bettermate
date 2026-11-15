@@ -3,8 +3,8 @@
 import { useRef, useState } from 'preact/hooks';
 import { cx } from '../../../../components/cx.js';
 import { Icon } from '../../../../components/Icon.jsx';
-import { IconButton } from '../../ui/IconButton.jsx';
-import { Popover } from '../../ui/Popover.jsx';
+import { IconButton } from '../../../../components/IconButton.jsx';
+import { Popover } from '../../../../components/Popover.jsx';
 import { getAnalyzerColumnVisual } from './analyzerGroupVisuals';
 import { getAnalysisHeaderLabel } from './analysisTableModel';
 
@@ -92,7 +92,7 @@ export function StatusBadge({ label, tone, details }) {
         width='min(22rem, calc(100vw - 24px))'
         className='an-table__note'
       >
-        <span className='an-label'>{label}</span>
+        <span className='bm-label'>{label}</span>
         <span className='bm-help'>{details}</span>
       </Popover>
     </>

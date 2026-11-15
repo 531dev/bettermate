@@ -3,7 +3,8 @@ import homekitImage from '../../../assets/homekit.png';
 import { machine } from '../../../services/ApiService.js';
 import { Chip } from '../../../components/Chip.jsx';
 import { Cell } from '../../../components/Tile.jsx';
-import { PasswordField, SegmentedField, TextField, TILE_GRID } from '../fields.jsx';
+import { FormField, PasswordField, SegmentedField } from '../../../components/FormField.jsx';
+import { TILE_GRID } from '../grid.js';
 import { PluginCard, WakeSchedules } from '../PluginCard.jsx';
 
 const gearpumpAddon = computed(() => machine.value.capabilities.gearpumpAddon);
@@ -74,7 +75,7 @@ export function PluginsTab({
         {/* Side by side from 288px of tile; narrower, the second label would wrap and its input drop. */}
         <div className='@container'>
           <div className='grid grid-cols-1 gap-3 @2xs:grid-cols-2'>
-            <TextField
+            <FormField
               id='startupFillTime'
               label='On startup'
               unit='s'
@@ -83,7 +84,7 @@ export function PluginsTab({
               value={formData.startupFillTime}
               onChange={onChange('startupFillTime')}
             />
-            <TextField
+            <FormField
               id='steamFillTime'
               label='On steam deactivate'
               unit='s'
@@ -104,7 +105,7 @@ export function PluginsTab({
         checked={formData.smartGrindActive}
         onChange={onChange('smartGrindActive')}
       >
-        <TextField
+        <FormField
           id='smartGrindIp'
           label='Tasmota IP'
           type='text'
@@ -143,14 +144,14 @@ export function PluginsTab({
             for a more up-to-date solution.
           </span>
         </p>
-        <TextField
+        <FormField
           id='haIP'
           label='MQTT IP'
           type='text'
           value={formData.haIP}
           onChange={onChange('haIP')}
         />
-        <TextField
+        <FormField
           id='haPort'
           label='MQTT port'
           type='number'
@@ -158,7 +159,7 @@ export function PluginsTab({
           value={formData.haPort}
           onChange={onChange('haPort')}
         />
-        <TextField
+        <FormField
           id='haUser'
           label='MQTT user'
           type='text'
@@ -171,7 +172,7 @@ export function PluginsTab({
           value={formData.haPassword}
           onChange={onChange('haPassword')}
         />
-        <TextField
+        <FormField
           id='haTopic'
           label='Home Assistant discovery topic'
           type='text'
@@ -187,7 +188,7 @@ export function PluginsTab({
           help='The BLDC pump addon was detected in your system. You can change the pump control characteristics using the values below.'
           className='md:col-span-2'
         >
-          <TextField
+          <FormField
             id='commutationGain'
             label='Commutation gain'
             type='number'
@@ -198,7 +199,7 @@ export function PluginsTab({
             value={formData.commutationGain?.toString()}
             onChange={onChange('commutationGain')}
           />
-          <TextField
+          <FormField
             id='convergenceGain'
             label='Convergence gain'
             type='number'
@@ -209,7 +210,7 @@ export function PluginsTab({
             value={formData.convergenceGain?.toString()}
             onChange={onChange('convergenceGain')}
           />
-          <TextField
+          <FormField
             id='integralGain'
             label='Integral gain'
             type='number'
@@ -220,7 +221,7 @@ export function PluginsTab({
             value={formData.integralGain?.toString()}
             onChange={onChange('integralGain')}
           />
-          <TextField
+          <FormField
             id='maxPumpPower'
             label='Maximum pump power'
             help='From 0 to 1.'
@@ -232,7 +233,7 @@ export function PluginsTab({
             value={formData.maxPumpPower?.toString()}
             onChange={onChange('maxPumpPower')}
           />
-          <TextField
+          <FormField
             id='pumpSlipCoeffs'
             label='Pump slip coefficients'
             help='Pressure polynomial (a,b,c,d) for vane-/gear-pump internal leakage. Leave at 0,0,0,0 if uncalibrated.'

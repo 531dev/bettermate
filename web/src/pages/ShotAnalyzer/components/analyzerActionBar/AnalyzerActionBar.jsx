@@ -183,7 +183,7 @@ export function AnalyzerActionBar({
       </div>
 
       {isFileDragActive && (
-        <p className='an-libbar__drop an-label'>
+        <p className='an-libbar__drop bm-label'>
           <Icon name='upload' size={18} />
           Drop shot or profile files to open them
         </p>

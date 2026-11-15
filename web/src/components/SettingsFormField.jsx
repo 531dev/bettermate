@@ -1,35 +1,8 @@
 import { useRef, useState } from 'preact/hooks';
 import { Button } from './Button.jsx';
 import { cx } from './cx.js';
-import { Field, Setting, Switch } from './Field.jsx';
+import { Setting, Switch } from './Field.jsx';
 import { Icon } from './Icon.jsx';
-
-/**
- * The earlier settings field API on the Field recipe: a label, the control passed as children
- * (an Input, a Select), and help below. Spacing comes from the parent's gap, so `noMargin` is
- * accepted and has nothing left to do.
- */
-export function SettingsFormField({ label, htmlFor, helpText, children, className }) {
-  return (
-    <Field label={label} htmlFor={htmlFor} help={helpText} as='div' className={className}>
-      {children}
-    </Field>
-  );
-}
-
-/** A settings field whose bare `<input>` child shares one field with its unit. */
-export function InputGroupField({ label, htmlFor, unit, unitAriaLabel, helpText, children }) {
-  return (
-    <Field label={label} htmlFor={htmlFor} help={helpText} as='div'>
-      <label htmlFor={htmlFor} className='bm-input bm-input--group'>
-        {children}
-        <span className='bm-data' aria-label={unitAriaLabel}>
-          {unit}
-        </span>
-      </label>
-    </Field>
-  );
-}
 
 /**
  * A setting that is on or off, as a Switch beside its label. `onChange` receives what a checkbox

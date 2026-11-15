@@ -824,13 +824,12 @@
   background: var(--ink);
   color: var(--on-ink);
 }
-/* Items that share the width need no room beside their word, and three of them still fit the
-   tile of a 320px phone. A word too long for its share is cut at the item's edge; give it
-   `truncate` in a span to end it with an ellipsis. */
+/* Items that share the width need less room beside their word: 8px, so three of them still fit
+   the tile of a 320px phone. An item stays as wide as its word, and a longer word takes more of
+   the track. Where a label has no limit (a profile's name), let the items shrink (`min-w-0`) and
+   end the label with an ellipsis (`truncate` on a span inside it). */
 .bm-seg--block .bm-seg__item {
-  min-width: 0;
   padding: 0 8px;
-  overflow: hidden;
 }
 /* More items than the row holds: the track scrolls sideways instead of wrapping. */
 .bm-seg--scroll {
@@ -903,6 +902,63 @@ button.bm-item {
   text-align: left;
   text-decoration: none;
   cursor: pointer;
+}
+
+/* Icon button: a round ghost button holding one glyph, for dense toolbars and rows where the 44px
+   pill of bm-btn would crowd the data. It rests on its ground and takes the next tone on hover;
+   pressed (a toggle that is on) is ink. A finger always gets the full touch target. */
+.bm-iconbtn {
+  --iconbtn-hover: var(--surface-2);
+  display: inline-grid;
+  place-items: center;
+  width: var(--control-sm);
+  height: var(--control-sm);
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ink-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+.bm-iconbtn:hover {
+  background: var(--iconbtn-hover);
+  color: var(--ink);
+}
+/* On a surface-2 ground the hover steps down to surface-1. */
+.bm-cell .bm-iconbtn,
+.bm-menu .bm-iconbtn {
+  --iconbtn-hover: var(--surface-1);
+}
+.bm-iconbtn[aria-pressed='true'],
+.bm-iconbtn[aria-pressed='true']:hover {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.bm-iconbtn--sm {
+  width: 28px;
+  height: 28px;
+}
+.bm-iconbtn:focus-visible {
+  outline: var(--outline) solid var(--focus);
+  outline-offset: 2px;
+}
+.bm-iconbtn[disabled],
+.bm-iconbtn[aria-disabled='true'] {
+  opacity: var(--disabled);
+  cursor: default;
+  background: none;
+  color: var(--ink-muted);
+}
+@media (pointer: coarse) {
+  .bm-iconbtn {
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
 }
 
 /* Select: the input recipe on a native select, with the chevron glyph as its arrow. */
@@ -1254,6 +1310,18 @@ input:disabled + .bm-radio__box {
   cursor: default;
 }
 
+/* Popover: the menu's panel for content that is not a list of actions (a filter, a column picker,
+   a date range). Popover.jsx adds `bm-menu`, which gives the ground, the hairline and the enter
+   and leave motion. */
+.bm-popover {
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3);
+}
+.bm-popover:focus {
+  outline: 0;
+}
+
 /* The page's one primary Button, pinned at the bottom of a form on a band of the page ground. */
 .bm-pinned {
   position: sticky;
@@ -1418,6 +1486,7 @@ input:disabled + .bm-radio__box {
 /* Reduced motion removes every transition, rise and press of parts 2 and 3. */
 @media (prefers-reduced-motion: reduce) {
   .bm-dial .bmf-tick,
+  .bm-iconbtn,
   .bm-checkbox__box,
   .bm-radio__box,
   .bm-scrim,
@@ -1438,4 +1507,30 @@ input:disabled + .bm-radio__box {
   .bm-spinner .bm-spinner__comet {
     animation: none;
   }
+}
+
+/* Text helpers for the design's type styles that part 1 has no class for: `label` 13, `caption`
+   12, `metric` 24 (a numeral in a cell), `metric-sm` 15 (a target after a reading) and the chart
+   tick style for text set beside a chart. They come last, so a helper on an element wins over
+   the recipe it sits with. */
+.bm-label {
+  font: 500 13px/18px var(--font-sans);
+}
+.bm-caption {
+  font: 400 12px/16px var(--font-sans);
+  color: var(--ink-muted);
+}
+.bm-metric {
+  font: 500 24px/28px var(--font-sans);
+  letter-spacing: -0.01em;
+  font-feature-settings: 'tnum';
+}
+.bm-metric-sm {
+  font: 500 15px/20px var(--font-mono);
+  font-feature-settings: 'tnum';
+}
+.bm-tick {
+  font: 400 11px/14px var(--font-mono);
+  font-feature-settings: 'tnum';
+  color: var(--ink-muted);
 }

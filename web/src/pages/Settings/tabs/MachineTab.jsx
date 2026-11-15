@@ -2,17 +2,16 @@ import { useContext, useState } from 'preact/hooks';
 import { computed } from '@preact/signals';
 import { machine } from '../../../services/ApiService.js';
 import { Button } from '../../../components/Button.jsx';
-import { Input } from '../../../components/Field.jsx';
-import { SettingsFormField } from '../../../components/SettingsFormField.jsx';
+import { Field, Input } from '../../../components/Field.jsx';
 import { Cell, Tile } from '../../../components/Tile.jsx';
 import {
   FieldError,
   FormErrors,
+  FormField,
   SegmentedField,
   StepperSetting,
-  TextField,
-  TILE_GRID,
-} from '../fields.jsx';
+} from '../../../components/FormField.jsx';
+import { TILE_GRID } from '../grid.js';
 
 const ledControl = computed(() => machine.value.capabilities.ledControl);
 const pressureAvailable = computed(() => machine.value.capabilities.pressure);
@@ -60,7 +59,7 @@ function TankDistanceField({ id, label, value, onChange, onUseCurrent }) {
   const error = useContext(FormErrors)[id];
   const measured = tofDistance.value;
   return (
-    <SettingsFormField label={label} htmlFor={id}>
+    <Field label={label} htmlFor={id}>
       <div className='flex gap-2'>
         <Input
           id={id}
@@ -84,7 +83,7 @@ function TankDistanceField({ id, label, value, onChange, onUseCurrent }) {
         </Button>
       </div>
       {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
-    </SettingsFormField>
+    </Field>
   );
 }
 
@@ -103,7 +102,7 @@ export function MachineTab({ formData, onChange, setField }) {
   return (
     <div className={TILE_GRID}>
       <Tile title='Boiler'>
-        <TextField
+        <FormField
           id='pid'
           label='PID values'
           unit={
@@ -116,7 +115,7 @@ export function MachineTab({ formData, onChange, setField }) {
           value={formData.pid}
           onChange={onChange('pid')}
         />
-        <TextField
+        <FormField
           id='kf'
           label='Thermal feedforward gain'
           unit={
@@ -131,7 +130,7 @@ export function MachineTab({ formData, onChange, setField }) {
           value={formData.kf}
           onChange={onChange('kf')}
         />
-        <TextField
+        <FormField
           id='temperatureOffset'
           label='Temperature offset'
           unit='°C'
@@ -144,7 +143,7 @@ export function MachineTab({ formData, onChange, setField }) {
       </Tile>
 
       <Tile title='Pump'>
-        <TextField
+        <FormField
           id='pumpModelCoeffs'
           label='Pump flow coefficients'
           help='Enter 2 values (flow at 1 bar, flow at 9 bar).'
@@ -153,7 +152,7 @@ export function MachineTab({ formData, onChange, setField }) {
           value={formData.pumpModelCoeffs}
           onChange={onChange('pumpModelCoeffs')}
         />
-        <TextField
+        <FormField
           id='steamPumpPercentage'
           label='Steam pump assist'
           unit={hasPressure ? 'ml/s' : '%'}
@@ -176,7 +175,7 @@ export function MachineTab({ formData, onChange, setField }) {
           }}
         />
         {hasPressure && (
-          <TextField
+          <FormField
             id='steamPumpCutoff'
             label='Pump assist cutoff'
             unit='bar'
@@ -192,7 +191,7 @@ export function MachineTab({ formData, onChange, setField }) {
 
       {hasPressure && (
         <Tile title='Pressure sensor' className='md:row-span-2'>
-          <TextField
+          <FormField
             id='pressureOffset'
             label='Pressure offset'
             unit='bar'
@@ -203,7 +202,7 @@ export function MachineTab({ formData, onChange, setField }) {
             value={formData.pressureOffset}
             onChange={onChange('pressureOffset')}
           />
-          <TextField
+          <FormField
             id='pressureScaling'
             label='Pressure sensor rating'
             unit='bar'
@@ -219,7 +218,7 @@ export function MachineTab({ formData, onChange, setField }) {
 
       <Tile title='Temperature settings'>
         <div className='grid grid-cols-2 gap-3'>
-          <TextField
+          <FormField
             id='targetSteamTemp'
             label='Default steam temperature'
             unit='°C'
@@ -228,7 +227,7 @@ export function MachineTab({ formData, onChange, setField }) {
             value={formData.targetSteamTemp}
             onChange={onChange('targetSteamTemp')}
           />
-          <TextField
+          <FormField
             id='targetWaterTemp'
             label='Default water temperature'
             unit='°C'

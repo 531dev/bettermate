@@ -2,7 +2,7 @@ import { Button } from '../../components/Button.jsx';
 import { Icon } from '../../components/Icon.jsx';
 import { Menu, MenuItem } from '../../components/Menu.jsx';
 import { Tile } from '../../components/Tile.jsx';
-import { Choice, FormField, useFormValidation } from './form.jsx';
+import { Choice, FormField, useFormValidation } from '../../components/FormField.jsx';
 import { ProfileForm } from './ProfileForm.jsx';
 import { ProfileMainInformation } from './ProfileMainInformation.jsx';
 import { getProfilePhases, movePhaseAt, removePhaseAt, updatePhaseAt } from './profilePhases.js';

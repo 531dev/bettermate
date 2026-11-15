@@ -1,6 +1,6 @@
 import { Button } from '../../components/Button.jsx';
 import { Icon } from '../../components/Icon.jsx';
-import { FormField } from './form.jsx';
+import { FormField } from '../../components/FormField.jsx';
 
 export const TargetTypes = [
   {

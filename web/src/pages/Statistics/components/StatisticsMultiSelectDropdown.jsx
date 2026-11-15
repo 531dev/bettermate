@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { Input } from '../../../components/Field.jsx';
 import { Icon } from '../../../components/Icon.jsx';
-import { IconButton } from '../../ShotAnalyzer/ui/IconButton.jsx';
-import { PinIcon } from '../../ShotAnalyzer/ui/PinIcon.jsx';
-import { Popover } from '../../ShotAnalyzer/ui/Popover.jsx';
+import { IconButton } from '../../../components/IconButton.jsx';
+import { Popover } from '../../../components/Popover.jsx';
 import '../statistics.css';
 import { TOOLBAR_FLOATING_PANEL_ATTR } from './toolbar/constants';
 import { useFocusOnOpen, usePopoverState } from './toolbar/hooks';
@@ -91,7 +90,7 @@ function StatisticsMultiSelectRow({
         aria-pressed={isSelected}
         onClick={event => onRowClick(item.id, index, event)}
       >
-        <span className='an-label truncate'>{name}</span>
+        <span className='bm-label truncate'>{name}</span>
         {item.secondary ? <span className='bm-data truncate'>{item.secondary}</span> : null}
       </button>
 
@@ -108,7 +107,7 @@ function StatisticsMultiSelectRow({
             onTogglePin(item);
           }}
         >
-          <PinIcon size={16} />
+          <Icon name='pin' size={16} />
         </IconButton>
       ) : null}
     </div>
@@ -397,7 +396,7 @@ export function StatisticsMultiSelectDropdown({
                 label={`${showPinnedOnly ? 'Show all' : 'Show pinned only'} ${lowerLabel}`}
                 onClick={() => setShowPinnedOnly(value => !value)}
               >
-                <PinIcon size={18} />
+                <Icon name='pin' size={18} />
               </IconButton>
             ) : null}
           </div>
@@ -437,12 +436,12 @@ export function StatisticsMultiSelectDropdown({
 
           {/* st-keys hides on a touch screen: it carries no layout utility that would undo that */}
           <div className='st-keys'>
-            <p className='an-caption flex items-center justify-between gap-3 px-1'>
+            <p className='bm-caption flex items-center justify-between gap-3 px-1'>
               <span>Shift selects a range</span>
               <span>Cmd or Ctrl adds</span>
             </p>
           </div>
-          <p className='st-touch-hint an-caption px-1'>Hold a mark and sweep to select several.</p>
+          <p className='st-touch-hint bm-caption px-1'>Hold a mark and sweep to select several.</p>
         </div>
       </Popover>
     </>

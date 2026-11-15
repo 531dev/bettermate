@@ -54,6 +54,7 @@ function Favourites({ selectedProfileId, disabled }) {
       block
       label='Favourite profiles'
       // A long name is cut short inside its third of the track instead of widening it.
+      className='[&>button]:min-w-0'
       options={shown.map(p => ({
         value: p.id,
         label: <span className='min-w-0 truncate'>{p.label}</span>,

@@ -2,7 +2,7 @@ import { Button } from '../../../../components/Button.jsx';
 import { Icon } from '../../../../components/Icon.jsx';
 import { Segmented } from '../../../../components/Segmented.jsx';
 import { Spinner } from '../../../../components/Spinner.jsx';
-import { IconButton } from '../../ui/IconButton.jsx';
+import { IconButton } from '../../../../components/IconButton.jsx';
 
 export const IMPORT_MODE_OPTIONS = [
   { value: 'temp', label: 'View' },

@@ -22,7 +22,7 @@ export function ProfileGroupTable({ profileGroups, showTitle = true }) {
           <tbody>
             {profileGroups.map(group => (
               <tr key={group.profileName}>
-                <td className='an-label whitespace-nowrap'>{group.profileName}</td>
+                <td className='bm-label whitespace-nowrap'>{group.profileName}</td>
                 <td className='text-right'>{group.shotCount}</td>
                 <td className='text-right whitespace-nowrap'>{fmt(group.avgDuration)} s</td>
                 <td className='text-right whitespace-nowrap'>{fmt(group.avgWeight)} g</td>
@@ -34,7 +34,7 @@ export function ProfileGroupTable({ profileGroups, showTitle = true }) {
           </tbody>
         </table>
       </div>
-      <p className='an-caption'>Averages over the shots of each profile.</p>
+      <p className='bm-caption'>Averages over the shots of each profile.</p>
     </Tile>
   );
 }

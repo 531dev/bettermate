@@ -1,10 +1,11 @@
 import { Sheet } from '../../../components/Sheet.jsx';
 import { Cell } from '../../../components/Tile.jsx';
-import { IconButton } from '../../ShotAnalyzer/ui/IconButton.jsx';
-import { Popover } from '../../ShotAnalyzer/ui/Popover.jsx';
+import { IconButton } from '../../../components/IconButton.jsx';
+import { Popover } from '../../../components/Popover.jsx';
 import '../statistics.css';
 import { TOOLBAR_FLOATING_PANEL_ATTR } from './toolbar/constants';
-import { useMediaQuery, usePopoverState } from './toolbar/hooks';
+import { useMediaQuery } from '../../../hooks/useMediaQuery.js';
+import { usePopoverState } from './toolbar/hooks';
 
 const FLOATING_PANEL_PROPS = { [TOOLBAR_FLOATING_PANEL_ATTR]: '' };
 

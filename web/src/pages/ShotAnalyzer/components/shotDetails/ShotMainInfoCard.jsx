@@ -164,7 +164,7 @@ export function ShotMainInfoCard({
       </div>
 
       <div className='flex flex-wrap items-center justify-between gap-2'>
-        <span className='an-caption'>{dateLabel}</span>
+        <span className='bm-caption'>{dateLabel}</span>
         {completionLabel ? (
           <Chip tone={entry?.results?.completionTone === 'warning' ? 'warning' : undefined}>
             {completionLabel}

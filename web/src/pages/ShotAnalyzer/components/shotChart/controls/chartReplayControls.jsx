@@ -2,8 +2,8 @@ import { useRef } from 'preact/hooks';
 import { Button } from '../../../../../components/Button.jsx';
 import { cx } from '../../../../../components/cx.js';
 import { Checkbox, Radio, Setting, Switch } from '../../../../../components/Field.jsx';
-import { IconButton } from '../../../ui/IconButton.jsx';
-import { Popover } from '../../../ui/Popover.jsx';
+import { IconButton } from '../../../../../components/IconButton.jsx';
+import { Popover } from '../../../../../components/Popover.jsx';
 
 function getReplayActionLabel({ isReplaying, isReplayPaused }) {
   if (isReplaying) return 'Pause replay';
@@ -343,10 +343,10 @@ export function ReplayExportStatus({
 
   return (
     <div className='shot-chart-export-status' role='status'>
-      <div className={cx('an-caption', replayExportStatus.error && 'text-(--danger)')}>
+      <div className={cx('bm-caption', replayExportStatus.error && 'text-(--danger)')}>
         {replayExportStatusLabel}
       </div>
-      {replayExportStatusHint ? <div className='an-caption'>{replayExportStatusHint}</div> : null}
+      {replayExportStatusHint ? <div className='bm-caption'>{replayExportStatusHint}</div> : null}
     </div>
   );
 }

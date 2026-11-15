@@ -2,6 +2,7 @@
 
 /** Owns asynchronous library loading, persisted filters, hotkeys, and sticky layout state. */
 
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.js';
 import { libraryService } from '../../services/LibraryService';
 import {
   buildPromotedLibraryItems,
@@ -12,9 +13,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'preac
 
 export function useLibraryPanelLayoutState({ sentinelRef, barSlotRef, barRef }) {
   const [isStuck, setIsStuck] = useState(false);
-  const [isMobileViewport, setIsMobileViewport] = useState(() =>
-    Boolean(globalThis.window?.matchMedia('(max-width: 1023px)').matches),
-  );
+  const isMobileViewport = useMediaQuery('(max-width: 1023px)');
   const [barRect, setBarRect] = useState({ width: 0, left: 0, height: 64 });
 
   useEffect(() => {
@@ -26,18 +25,6 @@ export function useLibraryPanelLayoutState({ sentinelRef, barSlotRef, barRef }) 
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [sentinelRef]);
-
-  useEffect(() => {
-    if (globalThis.window === undefined) return undefined;
-
-    const mediaQuery = globalThis.window.matchMedia('(max-width: 1023px)');
-    const handleChange = event => setIsMobileViewport(event.matches);
-
-    setIsMobileViewport(mediaQuery.matches);
-
-    mediaQuery.addEventListener?.('change', handleChange);
-    return () => mediaQuery.removeEventListener?.('change', handleChange);
-  }, []);
 
   const updateRect = useCallback(() => {
     const anchor = barSlotRef.current || sentinelRef.current;

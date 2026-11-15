@@ -5,7 +5,7 @@ import { Icon } from '../../components/Icon.jsx';
 import { Menu, MenuItem } from '../../components/Menu.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { ExtendedPhase } from './ExtendedPhase.jsx';
-import { useFormValidation } from './form.jsx';
+import { useFormValidation } from '../../components/FormField.jsx';
 import { PhaseTabs } from './PhaseTabs.jsx';
 import { ProfileForm } from './ProfileForm.jsx';
 import { ProfileMainInformation } from './ProfileMainInformation.jsx';

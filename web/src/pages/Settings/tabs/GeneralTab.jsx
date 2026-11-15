@@ -12,13 +12,13 @@ import { Tile } from '../../../components/Tile.jsx';
 import { WarningIcon } from '../../../components/WarningIcon.jsx';
 import { WARNING_LEVELS, WARNINGS } from '../../../utils/warnings.js';
 import {
+  FormField,
   PasswordField,
   SegmentedField,
   SelectField,
   StepperSetting,
-  TextField,
-  TILE_GRID,
-} from '../fields.jsx';
+} from '../../../components/FormField.jsx';
+import { TILE_GRID } from '../grid.js';
 
 const THEMES = [
   { value: 'system', label: 'System' },
@@ -196,7 +196,7 @@ export function GeneralTab({
             </option>
           ))}
         </SelectField>
-        <TextField
+        <FormField
           id='standbyTimeout'
           label='Standby timeout'
           unit='s'
@@ -255,7 +255,7 @@ export function GeneralTab({
           onChange={onChange('delayAdjust')}
         />
         <div className='grid grid-cols-2 gap-3'>
-          <TextField
+          <FormField
             id='brewDelay'
             label='Brew'
             unit='ms'
@@ -265,7 +265,7 @@ export function GeneralTab({
             value={formData.brewDelay}
             onChange={onChange('brewDelay')}
           />
-          <TextField
+          <FormField
             id='grindDelay'
             label='Grind'
             unit='ms'
@@ -331,7 +331,7 @@ export function GeneralTab({
           onDecrease={() => pick('standbyBrightness')(standbyBrightness - 1)}
           onIncrease={() => pick('standbyBrightness')(standbyBrightness + 1)}
         />
-        <TextField
+        <FormField
           id='standbyBrightnessTimeout'
           label='Standby brightness timeout'
           unit='s'
@@ -353,7 +353,7 @@ export function GeneralTab({
       </Tile>
 
       <Tile title='System & network'>
-        <TextField
+        <FormField
           id='wifiSsid'
           label='Wi-Fi SSID'
           type='text'
@@ -375,7 +375,7 @@ export function GeneralTab({
           value={formData.apPassword}
           onChange={onChange('apPassword')}
         />
-        <TextField
+        <FormField
           id='mdnsName'
           label='Hostname'
           type='text'

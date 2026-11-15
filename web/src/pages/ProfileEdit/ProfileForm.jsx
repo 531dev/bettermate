@@ -1,6 +1,6 @@
-import { Button } from '../../components/Button.jsx';
+import { FormErrors } from '../../components/FormField.jsx';
+import { PinnedAction } from '../../components/PinnedAction.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
-import { FormErrors } from './form.jsx';
 
 /**
  * The frame both editors share: a column of tiles in one form, each field's message, and the
@@ -19,20 +19,15 @@ export function ProfileForm({ validation, saving, onSubmit, children }) {
         onSubmit();
       }}
     >
-      <FormErrors value={validation.errors}>{children}</FormErrors>
-      <div className='bm-pinned'>
-        <Button
-          type='submit'
-          variant='primary'
-          size='lg'
-          block
-          disabled={saving}
-          aria-label={saving ? 'Saving profile' : 'Save profile'}
-        >
-          Save
-          {saving && <Spinner size={4} />}
-        </Button>
-      </div>
+      <FormErrors.Provider value={validation.errors}>{children}</FormErrors.Provider>
+      <PinnedAction
+        type='submit'
+        disabled={saving}
+        aria-label={saving ? 'Saving profile' : 'Save profile'}
+      >
+        Save
+        {saving && <Spinner size={4} />}
+      </PinnedAction>
     </form>
   );
 }

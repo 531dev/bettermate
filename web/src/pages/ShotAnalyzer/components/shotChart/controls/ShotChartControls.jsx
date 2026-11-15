@@ -1,37 +1,13 @@
-/* global globalThis */
-
 /** Composes responsive legend, replay/export, and compare controls for shot charts. */
 
-import { useEffect, useState } from 'preact/hooks';
+import { useMediaQuery } from '../../../../../hooks/useMediaQuery.js';
 import { LEGEND_ORDER } from '../constants';
 import { COMPARE_TARGET_DISPLAY_MODES } from '../../../utils/analyzerUtils';
 import { ChartLegendArea } from './chartLegendControls';
 import { CompareControlsRow } from './compareControls';
 import { ChartActionGroup, ReplayExportStatus } from './chartReplayControls';
 
-function getInitialIsMobileControls() {
-  return Boolean(globalThis.window && globalThis.window.innerWidth < 1024);
-}
-
-function useIsMobileControls() {
-  const [isMobile, setIsMobile] = useState(getInitialIsMobileControls);
-
-  useEffect(() => {
-    const mediaQuery = globalThis.window?.matchMedia?.('(max-width: 1023px)');
-    if (mediaQuery) {
-      const handleChange = event => {
-        setIsMobile(event.matches);
-      };
-      setIsMobile(mediaQuery.matches);
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-
-    return undefined;
-  }, []);
-
-  return isMobile;
-}
+const useIsMobileControls = () => useMediaQuery('(max-width: 1023px)');
 
 function ReplayFocusHint({ isCompareMode, shouldShowReplayFocusHint }) {
   if (!isCompareMode && shouldShowReplayFocusHint) {

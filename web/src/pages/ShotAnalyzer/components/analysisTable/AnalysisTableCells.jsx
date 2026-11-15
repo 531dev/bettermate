@@ -13,15 +13,15 @@ export function ComparePhaseLabel({ phase, results }) {
 
   return (
     <>
-      <span className='an-label block'>{phase.displayName}</span>
-      {skipNotice ? <span className='an-tick block'>{skipNotice}</span> : null}
+      <span className='bm-label block'>{phase.displayName}</span>
+      {skipNotice ? <span className='bm-tick block'>{skipNotice}</span> : null}
       {/* A stop reason is a fact, set in ink. A safety stop is a warning. */}
       {stopReason ? (
         <span className={cx('an-table__stop', safetyStop && 'an-table__warn')}>{stopReason}</span>
       ) : null}
       {phase.isFinalExecuted && (
         <span
-          className={cx('an-tick block', results?.completionTone === 'warning' && 'an-table__warn')}
+          className={cx('bm-tick block', results?.completionTone === 'warning' && 'an-table__warn')}
         >
           {results?.completionLabel || results?.brewModeLabel}
         </span>
@@ -188,7 +188,7 @@ function resolveCellValue({ data, stats, col, isSkipped = false }) {
 
 function TargetDeltaDisplay({ targetVal, unit }) {
   return (
-    <span className='an-tick block whitespace-nowrap'>
+    <span className='bm-tick block whitespace-nowrap'>
       Target {targetVal} {unit}
     </span>
   );
@@ -240,7 +240,7 @@ function replaceCellValueWithCalc({ mainValue, calcEntry, col }) {
 
 function CellWarning({ children }) {
   return (
-    <span className='an-table__warn an-tick flex items-center justify-end gap-1'>
+    <span className='an-table__warn bm-tick flex items-center justify-end gap-1'>
       <Icon name='triangle-alert' size={14} />
       {children}
     </span>
@@ -290,7 +290,7 @@ function renderBooleanCellContent({ booleanContent, booleanAnomaly }) {
       <span className='flex justify-end'>{booleanContent}</span>
       {booleanAnomaly && (
         <span
-          className='an-tick block text-right'
+          className='bm-tick block text-right'
           title={`Sample ${booleanAnomaly.sampleInPhase}: ${String(booleanAnomaly.value)}`}
         >
           Sample {booleanAnomaly.sampleInPhase}

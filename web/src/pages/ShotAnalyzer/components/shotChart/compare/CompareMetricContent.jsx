@@ -1,5 +1,5 @@
 import { Icon } from '../../../../../components/Icon.jsx';
-import { IconButton } from '../../../ui/IconButton.jsx';
+import { IconButton } from '../../../../../components/IconButton.jsx';
 import { ShotBadge } from '../../../ui/ShotBadge.jsx';
 import {
   CompareSelect,

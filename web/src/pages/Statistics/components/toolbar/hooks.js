@@ -175,22 +175,3 @@ export function useFocusOnOpen(open, containerRef, enabled = true) {
     return () => view.cancelAnimationFrame(frame);
   }, [open, enabled, containerRef]);
 }
-
-// Whether a media query matches, kept current.
-export function useMediaQuery(query) {
-  const [matches, setMatches] = useState(
-    () => globalThis.window?.matchMedia?.(query).matches || false,
-  );
-
-  useEffect(() => {
-    const mediaQuery = globalThis.window?.matchMedia?.(query);
-    if (!mediaQuery) return undefined;
-
-    const handleChange = event => setMatches(event.matches);
-    setMatches(mediaQuery.matches);
-    mediaQuery.addEventListener?.('change', handleChange);
-    return () => mediaQuery.removeEventListener?.('change', handleChange);
-  }, [query]);
-
-  return matches;
-}

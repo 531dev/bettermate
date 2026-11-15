@@ -30,7 +30,7 @@ import {
   BluetoothTabSkeleton,
   SystemTabSkeleton,
 } from '../../components/skeletons/SettingsSkeletons.jsx';
-import { FormErrors } from './fields.jsx';
+import { FormErrors } from '../../components/FormField.jsx';
 import { ImportNotice } from './ImportNotice.jsx';
 import { PinnedSave, RestartTile } from './SaveBar.jsx';
 import { GeneralTab } from './tabs/GeneralTab.jsx';

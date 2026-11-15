@@ -10,7 +10,7 @@ import { Tile } from '../../../components/Tile.jsx';
 import { AnalysisTable } from '../components/AnalysisTable';
 import { ShotChart } from '../components/ShotChart';
 import { ShotDetailsPanel, ShotMobilePrimaryCards } from '../components/ShotDetailsPanel';
-import { IconButton } from '../ui/IconButton.jsx';
+import { IconButton } from '../../../components/IconButton.jsx';
 
 export function buildShotDetailsEntries({
   isCompareActive,

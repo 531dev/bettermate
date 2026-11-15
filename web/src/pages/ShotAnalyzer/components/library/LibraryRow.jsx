@@ -7,8 +7,8 @@ import { cx } from '../../../../components/cx.js';
 import { Spinner } from '../../../../components/Spinner.jsx';
 import { cleanName, formatTimestamp, getProfileDisplayLabel } from '../../utils/analyzerUtils';
 import { buildStatisticsProfileHref } from '../../../Statistics/utils/statisticsRoute';
-import { IconButton } from '../../ui/IconButton.jsx';
-import { PinIcon } from '../../ui/PinIcon.jsx';
+import { Icon } from '../../../../components/Icon.jsx';
+import { IconButton } from '../../../../components/IconButton.jsx';
 import { ShotBadge } from '../../ui/ShotBadge.jsx';
 import { SourceMarker } from '../SourceMarker';
 import { LibraryActionsMenu } from './LibraryActionsMenu';
@@ -58,7 +58,7 @@ function LibraryPinButton({ item, isPinned, pinDisabledReason, onPinToggle, disp
         onPinToggle(item);
       }}
     >
-      <PinIcon size={16} />
+      <Icon name='pin' size={16} />
     </IconButton>
   );
 }

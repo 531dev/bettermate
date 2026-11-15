@@ -1,9 +1,8 @@
 import { createPortal } from 'preact/compat';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { autoUpdate, computePosition, flip, offset, shift, size } from '@floating-ui/dom';
-import { cx } from '../../../components/cx.js';
-import { usePresence } from '../../../components/motion.js';
-import './tool.css';
+import { cx } from './cx.js';
+import { usePresence } from './motion.js';
 
 /**
  * A panel anchored to a control, for content that is not a list of actions: a filter, a column
@@ -93,7 +92,7 @@ export function Popover({
       role={role}
       aria-label={label}
       tabIndex={-1}
-      className={cx('bm-menu an-popover', shown && 'is-open', className)}
+      className={cx('bm-menu bm-popover', shown && 'is-open', className)}
       style={{ ...(position || { visibility: 'hidden' }), width }}
     >
       {children}

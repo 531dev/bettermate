@@ -8,7 +8,7 @@ import { Icon } from '../../../../components/Icon.jsx';
 import { Segmented } from '../../../../components/Segmented.jsx';
 import { Spinner } from '../../../../components/Spinner.jsx';
 import { SourceMarker } from '../../../ShotAnalyzer/components/SourceMarker';
-import { Popover } from '../../../ShotAnalyzer/ui/Popover.jsx';
+import { Popover } from '../../../../components/Popover.jsx';
 import { StatisticsSearchHelp } from '../StatisticsSearchHelp';
 import { StatisticsMultiSelectDropdown } from '../StatisticsMultiSelectDropdown';
 import {
@@ -327,7 +327,7 @@ export function AdvancedSearchControls({
 
       {showAdvancedSearch && <StatisticsSearchHelp />}
 
-      <label className='an-label flex shrink-0 cursor-pointer items-center gap-2'>
+      <label className='bm-label flex shrink-0 cursor-pointer items-center gap-2'>
         <Switch
           checked={showAdvancedSearch}
           disabled={isBusy}
@@ -552,7 +552,7 @@ export function DslSelectionPreview({ visible, profilePreviewItems, shotPreviewI
                 key={item.id}
                 className='flex min-w-0 flex-col border-t border-(--line) py-2 first:border-t-0'
               >
-                <span className='an-label truncate'>{item.fileStem || item.primary}</span>
+                <span className='bm-label truncate'>{item.fileStem || item.primary}</span>
                 {(item.shotId || item.secondary) && (
                   <span className='bm-data truncate'>
                     {item.shotId ? `ID ${item.shotId}` : ''}

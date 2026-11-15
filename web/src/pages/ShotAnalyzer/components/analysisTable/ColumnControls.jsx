@@ -18,7 +18,7 @@ import {
   saveToStorage,
   loadFromStorage,
 } from '../../utils/analyzerUtils';
-import { IconButton } from '../../ui/IconButton.jsx';
+import { IconButton } from '../../../../components/IconButton.jsx';
 import { getAnalyzerGroupCardVisuals } from './analyzerGroupVisuals';
 
 const BUILT_IN_PRESET_IDS = {

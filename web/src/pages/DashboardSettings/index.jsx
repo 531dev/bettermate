@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'preact/hooks';
-import { Button } from '../../components/Button.jsx';
-import { cx } from '../../components/cx.js';
 import { Field, Select, Setting, Switch } from '../../components/Field.jsx';
 import { hidesModeBar } from '../../components/ModeNav.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
+import { PinnedAction } from '../../components/PinnedAction.jsx';
 import { Segmented } from '../../components/Segmented.jsx';
 import { SortableConfigurator } from '../../components/SettingsFormField.jsx';
 import { Stepper } from '../../components/Stepper.jsx';
@@ -212,11 +211,9 @@ export function DashboardSettings() {
         )}
       </Tile>
 
-      <div className={cx('bm-pinned', !hidesModeBar('/dashboard-settings') && ABOVE_MODE_BAR)}>
-        <Button variant='primary' size='lg' block href='/'>
-          Done
-        </Button>
-      </div>
+      <PinnedAction href='/' className={!hidesModeBar('/dashboard-settings') && ABOVE_MODE_BAR}>
+        Done
+      </PinnedAction>
     </PageLayout>
   );
 }

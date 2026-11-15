@@ -9,6 +9,7 @@ import PageLayout from '../../components/PageLayout.jsx';
 import { Segmented } from '../../components/Segmented.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
 import { Tile } from '../../components/Tile.jsx';
+import { useMediaQuery } from '../../hooks/useMediaQuery.js';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { parseBinaryIndex, indexToShotList } from './parseBinaryIndex.js';
 import { parseBinaryShot } from './parseBinaryShot.js';
@@ -86,20 +87,10 @@ function groupShots(shots, sortBy, sortLabel) {
 
 // Under 600px a row has no room for its facts and the time side by side.
 const PHONE = '(max-width: 599.98px)';
-function usePhoneWidth() {
-  const [matches, setMatches] = useState(() => window.matchMedia(PHONE).matches);
-  useEffect(() => {
-    const query = window.matchMedia(PHONE);
-    const onChange = () => setMatches(query.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-  return matches;
-}
 
 export function ShotHistory() {
   const apiService = useContext(ApiServiceContext);
-  const compact = usePhoneWidth();
+  const compact = useMediaQuery(PHONE);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

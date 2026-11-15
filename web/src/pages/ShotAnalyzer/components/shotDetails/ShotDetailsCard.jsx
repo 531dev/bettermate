@@ -103,7 +103,7 @@ export function ShotDetailsCard({ entry, isCompare }) {
 
         <Cell className='flex-row items-center justify-between py-3'>
           <span className='bm-eyebrow'>Ratio</span>
-          <span className='an-metric-sm'>{notes.ratio ? `1:${notes.ratio}` : '—'}</span>
+          <span className='bm-metric-sm'>{notes.ratio ? `1:${notes.ratio}` : '—'}</span>
         </Cell>
 
         <div className='grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2'>
@@ -144,7 +144,7 @@ export function ShotDetailsCard({ entry, isCompare }) {
             <label className='bm-field__label' htmlFor={notesId}>
               Notes
             </label>
-            <span className='an-caption' id={notesCountId}>
+            <span className='bm-caption' id={notesCountId}>
               {(notes.notes || '').length}/{NOTES_MAX_LENGTH}
             </span>
           </div>

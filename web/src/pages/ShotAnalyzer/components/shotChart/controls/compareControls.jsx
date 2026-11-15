@@ -3,7 +3,7 @@ import { Button } from '../../../../../components/Button.jsx';
 import { cx } from '../../../../../components/cx.js';
 import { Select } from '../../../../../components/Field.jsx';
 import { COMPARE_TARGET_DISPLAY_MODES } from '../../../utils/analyzerUtils';
-import { IconButton } from '../../../ui/IconButton.jsx';
+import { IconButton } from '../../../../../components/IconButton.jsx';
 import { ShotBadge } from '../../../ui/ShotBadge.jsx';
 
 // Which shot is which: the badge of each shot with its name, and the swap between the two.

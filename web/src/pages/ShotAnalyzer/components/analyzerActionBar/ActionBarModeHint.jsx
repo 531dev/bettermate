@@ -1,7 +1,7 @@
 /* global globalThis */
 
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { Popover } from '../../ui/Popover.jsx';
+import { Popover } from '../../../../components/Popover.jsx';
 
 const MODE_HINT_MS = 4200;
 
@@ -31,7 +31,7 @@ export function ModeHint({ hint, anchor, onClose }) {
       width='min(22rem, calc(100vw - 24px))'
       className='an-libbar-hint'
     >
-      <span className='an-label'>{copy.title}</span>
+      <span className='bm-label'>{copy.title}</span>
       <span className='bm-help'>{copy.body}</span>
     </Popover>
   );

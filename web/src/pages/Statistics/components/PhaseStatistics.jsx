@@ -99,7 +99,7 @@ function PhaseSection({ phase, hideExitReasons = false }) {
                   return (
                     <tr key={row.key}>
                       <td className='whitespace-nowrap'>
-                        <span className='an-label'>{row.label}</span>{' '}
+                        <span className='bm-label'>{row.label}</span>{' '}
                         <span className='text-(--ink-muted)'>{row.unit}</span>
                       </td>
                       <td className='text-right'>{fmt(m.avg)}</td>

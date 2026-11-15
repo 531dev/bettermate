@@ -1,7 +1,6 @@
 import { forwardRef } from 'preact/compat';
-import { cx } from '../../../components/cx.js';
-import { Icon } from '../../../components/Icon.jsx';
-import './tool.css';
+import { cx } from './cx.js';
+import { Icon } from './Icon.jsx';
 
 /**
  * A round ghost button holding one glyph, for dense toolbars and rows where the 44px pill of
@@ -11,7 +10,8 @@ import './tool.css';
  *   size      'sm' for 28px inside a row; default 36px. A finger always gets 44px.
  *   pressed   true or false for a toggle (ink while on); leave it out for an action
  *   href      renders a link
- * Children replace the glyph, for a Spinner or a ShotBadge.
+ * Children replace the glyph, for a Spinner or a badge. On a surface-2 ground (a Cell, a menu)
+ * its hover steps down to surface-1. A ref reaches the button or the link.
  */
 export const IconButton = forwardRef(function IconButton(
   { icon, label, size, pressed, href, iconSize = 18, className, children, ...rest },
@@ -20,7 +20,7 @@ export const IconButton = forwardRef(function IconButton(
   const shared = {
     ...rest,
     ref,
-    className: cx('an-iconbtn', size === 'sm' && 'an-iconbtn--sm', className),
+    className: cx('bm-iconbtn', size === 'sm' && 'bm-iconbtn--sm', className),
     'aria-label': label,
     title: rest.title ?? label,
   };

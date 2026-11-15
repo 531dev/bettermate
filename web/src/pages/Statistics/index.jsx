@@ -3,6 +3,8 @@ import { useRoute } from 'preact-iso';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
 import { StatisticsView } from './components/StatisticsView';
+// Statistics is built from the Analyzer's parts and wears its `an-*` recipes.
+import '../ShotAnalyzer/ui/tool.css';
 import {
   normalizeStatisticsSourceSelection,
   parseStatisticsProfileRouteParams,

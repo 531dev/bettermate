@@ -1,5 +1,6 @@
 import { Button } from '../../components/Button.jsx';
 import { Chip } from '../../components/Chip.jsx';
+import { PinnedAction } from '../../components/PinnedAction.jsx';
 import { Spinner } from '../../components/Spinner.jsx';
 import { Tile } from '../../components/Tile.jsx';
 
@@ -53,22 +54,15 @@ function SaveStatus({ invalid, state, dirty }) {
  */
 export function PinnedSave({ form, submitting, disabled, invalid, state, dirty }) {
   return (
-    <div className='bm-pinned flex-col'>
-      <div role='status' className='flex flex-col items-start empty:hidden'>
-        <SaveStatus invalid={invalid} state={state} dirty={dirty} />
-      </div>
-      <Button
-        type='submit'
-        form={form}
-        variant='primary'
-        size='lg'
-        block
-        disabled={submitting || disabled}
-      >
-        {submitting && <Spinner size={4} />}
-        Save
-      </Button>
-    </div>
+    <PinnedAction
+      type='submit'
+      form={form}
+      disabled={submitting || disabled}
+      status={<SaveStatus invalid={invalid} state={state} dirty={dirty} />}
+    >
+      {submitting && <Spinner size={4} />}
+      Save
+    </PinnedAction>
   );
 }
 

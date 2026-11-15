@@ -153,7 +153,7 @@ function MetricRange({ row, metric }) {
           />
         ))}
       </div>
-      <div className='an-tick flex items-baseline justify-between gap-2'>
+      <div className='bm-tick flex items-baseline justify-between gap-2'>
         <span>{low}</span>
         <span>± {fmt(metric.stdDev, row.digits)}</span>
         <span>{high}</span>
@@ -172,7 +172,7 @@ function MetricTile({ row, metric }) {
         size='sm'
       />
       <MetricRange row={row} metric={metric} />
-      <p className='an-caption'>{row.averageDescription}</p>
+      <p className='bm-caption'>{row.averageDescription}</p>
     </Tile>
   );
 }

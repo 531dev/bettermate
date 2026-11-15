@@ -70,10 +70,10 @@
   }
   /* Something that puts a value in doubt. The words say what. */
   .an-table__warn,
-  .an-table__warn.an-tick {
+  .an-table__warn.bm-tick {
     color: var(--warning);
   }
-  .an-table__note.an-popover {
+  .an-table__note.bm-popover {
     gap: 2px;
   }
   /* The preset select is as wide as its longest option needs, not the whole row. */

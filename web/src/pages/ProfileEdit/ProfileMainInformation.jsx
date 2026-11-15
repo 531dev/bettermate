@@ -1,6 +1,6 @@
 import { Setting, Switch } from '../../components/Field.jsx';
 import { Tile } from '../../components/Tile.jsx';
-import { FormField } from './form.jsx';
+import { FormField } from '../../components/FormField.jsx';
 
 export function ProfileMainInformation(props) {
   return (
