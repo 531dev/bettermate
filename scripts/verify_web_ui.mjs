@@ -1,545 +1,736 @@
 #!/usr/bin/env node
-// Verify only against a disposable, seeded local simulator.
-import assert from 'node:assert/strict';
+// The committed check of the v2 web UI: the shell and its navigation, every page at phone and
+// desktop size in both themes, and the core flows against a machine.
+//
+//   node scripts/verify_web_ui.mjs [base URL] [--output <dir>] [--only shell,pages,flows]
+//                                  [--playwright-module <path to playwright/index.mjs>]
+//
+// The base URL is wherever the web UI is served with a machine behind it: Vite in front of a
+// simulator (the default, http://127.0.0.1:5173/), or the simulator itself once it embeds the
+// bundle (http://127.0.0.1:<SIM_HTTP_PORT>/). REST and the WebSocket are reached through the same
+// origin. `--url <base URL>` is accepted as well.
+//
+// Run it only against a disposable simulator on the seeded state
+// (`cp -R scripts/fixtures/web-seed/. <dir>/sim_data/`: profiles first, second and bloom, two
+// shots). It changes the mode, the target temperature, the selected profile and one setting,
+// pulls a short shot, and puts all but the shot back.
+//
+// With `--output` it also writes results.json and a picture of every page and state it visits.
+// It prints one line per failure and a tally per part, and exits 1 if anything failed.
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-const args = process.argv.slice(2);
-const arg = (name, fallback) => args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
-const modulePath = arg('--playwright-module', 'playwright');
-const { chromium } = await import(modulePath.startsWith('/') ? pathToFileURL(modulePath).href : modulePath);
-const output = resolve(arg('--output', '/tmp/bettermate-web-checks'));
-const base = arg('--url', 'http://127.0.0.1:5173/');
-await mkdir(output, { recursive: true });
-const browser = await chromium.launch({ headless: true });
-const errors = [], checks = [];
-const check = (condition, label) => { assert(condition, label); checks.push(label); };
-const watch = page => page.on('pageerror', error => errors.push({ url: page.url(), error: error.stack || String(error) }));
-const waitFor = locator => locator.waitFor({ timeout: 20000 });
-const capture = async (page, name) => {
-  await page.evaluate(async () => { await document.fonts.load('300 32px "Jost"'); await document.fonts.load('400 15px "Jost"'); await document.fonts.ready; });
-  await page.screenshot({ path: `${output}/${name}.png`, fullPage: true });
-  await writeFile(`${output}/${name}.txt`, await page.locator('body').ariaSnapshot());
-};
-const navigate = async (page, route, heading) => {
-  await page.goto(new URL(route, base).href);
-  await waitFor(page.getByRole('heading', { name: heading, exact: true }));
-  await page.evaluate(() => document.fonts.ready);
-};
-const validate = async (page, name) => {
-  const r = await page.evaluate(() => {
-    const visible = e => e.getBoundingClientRect().width && e.getBoundingClientRect().height && getComputedStyle(e).visibility !== 'hidden';
-    const icons = [...document.querySelectorAll('.bm-icon')].filter(visible);
-    const cards = [...document.querySelectorAll('.card, .app-card-surface')].filter(visible);
-    return {
-      overflow: document.documentElement.scrollWidth > window.innerWidth,
-      icons: icons.length,
-      badIcons: icons.filter(e => { const s = getComputedStyle(e); return Number.parseFloat(s.width) !== 24 || Number.parseFloat(s.height) !== 24; }).map(e => ({ name: e.getAttribute('data-icon'), width: getComputedStyle(e).width, height: getComputedStyle(e).height })),
-      effects: cards.filter(e => getComputedStyle(e).boxShadow !== 'none' || getComputedStyle(e).backdropFilter !== 'none').length,
-      font: getComputedStyle(document.body).fontFamily,
-      fontsLoaded: document.fonts.check('300 32px "Jost"') && document.fonts.check('400 15px "Jost"'),
-    };
-  });
-  check(!(await page.locator('body').innerText()).includes('NaN'), `${name}: no invalid readings`);
-  check(!r.overflow, `${name}: no page overflow`);
-  check(r.icons > 0 && r.badIcons.length === 0, `${name}: native 24px icons ${JSON.stringify(r.badIcons)}`);
-  check(r.effects === 0, `${name}: flat card surfaces`);
-  check(r.font.includes('Jost') && r.fontsLoaded, `${name}: Jost light and regular loaded ${r.font}, ${r.fontsLoaded}`);
-};
-const mode = async (page, name) => {
-  await page.getByRole('button', { name, exact: true }).click();
-  await page.waitForFunction(label => [...document.querySelectorAll('button')].some(b => b.getAttribute('aria-label') === label && b.getAttribute('aria-pressed') === 'true'), name);
-  check(true, `${name}: mode acknowledged`);
-};
-// The dial stays blank until telemetry arrives, so it is the signal to wait on.
-const telemetry = page => page.waitForFunction(() => {
-  const dial = document.querySelector('[aria-label="Live readings"]');
-  return dial && !dial.innerText.includes('—');
-}, null, { timeout: 20000 });
-// Text inside the dial, and whether all of it fits inside the ring.
-const dialText = page => page.locator('[aria-label="Live readings"]').innerText();
-const dialFits = page => page.evaluate(() => {
-  const center = document.querySelector('.bm-dial__center');
-  return !center || (center.scrollHeight <= center.clientHeight + 1 && center.scrollWidth <= center.clientWidth + 1);
-});
-// Scrolls to the end of a page and reports whether its last card clears the floating bar.
-const clearsDock = page => page.evaluate(() => {
-  const main = document.querySelector('#main'), dock = document.querySelector('.bm-dock');
-  main.scrollTop = main.scrollHeight;
-  const cards = [...main.querySelectorAll('section, .card')].filter(e => e.getBoundingClientRect().height > 0);
-  return !dock || cards.every(e => e.getBoundingClientRect().bottom <= dock.getBoundingClientRect().top);
-});
-// The dashboard view lives in Settings, so the menu only holds pages.
-const setView = async (page, value) => {
-  await navigate(page, 'settings', 'Settings');
-  await page.getByRole('combobox', { name: 'Dashboard view', exact: true }).selectOption(value);
-};
-const routes = [
-  ['profiles', 'Profiles'], ['profiles/first', 'Edit First'], ['settings', 'Settings'],
-  ['history', 'Shot History'], ['analyzer', 'Deep Dive Shot Analyzer'],
-  ['statistics', 'Statistics'], ['dashboard-settings', 'Dashboard Settings'],
-];
-try {
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, colorScheme: 'light' });
-  const page = await context.newPage(); watch(page);
-  await page.goto(base);
-  await waitFor(page.getByRole('button', { name: 'Brew', exact: true }));
-  await mode(page, 'Brew');
-  await telemetry(page);
-  await capture(page, 'dashboard-light'); await validate(page, 'dashboard-light');
-  check((await page.title()).includes('BetterMate'), 'BetterMate document title');
-  const readings = page.locator('[aria-label="Machine readings"]');
-  check(await page.locator('[aria-label="Live chart"]').count() === 0, 'Simple has no chart between shots');
-  check(!/flow|pump/i.test(await readings.innerText()), 'Simple leaves out readings that sit at zero between shots');
-  check(!/target/i.test(await readings.innerText()), 'Simple readings do not repeat the target');
-  check(!/temperature|pressure/i.test(await readings.innerText()), 'Temperature and pressure live on the dial, not again in the readings');
-  check(await page.locator('[aria-label="Live readings"][data-rim="split"]').isVisible(), 'Brew: the dial rim carries temperature and pressure');
-  check(/\d+°/.test(await dialText(page)) && /Boiler/.test(await dialText(page)), 'Brew: the dial reads the boiler temperature');
-  check(await dialFits(page), 'Brew: dial text fits inside the ring');
-  check(await page.locator('svg[aria-label^="Espresso machine"]').count() === 0, 'The machine drawing is gone');
-  check(!(await page.getByRole('button', { name: 'Start shot', exact: true }).innerText()).includes('°'), 'Start shot does not repeat the temperature');
-  check(await page.getByRole('button', { name: 'Flush water' }).isVisible(), 'Flush stays visible on the machine card');
-  check(await page.locator('[aria-label="Shot setup"] [aria-label^="Increase temp"]').count() === 1, 'Profile and temperature share one setup group');
-  check(JSON.stringify(await page.locator('.sidebar a.btn').allTextContents()) === JSON.stringify(['Dashboard', 'Profiles', 'History', 'Settings']), 'Menu holds the four pages of the daily routine');
-  const dock = page.getByRole('navigation', { name: 'Machine mode' });
-  check(JSON.stringify(await dock.getByRole('button').allTextContents()) === JSON.stringify(['Standby', 'Brew', 'Steam', 'Water', 'Grind']), 'Desktop floating bar holds the machine modes');
-  check(await dock.getByRole('button').evaluateAll(items => items.every(b => b.getBoundingClientRect().height >= 44)), 'Desktop floating bar targets are at least 44 px');
-  const dockBox = await dock.boundingBox(), content = await page.locator('#main').boundingBox();
-  check(Math.abs(dockBox.x + dockBox.width / 2 - (content.x + content.width / 2)) <= 1, 'Desktop floating bar is centered on the content');
-  check(dockBox.y + dockBox.height <= 1000 - 8 && dockBox.x > content.x, 'Desktop floating bar floats clear of the window edge and sidebar');
-  check(await page.locator('.sidebar button[aria-label="Brew"]').isHidden(), 'Desktop sidebar leaves the modes to the floating bar');
-  const temp = page.getByRole('button', { name: 'Increase temp target' }).first();
-  const before = await temp.evaluate(b => b.parentElement.textContent);
-  await temp.click();
-  await page.waitForFunction(previous => document.querySelector('button[aria-label="Increase temp target"]')?.parentElement.textContent !== previous, before);
-  check(await temp.evaluate(b => b.parentElement.textContent) !== before, 'Temperature adjustment acknowledged');
-  await page.getByRole('button', { name: 'Decrease temp target' }).first().click();
-  await mode(page, 'Steam');
-  check(await page.getByRole('button', { name: 'Steam', exact: true }).evaluate(b => b.textContent.includes('Steam')), 'Steam has a visible label');
-  check(!(await page.locator('[aria-label="Machine status"]').innerText()).includes('Flush recommended'), 'Steam leaves out the flush reminder');
-  check(await page.locator('[aria-label="Live readings"][data-rim="temp"]').isVisible() && /Boiler/.test(await dialText(page)), 'Steam: one ring, reading the boiler');
-  await capture(page, 'steam-light');
-  for (const name of ['Water', 'Grind']) {
-    await mode(page, name);
-    const noun = name.toLowerCase();
-    if (name === 'Grind') {
-      await waitFor(page.getByRole('button', { name: 'Increase grind target' }));
-      check(/Grind target/.test(await dialText(page)) && await page.locator('[aria-label="Live readings"][data-rim="progress"]').isVisible(), 'Grind: the dial shows the target on a progress ring');
-      check(await dialFits(page), 'Grind: dial text fits inside the ring');
-      const grindBefore = await dialText(page);
-      await page.getByRole('button', { name: 'Increase grind target' }).click();
-      await page.waitForFunction(previous => document.querySelector('[aria-label="Live readings"]').innerText !== previous, grindBefore);
-      check(true, 'Grind: the target changes from the dial');
-      await page.getByRole('button', { name: 'Decrease grind target' }).click();
-    } else {
-      check(/Boiler/.test(await dialText(page)), 'Water: the dial reads the boiler temperature');
-    }
-    await page.getByRole('button', { name: `Start ${noun}`, exact: true }).click();
-    await waitFor(page.getByRole('button', { name: `Stop ${noun}`, exact: true }));
-    check(true, `${name}: starts through simulator API`);
-    if (name === 'Water') {
-      check(!/\d:\d\d/.test(await dialText(page)) && /Boiler/.test(await dialText(page)), 'Water: the dial reads the boiler, with no timer the firmware does not report');
-    } else {
-      await page.waitForFunction(() => /\d:\d\d/.test(document.querySelector('[aria-label="Live readings"]').innerText) && /of \d/.test(document.querySelector('[aria-label="Live readings"]').innerText));
-      check(true, 'Grind: the dial shows progress against the target');
-    }
-    await capture(page, `${name.toLowerCase()}-active`);
-    await page.getByRole('button', { name: `Stop ${noun}`, exact: true }).click();
-    await page.waitForFunction(label => !document.querySelector(`button[aria-label="${label}"]`), `Stop ${noun}`);
-    const finish = page.getByRole('button', { name: 'Done', exact: true });
-    if (await finish.count()) await finish.click();
-    await waitFor(page.getByRole('button', { name: `Start ${noun}`, exact: true }));
-    check(true, `${name}: stops through simulator API`);
-  }
-  await mode(page, 'Brew');
-  await setView(page, 'advanced');
-  await page.goto(base); await waitFor(page.locator('[aria-label="Machine status"]')); await telemetry(page);
-  check(await page.locator('[aria-label="Live chart"]').isVisible(), 'Advanced keeps the live chart between shots');
-  check(/flow/i.test(await readings.innerText()) && /target/i.test(await readings.innerText()), 'Advanced keeps every reading and its target');
-  const first = page.getByRole('button', { name: /^First/ }); await waitFor(first); await first.click();
-  await page.waitForFunction(() => [...document.querySelectorAll('button')].some(b => b.textContent.startsWith('First') && b.getAttribute('aria-pressed') === 'true'));
-  check(true, 'Favorite selection acknowledged');
-  await capture(page, 'dashboard-advanced'); await validate(page, 'dashboard-advanced');
-  await page.getByRole('button', { name: 'Start shot', exact: true }).click();
-  // The device's confirmation arrives asynchronously over WebSocket. Wait
-  // for its authoritative outcome before deciding whether confirmation is needed.
-  await waitFor(page.getByRole('button', { name: 'Stop shot', exact: true }).or(page.getByRole('button', { name: 'Start anyway', exact: true })));
-  if (await page.getByRole('button', { name: 'Start anyway', exact: true }).isVisible())
-    await page.getByRole('button', { name: 'Start anyway', exact: true }).click();
-  await waitFor(page.getByRole('button', { name: 'Stop shot', exact: true }));
-  check(true, 'Brew starts with warning confirmation'); await capture(page, 'brew-active');
-  // Every mode change stops the running process on the firmware, so the other modes lock during a shot.
-  for (const name of ['Standby', 'Steam', 'Water', 'Grind']) check(await page.getByRole('button', { name, exact: true }).isDisabled(), `${name} locked during a shot`);
-  check(await page.getByRole('button', { name: 'Brew', exact: true }).isEnabled(), 'Current mode stays enabled during a shot');
-  await page.getByRole('button', { name: 'Stop shot', exact: true }).click();
-  await page.waitForFunction(() => !document.querySelector('button[aria-label="Stop shot"]'));
-  const brewFinish = page.getByRole('button', { name: 'Done', exact: true });
-  if (await brewFinish.count()) await brewFinish.click();
-  await waitFor(page.getByRole('button', { name: 'Start shot', exact: true })); check(true, 'Brew stops and clears');
-  await waitFor(page.getByRole('button', { name: 'Steam', exact: true }).and(page.locator(':enabled')));
-  check(true, 'Modes unlock when the shot ends');
-  // Standby's next step is waking the machine, and the wake action really switches modes.
-  await mode(page, 'Standby');
-  check(/Boiler/.test(await dialText(page)) && !/Wakes/.test(await dialText(page)), 'Standby: the dial reads the boiler, with no wake time when none is set');
-  await page.getByRole('button', { name: 'Wake machine', exact: true }).click();
-  await page.waitForFunction(() => document.querySelector('button[aria-label="Brew"][aria-pressed="true"]'));
-  check(true, 'Wake action switches Standby to Brew');
-  // Leaving the machine dashboard must not lose the arranged panel layout.
-  await setView(page, 'custom');
-  await waitFor(page.getByRole('heading', { name: 'Dashboard Settings', exact: true }));
-  await page.goto(base);
-  await page.waitForFunction(() => document.querySelector('#main button[aria-label="Brew"]'));
-  check(await page.locator('[aria-label="Machine status"]').count() === 0, 'Customize keeps the arranged panel layout');
-  await page.evaluate(() => localStorage.setItem('dashboardMode', 'simple')); await page.goto(base);
-  await waitFor(page.locator('[aria-label="Machine status"]'));
-  check(true, 'Simple returns to the machine dashboard');
-  await telemetry(page);
-  await page.getByRole('button', { name: 'Start shot', exact: true }).click();
-  await waitFor(page.getByRole('button', { name: 'Stop shot', exact: true }).or(page.getByRole('button', { name: 'Start anyway', exact: true })));
-  if (await page.getByRole('button', { name: 'Start anyway', exact: true }).isVisible())
-    await page.getByRole('button', { name: 'Start anyway', exact: true }).click();
-  await waitFor(page.getByRole('button', { name: 'Stop shot', exact: true }));
-  await waitFor(page.locator('[aria-label="Live chart"]'));
-  check(true, 'Simple charts a running shot');
-  const shotDial = await dialText(page);
-  check(/\d:\d\d/.test(shotDial) && /\d+°/.test(shotDial) && /bar/.test(shotDial), `Shot: the dial shows the timer, temperature and pressure (${shotDial.replaceAll('\n', ' ')})`);
-  check(await dialFits(page), 'Shot: dial text fits inside the ring');
-  check(/flow/i.test(await readings.innerText()), 'Readings add flow during a shot');
-  check(await page.locator('[aria-label="Shot setup"]').count() === 0, 'Setup leaves the screen during a shot');
-  await page.getByRole('button', { name: 'Stop shot', exact: true }).click();
-  await page.waitForFunction(() => !document.querySelector('button[aria-label="Stop shot"]'));
-  const simpleDone = page.getByRole('button', { name: 'Done', exact: true });
-  if (await simpleDone.count()) await simpleDone.click();
-  await waitFor(page.getByRole('button', { name: 'Start shot', exact: true }));
-  await page.waitForFunction(() => !document.querySelector('[aria-label="Live chart"]'));
-  check(true, 'The chart leaves with the shot');
-  // A shot left to end on its own: the dial keeps the time and the results card only adds to it.
-  await page.getByRole('button', { name: 'Start shot', exact: true }).click();
-  await waitFor(page.getByRole('button', { name: 'Stop shot', exact: true }).or(page.getByRole('button', { name: 'Start anyway', exact: true })));
-  if (await page.getByRole('button', { name: 'Start anyway', exact: true }).isVisible())
-    await page.getByRole('button', { name: 'Start anyway', exact: true }).click();
-  await page.getByRole('button', { name: 'Done', exact: true }).waitFor({ timeout: 90000 });
-  check(/\d:\d\d/.test(await dialText(page)), 'Finished: the dial keeps the shot time');
-  await waitFor(page.locator('[aria-label="Shot result"]'));
-  check(!/weight/i.test(await readings.innerText()), 'Finished: the readings do not repeat the yield');
-  check(!/time/i.test(await page.locator('[aria-label="Shot result"]').innerText()), 'Finished: the results card does not repeat the time');
-  await page.getByRole('button', { name: 'Done', exact: true }).click();
-  await waitFor(page.getByRole('button', { name: 'Start shot', exact: true }));
-  await page.getByRole('button', { name: 'Flush water' }).click();
-  await waitFor(page.getByRole('button', { name: 'Stop flush', exact: true }));
-  check(/\d:\d\d/.test(await dialText(page)), 'Flush: the dial shows how long it has run');
-  check(await page.locator('[aria-label="Shot setup"]').isVisible() && await page.locator('[aria-label="Live chart"]').count() === 0, 'A flush keeps the setup on screen and does not chart');
-  check(await page.getByRole('button', { name: 'Second', exact: true }).isDisabled(), 'Profiles lock while the flush runs');
-  await page.getByRole('button', { name: 'Stop flush', exact: true }).click();
-  await waitFor(page.getByRole('button', { name: 'Start shot', exact: true }));
-  check(true, 'Flush starts and stops from the machine card');
-  for (const [route, heading] of routes) {
-    await navigate(page, route, heading);
-    if (route === 'profiles') await waitFor(page.getByRole('link', { name: 'Edit First profile' }));
-    if (route === 'settings') await waitFor(page.getByRole('combobox', { name: 'Theme', exact: true }));
-    if (route === 'history') await waitFor(page.getByRole('link', { name: 'Open in Analyzer' }).first());
-    if (route === 'analyzer' || route === 'statistics') check(await page.locator('.sidebar a[aria-current="page"]').textContent() === 'History', `${route}: the menu shows it under History`);
-    const name = route.replaceAll('/', '-'); await capture(page, name); await validate(page, name);
-    if (route === 'profiles/first') {
-      check(await page.getByRole('navigation', { name: 'Machine mode' }).count() === 0, 'Desktop profile editor swaps the floating bar for its pinned actions');
-    } else {
-      check(await clearsDock(page), `${name}: end of page scrolls clear of the floating bar`);
-    }
-  }
-  // Opening Dashboard Settings selected Customize, so return to the machine dashboard.
-  await page.evaluate(() => localStorage.setItem('dashboardMode', 'simple'));
-  await navigate(page, 'settings', 'Settings');
-  const settingsSave = page.getByRole('button', { name: 'Save Settings', exact: true });
-  await waitFor(settingsSave);
-  check(await settingsSave.evaluate(e => {
-    const r = e.getBoundingClientRect();
-    return e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)) && r.bottom <= window.innerHeight;
-  }), 'Settings Save stays reachable');
-  check(await page.getByRole('navigation', { name: 'Machine mode' }).count() === 0, 'Settings swaps the floating bar for its pinned actions');
-  // Things that moved off the main screens must still be one step away.
-  await navigate(page, 'profiles', 'Profiles');
-  await waitFor(page.getByRole('link', { name: 'Edit First profile' }));
-  check(await page.getByRole('link', { name: 'New profile' }).isVisible(), 'Profiles: New profile is on the page');
-  await page.locator('summary[aria-label="More profile actions"]').click();
-  for (const label of ['Export all', 'Delete all']) check(await page.getByRole('button', { name: label, exact: true }).isVisible(), `Profiles: ${label} is in the menu`);
-  check(await page.locator('label[for="profileImport"]').isVisible(), 'Profiles: Import is in the menu');
-  await page.locator('summary[aria-label="More profile actions"]').click();
-  await page.getByRole('button', { name: 'Select Second profile' }).click();
-  await page.waitForFunction(() => document.querySelector('button[aria-label="Select Second profile"]')?.getAttribute('aria-pressed') === 'true');
-  check(true, 'Profiles: tapping a row selects it');
-  await page.getByRole('button', { name: 'Select First profile' }).click();
-  await page.waitForFunction(() => document.querySelector('button[aria-label="Select First profile"]')?.getAttribute('aria-pressed') === 'true');
-  await page.getByRole('button', { name: 'Open actions menu for Bloom profile' }).click();
-  for (const label of ['Show details for Bloom', 'Remove Bloom from favorites', 'View statistics for Bloom profile', 'Export Bloom profile', 'Duplicate Bloom profile', 'Delete Bloom profile'])
-    check(await page.getByRole('menuitem', { name: label }).isVisible(), `Profiles: "${label}" is in the row menu`);
-  await page.getByRole('menuitem', { name: 'Show details for Bloom' }).click();
-  await waitFor(page.getByRole('button', { name: 'Move Bloom to top' }));
-  check(true, 'Profiles: details and reordering open from the row menu');
-  await navigate(page, 'history', 'Shot History');
-  for (const label of ['Analyzer', 'Statistics']) check(await page.getByRole('link', { name: label, exact: true }).isVisible(), `History links to ${label}`);
-  await waitFor(page.getByRole('link', { name: 'Open in Analyzer' }).first());
-  await page.locator('summary[aria-label^="More actions for"]').first().click();
-  for (const label of ['Export shot data', 'Upload to visualizer.coffee', 'Delete shot']) check(await page.getByRole('button', { name: label }).first().isVisible(), `History: "${label}" is in the row menu`);
-  await page.locator('summary[aria-label^="More actions for"]').first().click();
-  await page.getByRole('button', { name: /^Show details for/ }).first().click();
-  await waitFor(page.locator('canvas').first());
-  await waitFor(page.getByRole('heading', { name: 'Shot notes', exact: true }));
-  check(await page.locator('main input').count() <= 1, 'History: reading a shot shows no empty note fields');
-  await page.getByRole('button', { name: /^(Add notes|Edit)$/ }).first().click();
-  await waitFor(page.getByRole('button', { name: 'Save', exact: true }));
-  check(await page.getByPlaceholder('e.g., Single Origin, Blend').isVisible(), 'History: the full notes form opens on demand');
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await navigate(page, 'settings/system', 'Settings');
-  await page.locator('[role="tab"][aria-selected="true"]').waitFor();
-  for (const label of ['GitHub', 'Discord']) { await waitFor(page.getByRole('link', { name: label, exact: true })); check(true, `Settings links to the project's ${label}`); }
-  await navigate(page, 'profiles', 'Profiles');
-  await page.getByRole('button', { name: 'Water', exact: true }).click();
-  await waitFor(page.getByRole('button', { name: 'Start water', exact: true }));
-  check(new URL(page.url()).pathname === '/', 'Floating bar switches mode and returns to the dashboard from any page');
-  await mode(page, 'Brew');
-  await navigate(page, 'settings', 'Settings');
-  await waitFor(page.getByRole('combobox', { name: 'Display Theme', exact: true }));
-  const displayTheme = await page.evaluate(async () => (await (await fetch('/api/settings')).json()).themeMode);
-  check(await page.getByRole('combobox', { name: 'Display Theme', exact: true }).inputValue() === String(displayTheme), 'Display theme current value is represented');
-  await page.getByRole('button', { name: 'Show Password', exact: true }).first().click();
-  check(await page.getByRole('button', { name: 'Hide Password', exact: true }).count() === 1, 'Password visibility has distinct state');
-  await page.getByRole('button', { name: 'Hide Password', exact: true }).click();
-  await navigate(page, 'profiles/first', 'Edit First');
-  await page.getByRole('spinbutton', { name: 'Coffee dose in grams', exact: true }).fill('18.5');
-  await page.getByRole('button', { name: 'Save profile', exact: true }).click();
-  await waitFor(page.getByRole('heading', { name: 'Profiles', exact: true }));
-  await navigate(page, 'profiles/first', 'Edit First');
-  check(await page.getByRole('spinbutton', { name: 'Coffee dose in grams', exact: true }).inputValue() === '18.5', 'Coffee dose survives profile save/reload');
-  await navigate(page, 'history', 'Shot History');
-  await page.getByRole('link', { name: 'Open in Analyzer' }).first().click();
-  await waitFor(page.locator('canvas').first()); await capture(page, 'analyzer-loaded'); await validate(page, 'analyzer-loaded');
-  await navigate(page, 'statistics', 'Statistics');
-  await page.getByRole('button', { name: 'Play statistics' }).click();
-  await waitFor(page.getByText('Total Shots', { exact: true }));
-  await capture(page, 'statistics-built'); await validate(page, 'statistics-built');
-  await navigate(page, 'settings', 'Settings');
-  const themes = page.getByRole('combobox', { name: 'Theme', exact: true }); await waitFor(themes);
-  check(JSON.stringify(await themes.locator('option').allTextContents()) === JSON.stringify(['System', 'Light', 'Dark']), 'Only system/light/dark offered');
-  await themes.selectOption('dark'); await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
-  check(await page.evaluate(() => localStorage.getItem('gaggimate-daisyui-theme')) === 'dark', 'Theme storage key retained');
-  await capture(page, 'settings-dark');
-  for (const tab of ['machine', 'calibration', 'plugins', 'bluetooth', 'system']) {
-    await navigate(page, `settings/${tab}`, 'Settings');
-    await page.locator('[role="tab"][aria-selected="true"]').waitFor();
-    await capture(page, `settings-${tab}`); await validate(page, `settings-${tab}`);
-  }
-  for (const [route, heading] of routes.filter(([r]) => r !== 'settings' && r !== 'profiles/first')) {
-    await navigate(page, route, heading); await capture(page, `${route}-dark`); await validate(page, `${route}-dark`);
-  }
-  // Opening Dashboard Settings selects Customize, so return to the machine dashboard for this capture.
-  await page.evaluate(() => localStorage.setItem('dashboardMode', 'simple'));
-  await page.goto(base); await waitFor(page.getByRole('button', { name: 'Brew', exact: true })); await telemetry(page);
-  await capture(page, 'dashboard-dark'); await validate(page, 'dashboard-dark');
-  const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
-  await mobile.addInitScript(() => localStorage.setItem('gaggimate.desktopNavCollapsed', 'true'));
-  const phone = await mobile.newPage(); watch(phone);
-  await phone.goto(base); await waitFor(phone.getByRole('button', { name: 'Brew', exact: true })); await telemetry(phone);
-  await capture(phone, 'phone-dashboard'); await validate(phone, 'phone-dashboard');
-  check(await phone.getByRole('link', { name: /active warning/ }).count() === 0, 'Phone dashboard does not repeat its warnings in the top bar');
-  const bar = phone.getByRole('navigation', { name: 'Machine mode' });
-  check(JSON.stringify(await bar.getByRole('button').allTextContents()) === JSON.stringify(['Standby', 'Brew', 'Steam', 'Water', 'Grind']), 'Phone bottom nav holds the machine modes');
-  const barBox = await bar.boundingBox();
-  check(barBox.y + barBox.height <= 844 && barBox.width === 390, 'Phone bottom nav is pinned to the bottom edge');
-  check(await bar.getByRole('button').evaluateAll(items => items.every(b => b.getBoundingClientRect().height >= 44)), 'Phone bottom nav targets are at least 44 px');
-  const action = await phone.getByRole('button', { name: 'Start shot', exact: true }).boundingBox();
-  check(action.y + action.height <= barBox.y, 'Phone primary action is on screen without scrolling');
-  await phone.getByRole('button', { name: 'Open navigation' }).click();
-  await waitFor(phone.getByRole('link', { name: 'Profiles', exact: true })); await capture(phone, 'phone-navigation');
-  await phone.getByRole('link', { name: 'Profiles', exact: true }).click();
-  await waitFor(phone.getByRole('heading', { name: 'Profiles', exact: true })); await waitFor(phone.getByRole('button', { name: 'Open navigation' }));
-  check(true, 'Phone navigation opens and closes after routing');
-  await phone.getByRole('button', { name: 'Water', exact: true }).click();
-  await waitFor(phone.getByRole('button', { name: 'Start water', exact: true }));
-  check(new URL(phone.url()).pathname === '/', 'Bottom nav switches mode and returns to the dashboard from any page');
-  await phone.getByRole('button', { name: 'Brew', exact: true }).click();
-  await waitFor(phone.getByRole('button', { name: 'Start shot', exact: true }));
-  for (const [route, heading] of routes.filter(([r]) => r !== 'dashboard-settings')) {
-    await navigate(phone, route, heading);
-    if (route === 'settings') await waitFor(phone.getByRole('combobox', { name: 'Theme', exact: true }));
-    if (route === 'profiles') {
-      const names = await phone.locator('[id^="profile-"][id$="-title"]').evaluateAll(elements =>
-        elements.map(e => ({ width: e.clientWidth, content: e.scrollWidth })));
-      check(names.length >= 3 && names.every(n => n.width >= n.content), 'Phone profile names remain readable beside Edit and More');
-    }
-    if (route === 'settings') {
-      const tabs = await phone.locator('[role="tab"]').evaluateAll(elements => elements.map(e => {
-        const style = getComputedStyle(e), rect = e.getBoundingClientRect();
-        return { height: rect.height, wrap: style.flexWrap, innerHeight: e.scrollHeight };
-      }));
-      check(tabs.every(t => t.height >= 44 && t.wrap === 'nowrap' && t.innerHeight <= t.height), 'Phone Settings tabs fit their content');
-      const save = phone.getByRole('button', { name: 'Save Settings', exact: true });
-      await save.scrollIntoViewIfNeeded();
-      check(await save.evaluate(e => {
-        const r = e.getBoundingClientRect();
-        return e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)) && r.height >= 44;
-      }), 'Phone Save is fully reachable and clear of navigation');
-      check(await phone.getByRole('button', { name: 'Open navigation' }).evaluate(e => e.closest('header') !== null), 'Phone navigation lives in header');
-    }
 
-    if (route === 'profiles/first') {
-      check(await phone.getByRole('navigation', { name: 'Machine mode' }).count() === 0, 'Profile editor swaps the mode bar for its pinned actions');
-      const pinned = await phone.getByRole('button', { name: 'Save profile', exact: true }).boundingBox();
-      check(pinned.y + pinned.height <= 844, 'Profile Save is pinned on screen');
-      check(await phone.getByRole('link', { name: 'Back', exact: true }).first().isVisible(), 'Profile editor has a way back');
-      const segments = await phone.locator('.join[role="group"]').evaluateAll(groups => groups.map(g => g.scrollWidth <= g.clientWidth + 1 && g.getBoundingClientRect().right <= window.innerWidth));
-      check(segments.length > 0 && segments.every(Boolean), 'Profile segmented controls stay inside their card');
+const args = process.argv.slice(2);
+const FLAGS = ['--url', '--output', '--only', '--playwright-module'];
+const flag = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
+const positional = args.filter((a, i) => !FLAGS.includes(a) && !FLAGS.includes(args[i - 1]));
+const base = new URL(flag('--url', positional[0] || 'http://127.0.0.1:5173/'));
+const output = flag('--output') ? resolve(flag('--output')) : null;
+const only = flag('--only', 'shell,pages,flows').split(',');
+const modulePath = flag('--playwright-module', process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { chromium } = await import(
+  modulePath.startsWith('/') ? pathToFileURL(modulePath).href : modulePath
+);
+if (output) await mkdir(output, { recursive: true });
+
+const SIZES = { phone: { width: 390, height: 844 }, desktop: { width: 1440, height: 1000 } };
+const THEMES = ['light', 'dark'];
+const SETTINGS_TABS = ['general', 'machine', 'calibration', 'plugins', 'bluetooth', 'system'];
+// Every route with the page title it shows.
+const PAGES = [
+  ['dashboard', '/', 'Dashboard'],
+  ['dashboard-settings', '/dashboard-settings', 'Dashboard settings'],
+  ['profiles', '/profiles', 'Profiles'],
+  ['profile-edit', '/profiles/first', 'Edit First'],
+  ['profile-new', '/profiles/new', 'New profile'],
+  ...SETTINGS_TABS.map(tab => [`settings-${tab}`, `/settings/${tab}`, 'Settings']),
+  ['history', '/history', 'Shot history'],
+  ['analyzer', '/analyzer', 'Analyzer'],
+  ['statistics', '/statistics', 'Statistics'],
+  ['setup', '/setup', 'Welcome to BetterMate'],
+  ['not-found', '/no-such-page', 'Page not found'],
+];
+const NAV = ['Dashboard', 'Profiles', 'History', 'Settings'];
+// The profile editor and Settings pin their own action where the mode bar would be.
+const hidesModeBar = path => path.startsWith('/profiles/') || path.startsWith('/settings');
+
+// ── Checks ─────────────────────────────────────────────────────────────────────────────────
+const results = [];
+let part = '';
+const check = (ok, label, detail = '') => {
+  results.push({ part, ok: !!ok, label, detail: ok ? '' : String(detail) });
+  if (!ok) console.log(`FAIL ${part}: ${label}${detail === '' ? '' : ` :: ${detail}`}`);
+  return !!ok;
+};
+// A step that throws (a control that never appears) fails its check instead of ending the run.
+const step = async (label, run) => {
+  try {
+    await run();
+    return check(true, label);
+  } catch (error) {
+    return check(false, label, String(error.message || error).split('\n')[0]);
+  }
+};
+
+// ── Browser ────────────────────────────────────────────────────────────────────────────────
+const browser = await chromium.launch({ headless: true });
+const url = path => new URL(path.replace(/^\//, ''), base).href;
+
+/** A window at one size and theme, with what the page complains about collected. */
+async function open(size, theme, { view = 'simple', setupDismissed = true } = {}) {
+  const phone = size === 'phone';
+  const context = await browser.newContext({
+    viewport: SIZES[size],
+    colorScheme: theme,
+    deviceScaleFactor: 2,
+    isMobile: phone,
+    hasTouch: phone,
+  });
+  await context.addInitScript(
+    ([theme, view, setupDismissed]) => {
+      try {
+        // The storage keys of the app, set before it starts.
+        localStorage.setItem('gaggimate-daisyui-theme', theme);
+        if (!sessionStorage.getItem('verify-seeded')) {
+          sessionStorage.setItem('verify-seeded', '1');
+          localStorage.setItem('dashboardMode', view);
+          if (setupDismissed) localStorage.setItem('bettermate.setupDismissed', 'true');
+        }
+      } catch {
+        // No storage: the app's defaults apply.
+      }
+    },
+    [theme, view, setupDismissed],
+  );
+  const page = await context.newPage();
+  const problems = [];
+  page.on('pageerror', error => problems.push(`pageerror: ${error.message}`));
+  page.on('console', message => {
+    // A socket cut by leaving a page is the browser's report, not the page's fault.
+    if (message.type() === 'error' && !message.text().includes('WebSocket'))
+      problems.push(`console: ${message.text()}`);
+  });
+  return { context, page, problems, size, theme };
+}
+
+async function goto(page, path, title) {
+  await page.goto(url(path), { waitUntil: 'networkidle' });
+  if (title) await page.getByRole('heading', { level: 1, name: title, exact: true }).waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(300);
+}
+
+// The page scrolls inside <main>, so a picture of all of it needs a taller window.
+async function capture(page, name) {
+  if (!output) return;
+  const viewport = page.viewportSize();
+  const height = await page.evaluate(() => {
+    const main = document.querySelector('#main');
+    return main ? window.innerHeight - main.clientHeight + main.scrollHeight : 0;
+  });
+  if (height > viewport.height) {
+    await page.setViewportSize({ width: viewport.width, height: Math.min(height, 6000) });
+    await page.waitForTimeout(250);
+  }
+  await page.screenshot({ path: `${output}/${name}.png` });
+  if (height > viewport.height) {
+    await page.setViewportSize(viewport);
+    await page.waitForTimeout(150);
+  }
+}
+
+/** The machine, through the same origin as the page: its status as it arrives, and requests. */
+async function machine() {
+  const socket = new WebSocket(url('/ws').replace(/^http/, 'ws'));
+  const state = { status: null };
+  socket.onmessage = event => {
+    const message = JSON.parse(event.data);
+    if (message.tp === 'evt:status') state.status = { ...state.status, ...message };
+  };
+  await new Promise((opened, failed) => {
+    socket.onopen = opened;
+    socket.onerror = () => failed(new Error(`no machine behind ${base.href}ws`));
+  });
+  return {
+    get status() {
+      return state.status;
+    },
+    send: message => socket.send(JSON.stringify(message)),
+    async until(test, what, timeout = 15000) {
+      const from = Date.now();
+      while (Date.now() - from < timeout) {
+        if (state.status && test(state.status)) return state.status;
+        await new Promise(next => setTimeout(next, 100));
+      }
+      throw new Error(`the machine did not reach: ${what}`);
+    },
+    close: () => socket.close(),
+  };
+}
+const settings = async () => (await fetch(url('/api/settings'))).json();
+
+// ── The shell and its navigation ───────────────────────────────────────────────────────────
+async function shell() {
+  part = 'shell';
+  const modeBar = page => page.getByRole('navigation', { name: 'Machine mode' });
+  const current = page =>
+    page
+      .locator('.bm-nav__item[aria-current="page"]')
+      .evaluateAll(l => l.map(e => e.innerText.trim()));
+
+  // Desktop: the sidebar is the navigation.
+  {
+    const { context, page, problems } = await open('desktop', 'light');
+    await goto(page, '/', 'Dashboard');
+    check((await page.title()).includes('BetterMate'), 'the document title names BetterMate');
+    const nav = page.getByRole('navigation', { name: 'Pages' });
+    const links = (await nav.getByRole('link').allInnerTexts()).map(t => t.trim());
+    check(links.join() === NAV.join(), 'desktop: the sidebar holds the four pages', links.join());
+    check(await page.locator('.bm-topbar').isHidden(), 'desktop: no top bar beside the sidebar');
+    const modes = (await modeBar(page).getByRole('button').allInnerTexts()).map(t => t.trim());
+    check(
+      modes.slice(0, 4).join() === 'Standby,Brew,Steam,Water' && modes.length <= 5,
+      'the mode bar holds the machine modes',
+      modes.join(),
+    );
+    check(
+      await modeBar(page)
+        .getByRole('button')
+        .evaluateAll(l => l.every(b => b.getBoundingClientRect().height >= 44)),
+      'every mode is at least 44 px tall',
+    );
+    check(
+      (await modeBar(page).locator('[aria-pressed="true"]').count()) === 1,
+      'one mode is selected',
+    );
+    for (const [name, heading, path] of [
+      ['Profiles', 'Profiles', '/profiles'],
+      ['History', 'Shot history', '/history'],
+      ['Settings', 'Settings', '/settings'],
+      ['Dashboard', 'Dashboard', '/'],
+    ]) {
+      await step(
+        `desktop: ${name} in the sidebar opens ${heading} and is marked current`,
+        async () => {
+          await nav.getByRole('link', { name, exact: true }).click();
+          await page.getByRole('heading', { level: 1, name: heading, exact: true }).waitFor();
+          if (new URL(page.url()).pathname.replace(/\/general$/, '') !== path)
+            throw new Error(`at ${page.url()}`);
+          if ((await current(page)).join() !== name)
+            throw new Error(`current: ${await current(page)}`);
+        },
+      );
     }
-    await capture(phone, `phone-${route.replaceAll('/', '-')}`); await validate(phone, `phone-${route}`);
-  }
-  await phone.setViewportSize({ width: 844, height: 390 }); await phone.goto(base);
-  await waitFor(phone.getByRole('button', { name: 'Brew', exact: true })); await telemetry(phone);
-  await capture(phone, 'phone-landscape'); await validate(phone, 'phone-landscape');
-  check(await phone.locator('.bm-dock').isHidden() && await phone.locator('.sidebar button[aria-label="Brew"]').isVisible(), 'Phone landscape keeps the modes in its rail, with no floating bar');
-  check(await phone.getByRole('button', { name: 'Start shot', exact: true }).evaluate(b => b.getBoundingClientRect().bottom <= window.innerHeight), 'Landscape primary action is on screen without scrolling');
-  check(await dialFits(phone), 'Landscape: dial text fits inside the ring');
-  await phone.setViewportSize({ width: 320, height: 568 }); await phone.goto(base);
-  await waitFor(phone.locator('[aria-label="Machine status"]')); await validate(phone, 'phone-small');
-  await telemetry(phone);
-  check(await dialFits(phone), '320 px: dial text fits inside the ring');
-  await mobile.close();
-  // Whatever the window shape, there is exactly one set of mode controls: bar, floating bar or rail.
-  const sizes = await browser.newContext({ colorScheme: 'light' });
-  const sizePage = await sizes.newPage(); watch(sizePage);
-  for (const [width, height] of [[1440, 1000], [1024, 768], [900, 1100], [768, 501], [768, 500], [700, 600], [600, 520], [844, 390], [667, 375], [390, 844], [320, 568]]) {
-    await sizePage.setViewportSize({ width, height }); await sizePage.goto(base);
-    await waitFor(sizePage.locator('[aria-label="Machine status"]'));
-    check(await sizePage.getByRole('button', { name: 'Brew', exact: true }).count() === 1, `${width}x${height}: one set of mode controls`);
-    check(await sizePage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${width}x${height}: no page overflow`);
-    if (width === 900) await capture(sizePage, 'tablet-dashboard');
-  }
-  await sizes.close();
-  // Slow state arrives before telemetry: until a reading exists, nothing may claim the machine is ready.
-  const heldBack = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
-  let holdTelemetry = true;
-  await heldBack.routeWebSocket(/\/ws$/, ws => {
-    const server = ws.connectToServer();
-    ws.onMessage(message => server.send(message));
-    server.onMessage(message => {
-      if (!holdTelemetry || typeof message !== 'string') return ws.send(message);
-      const frame = JSON.parse(message);
-      if (frame.tp === 'evt:status') { delete frame.ct; delete frame.tt; }
-      return ws.send(JSON.stringify(frame));
+    await goto(page, '/analyzer', 'Analyzer');
+    check(
+      (await current(page)).join() === 'History',
+      'the Analyzer belongs to History in the sidebar',
+    );
+    check((await modeBar(page).count()) === 1, 'the mode bar floats over the Analyzer');
+    await goto(page, '/settings/general', 'Settings');
+    check(
+      (await modeBar(page).count()) === 0,
+      'Settings has no mode bar: its Save is pinned there',
+    );
+    await goto(page, '/profiles/first', 'Edit First');
+    check((await modeBar(page).count()) === 0, 'the profile editor has no mode bar');
+    await step('the skip link is the first stop and leads to the page', async () => {
+      await goto(page, '/', 'Dashboard');
+      await page.keyboard.press('Tab');
+      const first = await page.evaluate(() => document.activeElement?.textContent.trim());
+      if (first !== 'Skip to content') throw new Error(`first stop: ${first}`);
     });
-  });
-  const heldPage = await heldBack.newPage(); watch(heldPage); await heldPage.goto(base);
-  await waitFor(heldPage.getByRole('button', { name: 'Brew', exact: true }).and(heldPage.locator('[aria-pressed="true"]')));
-  await waitFor(heldPage.getByText('Reading the machine', { exact: true }).first());
-  check(!(await heldPage.locator('[aria-label="Machine status"]').innerText()).includes('Ready'), 'No ready claim before the first temperature reading');
-  check(await heldPage.getByRole('button', { name: 'Start shot', exact: true }).count() === 0, 'Start waits for the first temperature reading');
-  check((await heldPage.locator('[aria-label="Live readings"]').innerText()).includes('—'), 'The dial stays blank until telemetry arrives');
-  check(await heldPage.getByRole('button', { name: 'Increase temp target' }).isDisabled(), 'Temperature target waits for the first reading');
-  holdTelemetry = false;
-  await waitFor(heldPage.getByRole('button', { name: 'Start shot', exact: true })); await telemetry(heldPage);
-  check(true, 'Dashboard continues once telemetry arrives');
-  await heldBack.close();
-  // Standby answers when the machine next wakes.
-  const scheduled = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
-  await scheduled.route('**/api/settings', async route => {
-    if (route.request().method() !== 'GET') return route.continue();
-    const response = await route.fetch();
-    return route.fulfill({ response, json: { ...(await response.json()), autowakeupEnabled: true, autowakeupSchedules: '07:00|1111111' } });
-  });
-  // Mode changes reach every open page, so read Standby here and then put Brew back.
-  const scheduledPage = await scheduled.newPage(); watch(scheduledPage); await scheduledPage.goto(base);
-  await scheduledPage.getByRole('button', { name: 'Standby', exact: true }).click();
-  await scheduledPage.waitForFunction(() => /Wakes (today|tomorrow|[A-Z][a-z]{2}) at /.test(document.querySelector('[aria-label="Live readings"]')?.innerText ?? ''), null, { timeout: 20000 });
-  check(true, 'Standby: the dial shows the next scheduled wake');
-  check(await dialFits(scheduledPage), 'Standby: dial text fits inside the ring');
-  await scheduledPage.getByRole('button', { name: 'Brew', exact: true }).click();
-  await waitFor(scheduledPage.getByRole('button', { name: 'Start shot', exact: true }));
-  await scheduled.close();
-  // The simulator's mock controller always reports 0 ml pumped, so the count is injected here.
-  const pumped = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
-  await pumped.routeWebSocket(/\/ws$/, ws => {
-    const server = ws.connectToServer();
-    ws.onMessage(message => server.send(message));
-    server.onMessage(message => {
-      if (typeof message !== 'string') return ws.send(message);
-      const frame = JSON.parse(message);
-      if (frame.tp === 'evt:status' && frame.process) frame.wp = 120.4;
-      return ws.send(JSON.stringify(frame));
+    check(problems.length === 0, 'desktop: no errors while navigating', problems.join(' | '));
+    await context.close();
+  }
+
+  // Phone: the top bar opens the navigation as a menu.
+  {
+    const { context, page, problems } = await open('phone', 'light');
+    await goto(page, '/', 'Dashboard');
+    const panel = page.locator('#navigation');
+    const openNav = page.getByRole('button', { name: 'Open navigation' });
+    check(await page.locator('.bm-topbar').isVisible(), 'phone: the top bar is there');
+    check(!(await panel.isVisible()), 'phone: the navigation is closed at rest');
+    await step(
+      'phone: the menu button opens the navigation with the current page focused',
+      async () => {
+        await openNav.click();
+        await page.locator('#navigation.is-open').waitFor();
+        await page.waitForTimeout(350);
+        const focused = await page.evaluate(() => document.activeElement?.textContent.trim());
+        if (focused !== 'Dashboard') throw new Error(`focus on: ${focused}`);
+      },
+    );
+    await capture(page, 'phone-navigation');
+    await step('phone: Escape closes it', async () => {
+      await page.keyboard.press('Escape');
+      await page.locator('#navigation:not(.is-open)').waitFor();
     });
-  });
-  const pumpedPage = await pumped.newPage(); watch(pumpedPage); await pumpedPage.goto(base);
-  await pumpedPage.getByRole('button', { name: 'Water', exact: true }).click();
-  await pumpedPage.getByRole('button', { name: 'Start water', exact: true }).click();
-  await waitFor(pumpedPage.getByRole('button', { name: 'Stop water', exact: true }));
-  await pumpedPage.waitForFunction(() => /120 ml pumped/.test(document.querySelector('[aria-label="Live readings"]')?.innerText ?? ''), null, { timeout: 15000 });
-  check(true, 'Water: the dial counts what has been pumped when the controller reports it');
-  await pumpedPage.getByRole('button', { name: 'Stop water', exact: true }).click();
-  await pumpedPage.waitForFunction(() => !document.querySelector('button[aria-label="Stop water"]'));
-  const pumpedDone = pumpedPage.getByRole('button', { name: 'Done', exact: true });
-  if (await pumpedDone.count()) await pumpedDone.click();
-  await pumpedPage.getByRole('button', { name: 'Brew', exact: true }).click();
-  await waitFor(pumpedPage.getByRole('button', { name: 'Start shot', exact: true }));
-  await pumped.close();
-  // A fresh phone opens on the page, not behind the navigation drawer.
-  const fresh = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
-  const freshPage = await fresh.newPage(); watch(freshPage); await freshPage.goto(base);
-  await waitFor(freshPage.getByRole('button', { name: 'Open navigation' }));
-  check(await freshPage.getByRole('link', { name: 'Profiles', exact: true }).count() === 0, 'Fresh phone load keeps the drawer closed');
-  await fresh.close();
-  // Setup is walked with the save mocked: a real save restarts the machine, which exits the simulator.
-  const setup = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, colorScheme: 'light' });
-  const setupPage = await setup.newPage(); watch(setupPage);
-  let wifi = { wifiSsid: '', mdnsName: 'gaggimate', altRelayFunction: 1 }, saved = null;
-  await setupPage.route('**/api/settings', route => {
-    if (route.request().method() !== 'POST') return route.fulfill({ json: wifi });
-    saved = route.request().postData(); wifi = { ...wifi, wifiSsid: 'Home Network' };
-    return route.abort();
-  });
-  await setupPage.goto(base);
-  await waitFor(setupPage.getByRole('heading', { name: 'Welcome to BetterMate' })); check(true, 'Machine without Wi-Fi opens guided setup');
-  await capture(setupPage, 'setup-welcome');
-  await setupPage.getByRole('button', { name: 'Get started' }).click();
-  check(await setupPage.getByRole('button', { name: 'Continue' }).isDisabled(), 'Setup needs a Wi-Fi name to continue');
-  await capture(setupPage, 'setup-wifi');
-  await setupPage.getByLabel('Wi-Fi name').fill('Home Network');
-  await setupPage.getByLabel('Password', { exact: true }).fill('correct horse');
-  await setupPage.getByRole('button', { name: 'Continue' }).click();
-  await waitFor(setupPage.getByRole('heading', { name: 'Joining Home Network' }));
-  check(['wifiSsid', 'wifiPassword', 'restart'].every(k => saved?.includes(`name="${k}"`)), 'Setup saves Wi-Fi name, password and restart');
-  await setupPage.getByRole('button', { name: 'How to reconnect' }).click(); await capture(setupPage, 'setup-joining');
-  await setupPage.getByRole('heading', { name: 'Your BetterMate is connected!' }).waitFor({ timeout: 20000 });
-  await capture(setupPage, 'setup-connected'); check(true, 'Setup confirms once the machine answers on the new network');
-  await setupPage.getByRole('button', { name: 'Finish setup' }).click();
-  await waitFor(setupPage.locator('[aria-label="Machine status"]'));
-  wifi = { ...wifi, wifiSsid: '' }; await setupPage.goto(base);
-  await waitFor(setupPage.locator('[aria-label="Machine status"]')); await setupPage.waitForTimeout(1000);
-  check(new URL(setupPage.url()).pathname === '/', 'Finished setup does not reopen');
-  // Re-running setup on the same network with a blank password must keep the saved one.
-  wifi = { ...wifi, wifiSsid: 'Home Network' }; saved = null;
-  await setupPage.goto(new URL('setup', base).href);
-  await setupPage.getByRole('button', { name: 'Get started' }).click();
-  await setupPage.waitForFunction(() => document.querySelector('#setup-ssid')?.value === 'Home Network');
-  await setupPage.getByRole('button', { name: 'Continue' }).click();
-  await waitFor(setupPage.getByRole('heading', { name: 'Joining Home Network' }));
-  check(saved?.includes('name="wifiSsid"') && !saved.includes('name="wifiPassword"'), 'Blank password on the same network keeps the saved one');
-  await setup.close();
-  for (const [stored, expected] of [['coffee', 'dark'], ['nord', 'light'], ['system', 'dark']]) {
-    const legacy = await browser.newContext({ colorScheme: 'dark' });
-    await legacy.addInitScript(value => localStorage.setItem('gaggimate-daisyui-theme', value), stored);
-    const tab = await legacy.newPage(); watch(tab); await tab.goto(base);
-    await waitFor(tab.getByRole('button', { name: 'Brew', exact: true }));
-    check(await tab.evaluate(() => document.documentElement.dataset.theme) === expected, `${stored}: resolves to ${expected}`);
-    if (stored === 'system') {
-      await tab.emulateMedia({ colorScheme: 'light' }); await tab.waitForFunction(() => document.documentElement.dataset.theme === 'light');
-      check(true, 'System theme responds to OS changes');
+    await step('phone: a page chosen from the menu opens and the menu closes', async () => {
+      await openNav.click();
+      await page.locator('#navigation.is-open').waitFor();
+      await panel.getByRole('link', { name: 'Profiles', exact: true }).click();
+      await page.getByRole('heading', { level: 1, name: 'Profiles', exact: true }).waitFor();
+      await page.locator('#navigation:not(.is-open)').waitFor();
+    });
+    await step('phone: a detail page has Back in place of the menu', async () => {
+      await goto(page, '/profiles/first', 'Edit First');
+      if (await openNav.count()) throw new Error('the menu button is still there');
+      await page.getByRole('link', { name: 'Back', exact: true }).click();
+      await page.getByRole('heading', { level: 1, name: 'Profiles', exact: true }).waitFor();
+    });
+    await step('phone: Back on the Analyzer leads to Shot history', async () => {
+      await goto(page, '/analyzer', 'Analyzer');
+      await page.getByRole('link', { name: 'Back', exact: true }).click();
+      await page.getByRole('heading', { level: 1, name: 'Shot history', exact: true }).waitFor();
+    });
+    const bar = await modeBar(page).boundingBox();
+    check(
+      bar &&
+        bar.x >= 0 &&
+        bar.x + bar.width <= SIZES.phone.width &&
+        bar.y + bar.height <= SIZES.phone.height,
+      'phone: the mode bar floats inside the window',
+      JSON.stringify(bar),
+    );
+    check(problems.length === 0, 'phone: no errors while navigating', problems.join(' | '));
+    await context.close();
+  }
+
+  // Setup is the whole window: the shell is not there to be reached.
+  for (const size of ['phone', 'desktop']) {
+    const { context, page } = await open(size, 'light', { setupDismissed: false });
+    await goto(page, '/setup', 'Welcome to BetterMate');
+    const chrome = await page
+      .locator('#navigation, .bm-topbar, .bm-modebar, a[href="#main"]')
+      .count();
+    check(chrome === 0, `${size}, setup: no navigation, top bar, mode bar or skip link`, chrome);
+    const stops = [];
+    for (const key of [...Array(8).fill('Tab'), ...Array(8).fill('Shift+Tab')]) {
+      await page.keyboard.press(key);
+      stops.push(
+        await page.evaluate(() => {
+          const at = document.activeElement;
+          if (!at || at === document.body) return 'the page';
+          // Setup is the routed page, inside <main>; the shell's own controls sit outside it.
+          return at.closest('#main') ? 'setup' : `outside: ${at.outerHTML.slice(0, 60)}`;
+        }),
+      );
     }
-    await legacy.close();
+    check(
+      stops.every(stop => !stop.startsWith('outside')) && stops.includes('setup'),
+      `${size}, setup: Tab only visits the step's own controls`,
+      stops.filter(stop => stop.startsWith('outside')).join(' | '),
+    );
+    await step(
+      `${size}, setup: Skip for now leaves for the dashboard, and the shell is back`,
+      async () => {
+        await page.getByRole('button', { name: 'Skip for now' }).click();
+        await page.getByRole('heading', { level: 1, name: 'Dashboard', exact: true }).waitFor();
+        await modeBar(page).waitFor();
+      },
+    );
+    await context.close();
   }
-  check(errors.length === 0, 'No browser runtime errors');
+}
+
+// ── Every page, phone and desktop, light and dark ──────────────────────────────────────────
+async function pages() {
+  part = 'pages';
+  for (const size of Object.keys(SIZES)) {
+    for (const theme of THEMES) {
+      const { context, page, problems } = await open(size, theme);
+      for (const [name, path, title] of PAGES) {
+        const id = `${name}, ${size} ${theme}`;
+        problems.length = 0;
+        const loaded = await step(`${id}: loads with its title`, async () => {
+          await goto(page, path, title);
+          if (path.startsWith('/settings/')) {
+            const tab = path.split('/').pop();
+            await page.locator(`#panel-${tab} .bm-tile`).first().waitFor();
+            await page.waitForTimeout(300);
+          }
+        });
+        if (!loaded) continue;
+        const facts = await page.evaluate(() => {
+          const root = document.documentElement;
+          const main = document.querySelector('#main');
+          const probe = document.createElement('i');
+          probe.style.background = 'var(--surface-0)';
+          document.body.append(probe);
+          const ground = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+          const dressed = [...document.querySelectorAll('body *')].filter(element => {
+            const style = getComputedStyle(element);
+            return (
+              style.boxShadow !== 'none' ||
+              style.backdropFilter !== 'none' ||
+              style.filter !== 'none' ||
+              style.backgroundImage.includes('gradient')
+            );
+          });
+          return {
+            h1: document.querySelectorAll('h1').length,
+            sideways: Math.max(
+              root.scrollWidth - window.innerWidth,
+              main ? main.scrollWidth - main.clientWidth : 0,
+            ),
+            theme: root.dataset.theme,
+            ground: getComputedStyle(document.body).backgroundColor === ground,
+            font: getComputedStyle(document.body).fontFamily,
+            faces:
+              document.fonts.check('500 15px "Funnel Display"') &&
+              document.fonts.check('500 12px "Geist Mono"'),
+            dressed: dressed.slice(0, 3).map(element => element.outerHTML.slice(0, 80)),
+            words: (main || document.body).innerText,
+            sidebar: !!document.querySelector('#navigation'),
+            modeBar: !!document.querySelector('.bm-modebar'),
+          };
+        });
+        check(problems.length === 0, `${id}: no errors in the console`, problems.join(' | '));
+        check(facts.h1 === 1, `${id}: one page title`, `${facts.h1} h1`);
+        check(facts.sideways <= 0, `${id}: nothing scrolls sideways`, `${facts.sideways}px`);
+        check(
+          facts.theme === theme && facts.ground,
+          `${id}: the ${theme} theme is on the page`,
+          facts.theme,
+        );
+        check(
+          facts.font.includes('Funnel Display') && facts.faces,
+          `${id}: the two bundled faces are loaded`,
+          facts.font,
+        );
+        check(
+          facts.dressed.length === 0,
+          `${id}: no shadow, blur, filter or gradient`,
+          facts.dressed.join(' | '),
+        );
+        check(
+          !/\b(NaN|undefined|null)\b/.test(facts.words),
+          `${id}: no reading says NaN or undefined`,
+          facts.words.match(/.{0,20}\b(NaN|undefined|null)\b.{0,20}/)?.[0],
+        );
+        const shellExpected = path !== '/setup';
+        check(
+          facts.sidebar === shellExpected &&
+            facts.modeBar === (shellExpected && !hidesModeBar(path)),
+          `${id}: the shell is ${shellExpected ? 'around the page' : 'left out'}`,
+          `navigation ${facts.sidebar}, mode bar ${facts.modeBar}`,
+        );
+        await capture(page, `${name}-${size}-${theme}`);
+      }
+      await context.close();
+    }
+  }
+}
+
+// ── The core flows, against the machine ────────────────────────────────────────────────────
+async function flows() {
+  part = 'flows';
+  const m = await machine();
+  // From rest: standby, the first profile, nothing running.
+  m.send({ tp: 'req:process:deactivate' });
+  m.send({ tp: 'req:process:clear' });
+  m.send({ tp: 'req:profiles:select', id: 'first', rid: 'verify-first' });
+  m.send({ tp: 'req:change-mode', mode: 0 });
+  await m.until(s => s.m === 0 && !s.process, 'standby with nothing running');
+
+  const { context, page, problems } = await open('desktop', 'light');
+  const modeBar = page.getByRole('navigation', { name: 'Machine mode' });
+  const mode = name => modeBar.getByRole('button', { name, exact: true });
+  const banner = name => page.locator('#main button.bm-cta', { hasText: name });
+  const dial = page.locator('section[aria-label="Machine"]');
+  const chip = text =>
+    page.waitForFunction(
+      t =>
+        document
+          .querySelector('section[aria-label="Machine"] [role="status"]')
+          ?.textContent.trim() === t,
+      text,
+      { timeout: 120000 },
+    );
+  const eyebrow = async () => (await dial.locator('.bm-tile__head .bm-eyebrow').innerText()).trim();
+
+  await goto(page, '/', 'Dashboard');
+  await capture(page, 'flow-standby');
+
+  // Mode change: each mode of the bar, ending in Brew.
+  const shown = (await modeBar.getByRole('button').allInnerTexts()).map(t => t.trim());
+  const MODE_IDS = { Standby: 0, Brew: 1, Steam: 2, Water: 3, Grind: 4 };
+  for (const name of [...shown.filter(n => !['Standby', 'Brew'].includes(n)), 'Brew']) {
+    await step(`mode: ${name} is selected on the machine and on the page`, async () => {
+      await mode(name).click();
+      await m.until(s => s.m === MODE_IDS[name], `mode ${name}`);
+      await page.waitForFunction(
+        label =>
+          [...document.querySelectorAll('.bm-modebar__item')].some(
+            b => b.textContent.trim() === label && b.getAttribute('aria-pressed') === 'true',
+          ),
+        name,
+      );
+      await page.waitForFunction(
+        label =>
+          document
+            .querySelector('section[aria-label="Machine"] .bm-tile__head .bm-eyebrow')
+            ?.textContent.trim()
+            .toLowerCase()
+            .startsWith(label.toLowerCase()),
+        name,
+      );
+      await page.waitForTimeout(1200);
+      await capture(page, `flow-${name.toLowerCase()}`);
+    });
+  }
+  check(
+    /^brew · first$/i.test(await eyebrow()),
+    'brew: the dial names the mode and the profile',
+    await eyebrow(),
+  );
+
+  // Target change.
+  await step(
+    'target: Raise and Lower move the target temperature on the machine and on the page',
+    async () => {
+      const value = page.locator('section[aria-label="Shot setup"] .bm-stepper__value').first();
+      const before = (await m.until(s => s.tt > 0, 'a target temperature')).tt;
+      await page.getByRole('button', { name: 'Raise target temperature' }).click();
+      await m.until(s => s.tt === before + 1, 'target + 1');
+      await page.waitForFunction(
+        v =>
+          document
+            .querySelector('section[aria-label="Shot setup"] .bm-stepper__value')
+            ?.textContent.trim() === v,
+        `${before + 1}°`,
+      );
+      await page.getByRole('button', { name: 'Lower target temperature' }).click();
+      await m.until(s => s.tt === before, 'target back');
+      await page.waitForFunction(
+        v =>
+          document
+            .querySelector('section[aria-label="Shot setup"] .bm-stepper__value')
+            ?.textContent.trim() === v,
+        `${before}°`,
+      );
+      if ((await value.innerText()).trim() !== `${before}°`)
+        throw new Error(await value.innerText());
+    },
+  );
+
+  // Start and stop a shot.
+  await step('shot: Start shot starts one', async () => {
+    await chip('Ready');
+    await capture(page, 'flow-brew-ready');
+    await banner('Start shot').click();
+    // The controller may ask first; the sheet's own action starts the shot.
+    const sheet = page.getByRole('dialog');
+    const asked = await Promise.race([
+      sheet.waitFor({ timeout: 2500 }).then(
+        () => true,
+        () => false,
+      ),
+      m
+        .until(s => s.process?.a, 'a running shot', 2500)
+        .then(
+          () => false,
+          () => false,
+        ),
+    ]);
+    if (asked && !m.status.process?.a)
+      await sheet.getByRole('button', { name: 'Start anyway' }).click();
+    await m.until(s => s.process?.a, 'a running shot');
+    await chip('Brewing');
+  });
+  await step(
+    'shot: while it runs the banner is Stop shot with its progress, and the other modes lock',
+    async () => {
+      await m.until(s => s.process?.e > 3000, '3 s of shot', 20000);
+      const stop = banner('Stop shot');
+      if (
+        !(await stop.evaluate(
+          el => el.classList.contains('bm-cta--stop') && !!el.querySelector('.bm-segbar'),
+        ))
+      )
+        throw new Error('the banner is not the ink Stop form with segments');
+      const locked = (await page.locator('.bm-modebar__item:disabled').allInnerTexts()).map(t =>
+        t.trim(),
+      );
+      if (locked.length !== shown.length - 1 || locked.includes('Brew'))
+        throw new Error(`locked: ${locked}`);
+      if ((await page.locator('section[aria-label="Live chart"] canvas').count()) !== 1)
+        throw new Error('no live chart');
+      await capture(page, 'flow-brew-active');
+    },
+  );
+  await step('shot: Stop shot stops it, and Start shot is back', async () => {
+    await banner('Stop shot').click();
+    await m.until(s => !s.process, 'no process');
+    await chip('Ready');
+    await banner('Start shot').waitFor();
+  });
+
+  // Select a profile.
+  const row = name =>
+    page
+      .locator('.profile-card-container')
+      .filter({ has: page.locator('.bm-item__title').getByText(name, { exact: true }) });
+  const inUse = name =>
+    page.waitForFunction(
+      label =>
+        document.querySelector('.bm-item[aria-current="true"] .bm-item__title')?.textContent ===
+        label,
+      name,
+    );
+  await step(
+    'profile: a tap on a row selects it on the machine, and the In use Chip moves',
+    async () => {
+      await goto(page, '/profiles', 'Profiles');
+      await inUse('First');
+      await capture(page, 'flow-profiles');
+      await row('Second').locator('.bm-item__main').click();
+      await inUse('Second');
+      await m.until(s => s.puid === 'second', 'profile second');
+      if (
+        (await row('Second').locator('.bm-chip--ink').count()) !== 1 ||
+        (await row('First').locator('.bm-chip--ink').count()) !== 0
+      )
+        throw new Error('the In use Chip did not move');
+    },
+  );
+  await step(
+    'profile: the dashboard names the selected profile, and First is selected again',
+    async () => {
+      await goto(page, '/', 'Dashboard');
+      await page.waitForFunction(() =>
+        /second$/i.test(
+          document
+            .querySelector('section[aria-label="Machine"] .bm-tile__head .bm-eyebrow')
+            ?.textContent.trim(),
+        ),
+      );
+      await page
+        .getByRole('group', { name: 'Favourite profiles' })
+        .getByRole('button', { name: 'First' })
+        .click();
+      await m.until(s => s.puid === 'first', 'profile first');
+    },
+  );
+
+  // Save a setting and read it back.
+  await step(
+    'setting: a changed standby timeout is saved, read back from the machine and from the page, and restored',
+    async () => {
+      const saved = (await settings()).standbyTimeout;
+      const next = saved + 60;
+      const save = async value => {
+        await goto(page, '/settings/general', 'Settings');
+        const field = page.locator('#standbyTimeout');
+        await field.waitFor();
+        await field.fill(String(value));
+        const posted = page.waitForResponse(
+          r => r.url().endsWith('/api/settings') && r.request().method() === 'POST',
+        );
+        await page.getByRole('button', { name: 'Save', exact: true }).click();
+        await posted;
+        await page
+          .locator('.bm-pinned [role="status"]')
+          .getByText('Saved', { exact: true })
+          .waitFor();
+        if ((await settings()).standbyTimeout !== value)
+          throw new Error(`the machine holds ${(await settings()).standbyTimeout}, not ${value}`);
+        await goto(page, '/settings/general', 'Settings');
+        await page.locator('#standbyTimeout').waitFor();
+        const shownValue = await page.locator('#standbyTimeout').inputValue();
+        if (shownValue !== String(value))
+          throw new Error(`the page shows ${shownValue}, not ${value}`);
+      };
+      await save(next);
+      await capture(page, 'flow-settings-saved');
+      await save(saved);
+    },
+  );
+
+  // Open a shot in history.
+  await step('history: a row opens its shot with the chart', async () => {
+    await goto(page, '/history', 'Shot history');
+    const rows = page.locator('button.bm-item');
+    await rows.first().waitFor();
+    await rows.first().click();
+    await page.locator('#main canvas').first().waitFor({ timeout: 15000 });
+    if ((await rows.first().getAttribute('aria-expanded')) !== 'true')
+      throw new Error('the row is not open');
+    await page.waitForTimeout(500);
+    await capture(page, 'flow-history-open');
+  });
+
+  // Load a shot in the Analyzer.
+  await step('analyzer: a shot picked from the library is charted', async () => {
+    await goto(page, '/analyzer', 'Analyzer');
+    await page.locator('[data-slot="shot"] .an-slot__main').first().click();
+    await page.locator('.an-lib.is-open').waitFor();
+    const shots = page.locator('[data-library-section="shots"] [data-library-row="shot"]');
+    await shots.first().waitFor();
+    await shots.first().locator('.an-lib__name').click();
+    await page.locator('[data-chart="shot-main"] canvas').waitFor({ timeout: 20000 });
+    const name = (
+      await page.locator('[data-slot="shot"] .an-slot__name').first().textContent()
+    ).trim();
+    if (!name) throw new Error('the slot does not name the shot');
+    await page.waitForTimeout(800);
+    await capture(page, 'flow-analyzer-loaded');
+  });
+
+  // Run a Statistics query.
+  await step('statistics: a query runs and shows its summary', async () => {
+    await goto(page, '/statistics', 'Statistics');
+    await page.locator('[data-statistics-run]').click();
+    await page.locator('[data-statistics-summary]').waitFor({ timeout: 30000 });
+    const summary = await page.locator('[data-statistics-summary]').innerText();
+    if (!/\d/.test(summary)) throw new Error(`summary: ${summary.slice(0, 80)}`);
+    await page.waitForTimeout(500);
+    await capture(page, 'flow-statistics-built');
+  });
+
+  // Back to rest.
+  await step('mode: Standby puts the machine to rest', async () => {
+    await goto(page, '/', 'Dashboard');
+    await mode('Standby').click();
+    await m.until(s => s.m === 0, 'standby');
+  });
+  check(problems.length === 0, 'no errors in the console through the flows', problems.join(' | '));
+  await context.close();
+  m.close();
+}
+
+// ── Run ────────────────────────────────────────────────────────────────────────────────────
+const PARTS = { shell, pages, flows };
+let crashed = null;
+try {
+  for (const name of Object.keys(PARTS)) if (only.includes(name)) await PARTS[name]();
 } catch (error) {
-  errors.push({ verification: error.stack || String(error) }); process.exitCode = 1;
-  const failedPage = browser.contexts()[0]?.pages()[0];
-  if (failedPage) await capture(failedPage, 'failed-page').catch(() => {});
+  crashed = error;
+  part = part || 'run';
+  check(false, 'the run ended early', error.stack || error);
+} finally {
+  await browser.close();
 }
-finally {
-  await writeFile(`${output}/results.json`, JSON.stringify({ assertions: checks.length, checks, errors }, null, 2));
-  console.log(JSON.stringify({ output, assertions: checks.length, errors })); await browser.close();
+
+const failed = results.filter(r => !r.ok);
+console.log(`web UI at ${base.href}`);
+for (const name of Object.keys(PARTS)) {
+  const mine = results.filter(r => r.part === name);
+  if (mine.length) console.log(`${name}: ${mine.filter(r => r.ok).length}/${mine.length} passed`);
 }
+console.log(`${results.length - failed.length} passed, ${failed.length} failed`);
+if (output) {
+  await writeFile(
+    `${output}/results.json`,
+    JSON.stringify(
+      { base: base.href, assertions: results.length, failed: failed.length, results },
+      null,
+      2,
+    ),
+  );
+}
+process.exit(failed.length || crashed ? 1 : 0);
