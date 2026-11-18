@@ -106,6 +106,8 @@ def check_fault(page, title, lines, action, what):
     checks.true(len(title) <= 20, f"{what}: the title is at most 20 characters")
     for i, line in enumerate(lines):
         shown = page.find(line)
+        if i == 0:
+            checks.true(name is not None and shown is not None and name["y2"] < shown["y1"], f"{what}: the title is one line, clear of '{line}'")
         checks.true(shown is not None and shown["baseline"] == 222 + 30 * i and shown["font"] == 27, f"{what}: '{line}' in screen-body at {222 + 30 * i}")
         checks.color(shown and shown["color"], MUTED, f"{what}: '{line}' is ink-muted")
         checks.true(len(line) <= 25, f"{what}: '{line}' is at most 25 characters")

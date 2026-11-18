@@ -46,7 +46,10 @@ void FaultScreen::build(lv_obj_t *root) {
     chip = part(ui::chip(root, 240 - CHIP_WIDTH / 2, CHIP_Y, "ERROR", Tone::DangerSoft, Tone::Danger), 0);
     lv_obj_set_width(chip, CHIP_WIDTH);
     lv_label_set_long_mode(chip, LV_LABEL_LONG_CLIP);
-    title = part(ui::text(root, 240, TITLE_BASELINE, Type::Title, Tone::Ink, "", tokens::DISPLAY_SQUARE), 0);
+    // A 20-character title is wider than the text square ("Temperature runaway" is about 290 px), and above the
+    // centre the face has room for it: one line across the content width, never wrapped onto the lines below.
+    title = part(ui::text(root, 240, TITLE_BASELINE, Type::Title, Tone::Ink, "", tokens::DISPLAY_CONTENT), 0);
+    ui::clamp(title, tokens::DISPLAY_CONTENT);
     for (int i = 0; i < 2; ++i)
         lines[i] = part(ui::text(root, 240, LINE_BASELINE[i], Type::Body, Tone::Muted, "", tokens::DISPLAY_SQUARE), 1);
     action = part(ui::pill(root, 240, ACTION_Y, ACTION_WIDTH, "RESTART", Tone::Primary), 2);
