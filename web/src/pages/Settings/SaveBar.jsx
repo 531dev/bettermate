@@ -1,8 +1,9 @@
 import { Button } from '../../components/Button.jsx';
 import { Chip } from '../../components/Chip.jsx';
 import { PinnedAction } from '../../components/PinnedAction.jsx';
-import { Spinner } from '../../components/Spinner.jsx';
+import { Loader } from '../../components/Loader.jsx';
 import { Tile } from '../../components/Tile.jsx';
+import { Notice } from '../../components/Notice.jsx';
 
 /**
  * What the form is waiting for, in one line above Save. A problem is a notice; unsaved and saved
@@ -15,31 +16,37 @@ import { Tile } from '../../components/Tile.jsx';
 function SaveStatus({ invalid, state, dirty }) {
   if (state === 'unloaded') {
     return (
-      <p role='alert' className='bm-notice bm-notice--danger self-stretch'>
-        The settings did not load. Reload the page before you save.
-      </p>
+      <Notice live tone='danger' title='The settings did not load' className='self-stretch'>
+        Reload the page before you save.
+      </Notice>
     );
   }
   if (invalid > 0) {
     return (
-      <p role='alert' className='bm-notice bm-notice--danger self-stretch'>
-        {invalid === 1 ? 'One field needs another value.' : `${invalid} fields need another value.`}
-      </p>
+      <Notice
+        live
+        tone='danger'
+        title={
+          invalid === 1 ? 'One field needs another value' : `${invalid} fields need another value`
+        }
+        className='self-stretch'
+      >
+        Each one says what it takes.
+      </Notice>
     );
   }
   if (state === 'failed') {
     return (
-      <p role='alert' className='bm-notice bm-notice--danger self-stretch'>
-        The settings were not saved. Check the connection to the machine and save again.
-      </p>
+      <Notice live tone='danger' title='Could not save' className='self-stretch'>
+        Check the connection to the machine and save again.
+      </Notice>
     );
   }
   if (state === 'unanswered') {
     return (
-      <p role='alert' className='bm-notice bm-notice--warning self-stretch'>
-        The machine did not answer. It restarts as soon as it has saved, so check the settings once
-        it is back.
-      </p>
+      <Notice live tone='warning' title='The machine did not answer' className='self-stretch'>
+        It restarts as soon as it has saved, so check the settings once it is back.
+      </Notice>
     );
   }
   if (dirty) return <Chip tone='warning'>Unsaved changes</Chip>;
@@ -60,7 +67,7 @@ export function PinnedSave({ form, submitting, disabled, invalid, state, dirty }
       disabled={submitting || disabled}
       status={<SaveStatus invalid={invalid} state={state} dirty={dirty} />}
     >
-      {submitting && <Spinner size={4} />}
+      {submitting && <Loader size={18} />}
       Save
     </PinnedAction>
   );

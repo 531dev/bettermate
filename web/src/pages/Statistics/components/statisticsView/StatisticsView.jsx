@@ -1,6 +1,6 @@
 import { Chip } from '../../../../components/Chip.jsx';
 import { SegmentBar } from '../../../../components/SegmentBar.jsx';
-import { Spinner } from '../../../../components/Spinner.jsx';
+import { Loader } from '../../../../components/Loader.jsx';
 import { Tile } from '../../../../components/Tile.jsx';
 import { useState, useEffect, useRef, useContext, useCallback } from 'preact/hooks';
 // Main StatisticsView orchestrator: wires hooks, toolbar, summary cards, and the detail section panel
@@ -34,6 +34,7 @@ import {
   useStatisticsResultViewState,
 } from './hooks';
 import { StatisticsDetailSectionPanel } from './StatisticsDetailSection';
+import { Notice } from '../../../../components/Notice.jsx';
 
 export function StatisticsView({ initialContext }) {
   const apiService = useContext(ApiServiceContext);
@@ -392,7 +393,7 @@ export function StatisticsView({ initialContext }) {
             </>
           ) : (
             <>
-              <Spinner size={8} className='text-(--ink-muted)' />
+              <Loader size={24} className='text-(--ink-muted)' />
               <p className='bm-label'>Preparing statistics</p>
             </>
           )}
@@ -400,16 +401,12 @@ export function StatisticsView({ initialContext }) {
       )}
 
       {error && (
-        <div role='alert' className='bm-notice bm-notice--danger'>
+        <Notice live tone='danger' title='The statistics could not be built'>
           {error}
-        </div>
+        </Notice>
       )}
 
-      {!error && metadataError && (
-        <div role='alert' className='bm-notice bm-notice--warning'>
-          {metadataError}
-        </div>
-      )}
+      {!error && metadataError && <Notice live tone='warning' title={metadataError} />}
 
       {!loading && result && (
         <>

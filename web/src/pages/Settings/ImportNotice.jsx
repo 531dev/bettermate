@@ -1,6 +1,5 @@
 import { Button } from '../../components/Button.jsx';
-import { cx } from '../../components/cx.js';
-import { Tile } from '../../components/Tile.jsx';
+import { Notice } from '../../components/Notice.jsx';
 
 /**
  * What an imported settings file did to the form. The values only reach the machine on Save, so
@@ -8,35 +7,33 @@ import { Tile } from '../../components/Tile.jsx';
  *   notice  { error, name, message } or { name, count, ignored }
  */
 export function ImportNotice({ notice, onDismiss, onDiscard }) {
+  if (notice.error) {
+    return (
+      <Notice
+        live
+        page
+        tone='danger'
+        title={`Could not import ${notice.name}`}
+        onDismiss={onDismiss}
+      >
+        {notice.message}
+      </Notice>
+    );
+  }
   return (
-    <Tile title={notice.error ? 'Import failed' : 'Settings imported'}>
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
-        <div
-          role='alert'
-          className={cx('bm-notice flex-1 flex-col gap-1', notice.error && 'bm-notice--danger')}
-        >
-          {notice.error ? (
-            <span>
-              Could not import {notice.name}: {notice.message}
-            </span>
-          ) : (
-            <>
-              <span>
-                Loaded {notice.count} {notice.count === 1 ? 'setting' : 'settings'} from{' '}
-                {notice.name}. All other settings are kept. Save to apply.
-              </span>
-              {notice.ignored.length > 0 && (
-                <span className='bm-help'>
-                  Ignored unknown entries: {notice.ignored.join(', ')}
-                </span>
-              )}
-            </>
-          )}
-        </div>
-        <Button className='shrink-0' onClick={notice.error ? onDismiss : onDiscard}>
-          {notice.error ? 'Dismiss' : 'Discard'}
+    <Notice
+      live
+      page
+      tone='info'
+      title={`Loaded ${notice.count} ${notice.count === 1 ? 'setting' : 'settings'}`}
+      actions={
+        <Button variant='outline' onClick={onDiscard}>
+          Discard
         </Button>
-      </div>
-    </Tile>
+      }
+    >
+      From {notice.name}. All other settings are kept. Save to apply.
+      {notice.ignored.length > 0 && ` Ignored unknown entries: ${notice.ignored.join(', ')}.`}
+    </Notice>
   );
 }

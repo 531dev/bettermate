@@ -6,6 +6,7 @@ import { Cell } from '../../../components/Tile.jsx';
 import { FormField, PasswordField, SegmentedField } from '../../../components/FormField.jsx';
 import { TILE_GRID } from '../grid.js';
 import { PluginCard, WakeSchedules } from '../PluginCard.jsx';
+import { Notice } from '../../../components/Notice.jsx';
 
 const gearpumpAddon = computed(() => machine.value.capabilities.gearpumpAddon);
 
@@ -130,20 +131,18 @@ export function PluginsTab({
         checked={formData.homeAssistant}
         onChange={onChange('homeAssistant')}
       >
-        <p className='bm-notice bm-notice--warning'>
-          <span>
-            This feature is deprecated for usage with Home Assistant. See the{' '}
-            <a
-              className='underline underline-offset-2'
-              href='https://github.com/gaggimate/ha-integration'
-              target='_blank'
-              rel='noreferrer'
-            >
-              Home Assistant Integration
-            </a>{' '}
-            for a more up-to-date solution.
-          </span>
-        </p>
+        <Notice tone='warning' title='Deprecated for Home Assistant'>
+          The{' '}
+          <a
+            className='bm-link'
+            href='https://github.com/gaggimate/ha-integration'
+            target='_blank'
+            rel='noreferrer'
+          >
+            Home Assistant integration
+          </a>{' '}
+          replaces it.
+        </Notice>
         <FormField
           id='haIP'
           label='MQTT IP'

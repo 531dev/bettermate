@@ -1,7 +1,7 @@
 import { useRef } from 'preact/hooks';
 import { Chip } from '../../../../components/Chip.jsx';
 import { Icon } from '../../../../components/Icon.jsx';
-import { Spinner } from '../../../../components/Spinner.jsx';
+import { Loader } from '../../../../components/Loader.jsx';
 import { Tile } from '../../../../components/Tile.jsx';
 import { cleanName } from '../../utils/analyzerUtils';
 import { SourceMarker } from '../SourceMarker';
@@ -148,7 +148,7 @@ export function ShotMainInfoCard({
           {subtitle ? <p className='bm-help truncate'>{subtitle}</p> : null}
         </div>
         <div className='flex shrink-0 items-center gap-2'>
-          {loading ? <Spinner size={4} /> : null}
+          {loading ? <Loader size={18} /> : null}
           {entry?.shot?.source === 'temp' ? (
             <Icon name='search' size={20} title='Temporary view' />
           ) : (

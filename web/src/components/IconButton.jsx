@@ -11,7 +11,7 @@ import { Icon } from './Icon.jsx';
  *             44px.
  *   pressed   true or false for a toggle (ink while on); leave it out for an action
  *   href      renders a link
- * Children replace the glyph, for a Spinner or a badge. A ref reaches the button or the link.
+ * Children replace the glyph, for a Loader or a badge. A ref reaches the button or the link.
  */
 export const IconButton = forwardRef(function IconButton(
   { icon, label, size, pressed, href, iconSize = 18, className, children, ...rest },

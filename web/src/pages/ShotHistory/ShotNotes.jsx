@@ -4,7 +4,7 @@ import { CardTitle } from '../../components/CardTitle.jsx';
 import { Field, Input, Textarea } from '../../components/Field.jsx';
 import { SegmentBar } from '../../components/SegmentBar.jsx';
 import { Segmented } from '../../components/Segmented.jsx';
-import { Spinner } from '../../components/Spinner.jsx';
+import { Loader } from '../../components/Loader.jsx';
 import { Stepper } from '../../components/Stepper.jsx';
 import { ApiServiceContext } from '../../services/ApiService.js';
 
@@ -292,7 +292,7 @@ export default function ShotNotes({ shot, onNotesUpdate, onNotesLoaded }) {
           Cancel
         </Button>
         <Button variant='primary' onClick={saveNotes} disabled={loading}>
-          {loading && <Spinner size={4} />}
+          {loading && <Loader size={18} />}
           Save
         </Button>
       </div>

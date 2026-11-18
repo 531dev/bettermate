@@ -10,6 +10,7 @@ import { visualizerService } from '../../services/VisualizerService.js';
 import { downloadJson } from '../../utils/download.js';
 import { HistoryChart } from './HistoryChart.jsx';
 import ShotNotes from './ShotNotes.jsx';
+import { Notice } from '../../components/Notice.jsx';
 
 function round2(v) {
   if (v == null || Number.isNaN(v)) return v;
@@ -174,9 +175,11 @@ export function ShotRow({ shot, when, compact, onDelete, onLoad, onNotesChanged 
           {shot.loaded && shot.samples.length > 0 ? (
             <HistoryChart shot={shot} />
           ) : shot.loaded ? (
-            <p className='bm-notice'>Nothing was recorded for this shot.</p>
+            <Notice title='Nothing was recorded for this shot' />
           ) : shot.loadFailed ? (
-            <p className='bm-notice bm-notice--danger'>This shot could not be read.</p>
+            <Notice tone='danger' title='This shot could not be read'>
+              The file may be damaged. The other shots are not affected.
+            </Notice>
           ) : (
             <SkeletonBlock className='h-56 w-full sm:h-72' />
           )}

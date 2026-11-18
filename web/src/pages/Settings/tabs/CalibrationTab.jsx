@@ -3,10 +3,11 @@ import { ApiServiceContext } from '../../../services/ApiService.js';
 import { Button } from '../../../components/Button.jsx';
 import { Chip } from '../../../components/Chip.jsx';
 import { OverviewChart } from '../../../components/OverviewChart.jsx';
-import { Spinner } from '../../../components/Spinner.jsx';
+import { Loader } from '../../../components/Loader.jsx';
 import { Cell, Tile } from '../../../components/Tile.jsx';
 import PumpFlowCalibration from '../../../components/PumpFlowCalibration/index.jsx';
 import { FormField } from '../../../components/FormField.jsx';
+import { Notice } from '../../../components/Notice.jsx';
 
 // What the autotune accepts; outside these it cannot start.
 const TIME_RANGE = [30, 300];
@@ -78,22 +79,21 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
               <OverviewChart hour12={false} />
             </div>
             <div className='flex items-center gap-3'>
-              <Spinner size={8} />
+              <Loader size={24} />
               <span className='bm-field__label'>Autotune in progress</span>
             </div>
-            <p className='bm-notice bm-notice--warning'>
-              The boiler will heat at full power until its temperature inflection is detected, then
-              the SIMC tuning rule derives PID gains. Typically 1–3 minutes depending on machine.
-            </p>
+            <Notice tone='warning' title='The boiler heats at full power'>
+              Until its temperature turns, then the SIMC rule derives the PID gains. This takes 1 to
+              3 min depending on the machine.
+            </Notice>
           </>
         )}
 
         {autotuneResult && (
           <>
-            <div role='status' className='bm-notice bm-notice--success flex-col gap-0'>
-              <span className='bm-field__label'>Autotune complete</span>
-              <span>Your new PID values have been saved successfully.</span>
-            </div>
+            <Notice live tone='success' title='Autotune finished'>
+              The new PID values are saved.
+            </Notice>
             <Cell>
               <span className='bm-eyebrow'>PID values</span>
               <span className='bm-data break-all text-(--ink)'>{autotuneResult}</span>
@@ -106,13 +106,10 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
 
         {autotuneFailed && (
           <>
-            <div role='alert' className='bm-notice bm-notice--danger flex-col gap-0'>
-              <span className='bm-field__label'>Autotune failed</span>
-              <span>
-                No valid gains were produced. Your existing PID settings have been preserved. Try
-                increasing the test duration or confirm the boiler was cold at start.
-              </span>
-            </div>
+            <Notice live tone='danger' title='Autotune found no gains'>
+              The PID values are unchanged. Run it again with a longer test, starting from a cold
+              boiler.
+            </Notice>
             <Button className='self-end' onClick={() => setAutotuneFailed(false)}>
               Retry
             </Button>
@@ -121,10 +118,9 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
 
         {idle && (
           <>
-            <p className='bm-notice bm-notice--warning'>
-              Please ensure the boiler temperature is below 50°C before starting the autotune
-              process.
-            </p>
+            <Notice tone='warning' title='Start with a cold boiler'>
+              Let it cool below 50° before you start the autotune.
+            </Notice>
 
             <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
               <FormField

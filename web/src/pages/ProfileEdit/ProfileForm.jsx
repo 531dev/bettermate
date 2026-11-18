@@ -1,6 +1,6 @@
 import { FormErrors } from '../../components/FormField.jsx';
 import { PinnedAction } from '../../components/PinnedAction.jsx';
-import { Spinner } from '../../components/Spinner.jsx';
+import { Loader } from '../../components/Loader.jsx';
 
 /**
  * The frame both editors share: a column of tiles in one form, each field's message, and the
@@ -26,7 +26,7 @@ export function ProfileForm({ validation, saving, onSubmit, children }) {
         aria-label={saving ? 'Saving profile' : 'Save profile'}
       >
         Save
-        {saving && <Spinner size={4} />}
+        {saving && <Loader size={18} />}
       </PinnedAction>
     </form>
   );

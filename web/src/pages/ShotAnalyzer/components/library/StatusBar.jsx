@@ -6,7 +6,7 @@
 
 import { cx } from '../../../../components/cx.js';
 import { Icon } from '../../../../components/Icon.jsx';
-import { Spinner } from '../../../../components/Spinner.jsx';
+import { Loader } from '../../../../components/Loader.jsx';
 import { IconButton } from '../../../../components/IconButton.jsx';
 import { ShotBadge } from '../../ui/ShotBadge.jsx';
 import { cleanName } from '../../utils/analyzerUtils';
@@ -70,7 +70,7 @@ function Slot({
         <span className='sr-only'>{kind === 'shot' ? 'Shot: ' : 'Profile: '}</span>
         {warning && <Icon name='triangle-alert' size={18} title='Profile mismatch' />}
         <span className='an-slot__name'>{name}</span>
-        {busy && <Spinner size={4} />}
+        {busy && <Loader size={18} />}
         {showChevron && <Icon name='chevron-down' size={18} className='an-slot__chevron' />}
       </button>
       {children}

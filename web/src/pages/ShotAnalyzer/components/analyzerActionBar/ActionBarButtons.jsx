@@ -1,7 +1,7 @@
 import { Button } from '../../../../components/Button.jsx';
 import { Icon } from '../../../../components/Icon.jsx';
 import { Segmented } from '../../../../components/Segmented.jsx';
-import { Spinner } from '../../../../components/Spinner.jsx';
+import { Loader } from '../../../../components/Loader.jsx';
 import { IconButton } from '../../../../components/IconButton.jsx';
 
 export const IMPORT_MODE_OPTIONS = [
@@ -120,7 +120,7 @@ export function ActionBarImportActions({
         aria-label={isImporting ? 'Importing shot or profile' : 'Import shot or profile'}
         data-analyzer-import
       >
-        {isImporting ? <Spinner size={4} /> : <Icon name='plus' size={18} />}
+        {isImporting ? <Loader size={18} /> : <Icon name='plus' size={18} />}
         {isImporting ? 'Importing' : 'Import'}
       </Button>
     </div>

@@ -7,7 +7,7 @@ import { cx } from '../../../../components/cx.js';
 import { Input, Select } from '../../../../components/Field.jsx';
 import { Icon } from '../../../../components/Icon.jsx';
 import { Segmented } from '../../../../components/Segmented.jsx';
-import { Spinner } from '../../../../components/Spinner.jsx';
+import { Loader } from '../../../../components/Loader.jsx';
 import { Cell } from '../../../../components/Tile.jsx';
 import { getShotIdentityKey } from '../../utils/analyzerUtils';
 import { IconButton } from '../../../../components/IconButton.jsx';
@@ -181,7 +181,8 @@ export function LibrarySection({
       <div className='an-lib__list an-scroll'>
         {isLoading && (
           <div className='absolute inset-0 z-20 grid place-items-center bg-(--surface-2)'>
-            <Spinner size={12} className='text-(--ink-muted)' />
+            <Loader size={24} className='text-(--ink-muted)' />
+            <span className='bm-sr'>Loading</span>
           </div>
         )}
 

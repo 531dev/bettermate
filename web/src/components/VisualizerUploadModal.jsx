@@ -3,7 +3,7 @@ import { Button } from './Button.jsx';
 import { Checkbox, Field, Input } from './Field.jsx';
 import { Icon } from './Icon.jsx';
 import { Sheet } from './Sheet.jsx';
-import { Spinner } from './Spinner.jsx';
+import { Loader } from './Loader.jsx';
 import { Cell } from './Tile.jsx';
 import { dateTime } from '../utils/time.js';
 
@@ -162,7 +162,7 @@ export default function VisualizerUploadModal({
             variant='primary'
             disabled={isUploading || !username.trim() || !password.trim()}
           >
-            {isUploading && <Spinner size={4} />}
+            {isUploading && <Loader size={18} />}
             {isUploading ? 'Uploading' : 'Upload'}
           </Button>
         </div>

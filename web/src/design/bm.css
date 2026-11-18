@@ -1850,19 +1850,10 @@ input:checked:disabled + .bm-radio__box {
   padding-right: 0;
 }
 
-/* Notice as the app still writes it: one paragraph whose words take the tone. Part 1's Notice
-   (icon, title, text) replaces it page by page. */
-.bm-notice {
-  font: 400 13px/18px var(--font-sans);
-}
-.bm-notice--warning {
-  color: var(--warning);
-}
-.bm-notice--danger {
-  color: var(--danger);
-}
-.bm-notice--success {
-  color: var(--success);
+/* Notice: the close button of a dismissable warning sits at the top right, pulled into the
+   padding as on the Notice card. */
+.bm-notice__close {
+  margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0 0;
 }
 
 /* Tooltip: above sheets and menus, never wider than the window, and it fades in. */
@@ -1876,25 +1867,6 @@ input:checked:disabled + .bm-radio__box {
   from {
     opacity: 0;
   }
-}
-
-/* Busy: the display's comet. Three lit ticks step round a small ring, one tick at a time. */
-.bm-spinner {
-  display: inline-block;
-  flex-shrink: 0;
-  vertical-align: middle;
-}
-.bm-spinner path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  opacity: 0.28;
-}
-.bm-spinner .bm-spinner__comet {
-  opacity: 1;
-  transform-origin: 12px 12px;
-  animation: bm-comet calc(var(--duration-fast) * 12) steps(12) infinite;
 }
 
 /* Placeholder for content that has not arrived: an empty cell. It does not shimmer. */

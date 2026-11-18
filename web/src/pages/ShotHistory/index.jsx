@@ -7,7 +7,7 @@ import { List } from '../../components/ListRow.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
 import { Segmented } from '../../components/Segmented.jsx';
-import { Spinner } from '../../components/Spinner.jsx';
+import { Loader } from '../../components/Loader.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { useMediaQuery } from '../../hooks/useMediaQuery.js';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
@@ -352,9 +352,13 @@ export function ShotHistory() {
       )}
 
       {loading && history.length === 0 ? (
-        <div className='flex justify-center py-16' aria-label='Loading shots'>
-          <Spinner size={8} />
-        </div>
+        <p
+          className='flex items-center justify-center gap-3 py-16 text-(--ink-muted)'
+          aria-busy='true'
+        >
+          <Loader size={24} />
+          Loading shots
+        </p>
       ) : history.length === 0 ? (
         <Tile>
           <h2 className='bm-sub'>No shots yet</h2>

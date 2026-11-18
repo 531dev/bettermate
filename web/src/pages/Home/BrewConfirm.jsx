@@ -1,12 +1,9 @@
 import { useContext, useEffect, useRef, useState } from 'preact/hooks';
 import { Button } from '../../components/Button.jsx';
-import { cx } from '../../components/cx.js';
 import { Sheet } from '../../components/Sheet.jsx';
-import { WarningIcon } from '../../components/WarningIcon.jsx';
+import { Notice } from '../../components/Notice.jsx';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { activeWarnings, parseWarningStates, warningTone } from '../../utils/warnings.js';
-
-const NOTICE = { warning: 'bm-notice--warning', danger: 'bm-notice--danger' };
 
 // Asks before a shot whenever the controller asks for it, whichever UI or button started the brew.
 // It closes when any UI answers: a cancel event, or the brew actually starting.
@@ -47,9 +44,8 @@ export function BrewConfirm() {
       <p className='bm-help'>The machine has something to tell you first.</p>
       <ul className='flex flex-col gap-2'>
         {shown.current.map(w => (
-          <li key={w.key} className={cx('bm-notice', NOTICE[warningTone(w.level)])}>
-            <WarningIcon icon={w.icon} size={18} />
-            <span>{w.label}</span>
+          <li key={w.key}>
+            <Notice tone={warningTone(w.level)} title={w.label} />
           </li>
         ))}
       </ul>

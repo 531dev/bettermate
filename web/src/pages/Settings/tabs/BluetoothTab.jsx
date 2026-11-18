@@ -8,8 +8,9 @@ import { cx } from '../../../components/cx.js';
 import { Icon } from '../../../components/Icon.jsx';
 import { List, ListRow } from '../../../components/ListRow.jsx';
 import { SkeletonBlock } from '../../../components/SkeletonBlock.jsx';
-import { Spinner } from '../../../components/Spinner.jsx';
+import { Loader } from '../../../components/Loader.jsx';
 import { Tile } from '../../../components/Tile.jsx';
+import { Notice } from '../../../components/Notice.jsx';
 
 const machineMode = computed(() => machine.value.status.mode);
 
@@ -93,7 +94,7 @@ export function BluetoothTab() {
       title='Bluetooth devices'
       end={
         <Button size='sm' onClick={onScan} disabled={isScanning || !awake}>
-          {awake && waiting ? <Spinner size={4} /> : <Icon name='search' size={18} />}
+          {awake && waiting ? <Loader size={18} /> : <Icon name='search' size={18} />}
           {awake && waiting ? 'Scanning' : 'Scan'}
         </Button>
       }
@@ -101,7 +102,7 @@ export function BluetoothTab() {
       <p className='bm-help'>Scan for nearby Bluetooth scales to connect them to BetterMate.</p>
 
       {!awake && (
-        <p className='bm-notice'>The machine is in standby. Wake it up to use Bluetooth scales.</p>
+        <Notice title='The machine is in standby'>Wake it up to use Bluetooth scales.</Notice>
       )}
       {awake && (
         <>
@@ -111,8 +112,8 @@ export function BluetoothTab() {
             scaleData={scaleData}
             onConnect={onConnect}
           />
-          <p className='bm-notice'>
-            Scales are refreshed every 10 seconds. Use Scan to discover new devices.
+          <p className='bm-help'>
+            The list refreshes every 10 seconds. Scan finds scales that are not in it yet.
           </p>
         </>
       )}
@@ -125,23 +126,22 @@ function batteryNotice(scale) {
   if (scale.battery > BATTERY_LOW) return null;
   const empty = scale.battery <= BATTERY_EMPTY;
   return (
-    <p
+    <Notice
       key={scale.uuid}
-      className={cx('bm-notice', empty ? 'bm-notice--danger' : 'bm-notice--warning')}
+      tone={empty ? 'danger' : 'warning'}
+      title={empty ? 'Scale battery almost empty' : 'Scale battery low'}
     >
-      {empty
-        ? `The battery of ${scale.name || 'the scale'} is almost empty (${scale.battery}%).`
-        : `The battery of ${scale.name || 'the scale'} is low (${scale.battery}%).`}
-    </p>
+      {`${scale.name || 'The scale'} is at ${scale.battery}%. Charge it or change its batteries.`}
+    </Notice>
   );
 }
 
 function ScaleList({ waiting, failed, scaleData, onConnect }) {
   if (failed) {
     return (
-      <p role='alert' className='bm-notice bm-notice--danger'>
-        The devices could not be loaded. Scan again.
-      </p>
+      <Notice live tone='danger' title='The devices could not be loaded'>
+        Scan again.
+      </Notice>
     );
   }
   if (waiting) {

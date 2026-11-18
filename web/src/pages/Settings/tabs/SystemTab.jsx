@@ -6,11 +6,12 @@ import { Button } from '../../../components/Button.jsx';
 import { Chip } from '../../../components/Chip.jsx';
 import { SegmentBar } from '../../../components/SegmentBar.jsx';
 import { SystemTabSkeleton } from '../../../components/skeletons/SettingsSkeletons.jsx';
-import { Spinner } from '../../../components/Spinner.jsx';
+import { Loader } from '../../../components/Loader.jsx';
 import { Stat } from '../../../components/StatTile.jsx';
 import { Cell, Tile } from '../../../components/Tile.jsx';
 import { SegmentedField } from '../../../components/FormField.jsx';
 import { TILE_GRID } from '../grid.js';
+import { Notice } from '../../../components/Notice.jsx';
 
 const imageUrlToBase64 = async blob => {
   return new Promise((onSuccess, onError) => {
@@ -82,13 +83,13 @@ function OtaProgressView({ phase, progress }) {
   return (
     <Tile>
       <div className='flex flex-col items-center gap-4 py-8 text-center'>
-        {!failed && !finished && <Spinner size={8} />}
+        {!failed && !finished && <Loader size={24} />}
         <h2 className='bm-heading'>{getOtaPhaseText(phase)}</h2>
         {failed ? (
-          <p role='alert' className='bm-notice bm-notice--danger max-w-md text-left'>
-            The update could not be completed and the device kept its current firmware. Check the
-            network connection and start the update again.
-          </p>
+          <Notice live tone='danger' title='The update failed' className='max-w-md text-left'>
+            The previous version is still running. Check the network connection and start the update
+            again.
+          </Notice>
         ) : (
           <div className='flex w-full max-w-xs flex-col gap-2'>
             <div className='bm-stat__row justify-center'>
@@ -226,7 +227,7 @@ function MaintenanceSection({
       <div className='flex flex-col gap-2 sm:flex-row sm:flex-wrap'>
         <Button onClick={downloadSupportData}>Download support data</Button>
         <Button onClick={onHistoryRebuild} disabled={rebuilding}>
-          {rebuilding && <Spinner size={4} />}
+          {rebuilding && <Loader size={18} />}
           Rebuild shot history
         </Button>
       </div>
@@ -399,7 +400,7 @@ export function SystemTab() {
             onChange={setPickedChannel}
           />
           <Button type='submit' className='self-start' disabled={submitting}>
-            {submitting && <Spinner size={4} />}
+            {submitting && <Loader size={18} />}
             Save channel & refresh
           </Button>
         </form>
@@ -437,9 +438,9 @@ export function SystemTab() {
           />
         </div>
 
-        <p className='bm-notice bm-notice--warning'>
-          Make sure to back up your profiles from the Profiles page before updating the display.
-        </p>
+        <Notice tone='warning' title='Back up your profiles first'>
+          Export them from the Profiles page before you update the display.
+        </Notice>
       </Tile>
 
       <StorageAndMemorySection formData={formData} />

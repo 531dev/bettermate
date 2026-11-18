@@ -1,5 +1,5 @@
 import { Button } from '../Button.jsx';
-import { Spinner } from '../Spinner.jsx';
+import { Loader } from '../Loader.jsx';
 import { PHASE } from './constants.js';
 
 // A calibration run is a secondary action of its tile: the page's one primary Button is Save.
@@ -20,7 +20,7 @@ export default function Footer({ phase, saving, saved, connected, onClose, onSta
       )}
       {(phase === PHASE.RUNNING || phase === PHASE.ANALYZING) && (
         <Button disabled>
-          <Spinner size={4} />
+          <Loader size={18} />
           {phase === PHASE.RUNNING ? 'Running shot' : 'Analyzing'}
         </Button>
       )}
@@ -28,7 +28,7 @@ export default function Footer({ phase, saving, saved, connected, onClose, onSta
         <>
           <Button onClick={onClose}>Discard</Button>
           <Button onClick={onApply} disabled={saving}>
-            {saving && <Spinner size={4} />}
+            {saving && <Loader size={18} />}
             {saving ? 'Saving' : 'Save to machine'}
           </Button>
         </>

@@ -5,7 +5,7 @@ import { Chip } from '../../components/Chip.jsx';
 import { Field, Input } from '../../components/Field.jsx';
 import { Icon } from '../../components/Icon.jsx';
 import { List, ListRow } from '../../components/ListRow.jsx';
-import { Spinner } from '../../components/Spinner.jsx';
+import { Loader } from '../../components/Loader.jsx';
 import { Cell, Tile } from '../../components/Tile.jsx';
 import { Wordmark } from '../../components/Wordmark.jsx';
 import { dismissSetup } from '../../utils/setupState.js';
@@ -178,7 +178,7 @@ function JoiningStep({ ssid, hostname, onReconnected }) {
       }
     >
       <div className='flex items-center gap-3'>
-        <Spinner size={12} />
+        <Loader size={24} />
         <span>Waiting for the machine</span>
       </div>
     </Step>

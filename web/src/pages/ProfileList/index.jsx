@@ -15,7 +15,7 @@ import { prefersReducedMotion, tokenMs } from '../../components/motion.js';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
 import { Segmented } from '../../components/Segmented.jsx';
-import { Spinner } from '../../components/Spinner.jsx';
+import { Loader } from '../../components/Loader.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { downloadJson } from '../../utils/download.js';
@@ -428,9 +428,13 @@ export function ProfileList() {
       )}
 
       {!loaded ? (
-        <div className='flex justify-center py-16' aria-label='Loading profiles'>
-          <Spinner size={8} />
-        </div>
+        <p
+          className='flex items-center justify-center gap-3 py-16 text-(--ink-muted)'
+          aria-busy='true'
+        >
+          <Loader size={24} />
+          Loading profiles
+        </p>
       ) : (
         <Tile aria-busy={loading}>
           {hasRows ? (

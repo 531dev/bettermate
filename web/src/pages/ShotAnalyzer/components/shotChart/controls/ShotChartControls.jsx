@@ -1,5 +1,6 @@
 /** Composes responsive legend, replay/export, and compare controls for shot charts. */
 
+import { Notice } from '../../../../../components/Notice.jsx';
 import { useMediaQuery } from '../../../../../hooks/useMediaQuery.js';
 import { LEGEND_ORDER } from '../constants';
 import { COMPARE_TARGET_DISPLAY_MODES } from '../../../utils/analyzerUtils';
@@ -12,9 +13,9 @@ const useIsMobileControls = () => useMediaQuery('(max-width: 1023px)');
 function ReplayFocusHint({ isCompareMode, shouldShowReplayFocusHint }) {
   if (!isCompareMode && shouldShowReplayFocusHint) {
     return (
-      <div className='bm-notice bm-notice--warning' role='status'>
-        Keep this window focused while the replay is being recorded.
-      </div>
+      <Notice live tone='warning' title='Keep this window in front'>
+        The replay is being recorded.
+      </Notice>
     );
   }
 

@@ -4,7 +4,7 @@
  */
 import { Chip } from '../../../components/Chip.jsx';
 import { Icon } from '../../../components/Icon.jsx';
-import { Spinner } from '../../../components/Spinner.jsx';
+import { Loader } from '../../../components/Loader.jsx';
 import { Tile } from '../../../components/Tile.jsx';
 import '../ui/tool.css';
 
@@ -35,9 +35,13 @@ const KEYS = [
 export function EmptyState({ loading }) {
   if (loading) {
     return (
-      <div className='flex min-h-[20vh] items-center justify-center p-8'>
-        <Spinner />
-      </div>
+      <p
+        className='flex min-h-[20vh] items-center justify-center gap-3 p-8 text-(--ink-muted)'
+        aria-busy='true'
+      >
+        <Loader size={24} />
+        Loading the shot
+      </p>
     );
   }
 

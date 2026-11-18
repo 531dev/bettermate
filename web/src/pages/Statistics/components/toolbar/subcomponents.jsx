@@ -6,7 +6,7 @@ import { cx } from '../../../../components/cx.js';
 import { Field, Input, Switch } from '../../../../components/Field.jsx';
 import { Icon } from '../../../../components/Icon.jsx';
 import { Segmented } from '../../../../components/Segmented.jsx';
-import { Spinner } from '../../../../components/Spinner.jsx';
+import { Loader } from '../../../../components/Loader.jsx';
 import { SourceMarker } from '../../../ShotAnalyzer/components/SourceMarker';
 import { Popover } from '../../../../components/Popover.jsx';
 import { StatisticsSearchHelp } from '../StatisticsSearchHelp';
@@ -19,6 +19,7 @@ import {
 } from './constants';
 import { getDateBasisOptionTitle } from './helpers';
 import { usePopoverState } from './hooks';
+import { Notice } from '../../../../components/Notice.jsx';
 
 const FLOATING_PANEL_PROPS = { [TOOLBAR_FLOATING_PANEL_ATTR]: '' };
 
@@ -46,7 +47,8 @@ export function ToolbarBusyOverlay({ visible }) {
 
   return (
     <div className='pointer-events-none absolute inset-0 z-30 flex items-center justify-center'>
-      <Spinner size={8} className='text-(--ink-muted)' />
+      <Loader size={24} className='text-(--ink-muted)' />
+      <span className='bm-sr'>Loading</span>
     </div>
   );
 }
@@ -481,21 +483,22 @@ export function DateBasisWarning({
   if (!visible) return null;
 
   return (
-    <div className='bm-notice bm-notice--warning flex-wrap items-center'>
-      <p className='min-w-56 flex-1'>
-        <span className='font-semibold'>Date basis.</span>{' '}
-        {dateBasisWarningMessage ||
-          'Some shots have no shot timestamp. Choose how date handling should treat them.'}
-      </p>
-      <Segmented
-        onTile
-        label={`Date basis: ${getDateBasisOptionTitle(dateBasisMode).toLowerCase()}`}
-        options={DATE_BASIS_OPTIONS}
-        value={dateBasisMode}
-        onChange={onDateBasisModeChange}
-        disabled={isBusy}
-      />
-    </div>
+    <Notice
+      tone='warning'
+      title='Some shots have no date'
+      actions={
+        <Segmented
+          onTile
+          label={`Date basis: ${getDateBasisOptionTitle(dateBasisMode).toLowerCase()}`}
+          options={DATE_BASIS_OPTIONS}
+          value={dateBasisMode}
+          onChange={onDateBasisModeChange}
+          disabled={isBusy}
+        />
+      }
+    >
+      {dateBasisWarningMessage || 'Choose how dates are counted for them.'}
+    </Notice>
   );
 }
 
@@ -503,19 +506,11 @@ export function ToolbarNotice({ visible, noticeMessage, noticeTone, moreCount })
   if (!visible || !noticeMessage) return null;
 
   return (
-    <div
-      role={noticeTone === 'error' ? 'alert' : 'status'}
-      className={cx(
-        'bm-notice',
-        noticeTone === 'error' ? 'bm-notice--danger' : 'bm-notice--warning',
-      )}
-    >
-      <Icon name={noticeTone === 'error' ? 'circle-alert' : 'triangle-alert'} size={18} />
-      <span className='min-w-0 flex-1'>
-        {noticeMessage}
-        {moreCount > 0 && ` (${moreCount} more)`}
-      </span>
-    </div>
+    <Notice
+      live
+      tone={noticeTone === 'error' ? 'danger' : 'warning'}
+      title={`${noticeMessage}${moreCount > 0 ? ` (${moreCount} more)` : ''}`}
+    />
   );
 }
 

@@ -4,7 +4,7 @@
  */
 
 import { cx } from '../../../../components/cx.js';
-import { Spinner } from '../../../../components/Spinner.jsx';
+import { Loader } from '../../../../components/Loader.jsx';
 import { cleanName, formatTimestamp, getProfileDisplayLabel } from '../../utils/analyzerUtils';
 import { buildStatisticsProfileHref } from '../../../Statistics/utils/statisticsRoute';
 import { Icon } from '../../../../components/Icon.jsx';
@@ -33,7 +33,7 @@ function splitLibraryDateTime(value) {
  * loading is the spinner.
  */
 function LibraryRowMark({ compareBadgeNumber, isActive, isComparePending, isMatch }) {
-  if (isComparePending) return <Spinner size={4} className='text-(--ink-muted)' />;
+  if (isComparePending) return <Loader size={18} className='text-(--ink-muted)' />;
   if (compareBadgeNumber) return <ShotBadge number={compareBadgeNumber} />;
   if (isActive) return <i className='an-lib__dot' title='Loaded' />;
   if (isMatch)

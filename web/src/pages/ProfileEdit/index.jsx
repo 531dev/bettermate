@@ -8,7 +8,7 @@ import { Button } from '../../components/Button.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
 import { Sheet } from '../../components/Sheet.jsx';
-import { Spinner } from '../../components/Spinner.jsx';
+import { Loader } from '../../components/Loader.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { ExtendedProfileForm } from './ExtendedProfileForm.jsx';
 import { useUnsavedGuard } from './useUnsavedGuard.js';
@@ -132,9 +132,13 @@ export function ProfileEdit() {
 
   if (loading) {
     return (
-      <div className='flex w-full flex-row items-center justify-center py-16'>
-        <Spinner size={8} />
-      </div>
+      <p
+        className='flex items-center justify-center gap-3 py-16 text-(--ink-muted)'
+        aria-busy='true'
+      >
+        <Loader size={24} />
+        Loading the profile
+      </p>
     );
   }
 
