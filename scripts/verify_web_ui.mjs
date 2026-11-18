@@ -553,11 +553,40 @@ async function flows() {
         ))
       )
         throw new Error('the banner is not the ink Stop form with segments');
-      const locked = (await page.locator('.bm-modebar__item:disabled').allInnerTexts()).map(t =>
-        t.trim(),
-      );
+      // Locked, not disabled (the 2026-11-16 design; Steam locks too, as the user decided): every
+      // other mode is aria-disabled, stays focusable, reads its reason, is drawn in ink-faint at
+      // full opacity, and a press answers in words without changing the mode.
+      const locked = (
+        await page.locator('.bm-modebar__item[aria-disabled="true"]').allInnerTexts()
+      ).map(t => t.trim());
       if (locked.length !== shown.length - 1 || locked.includes('Brew'))
         throw new Error(`locked: ${locked}`);
+      const look = await page.evaluate(() => {
+        const item = document.querySelector('.bm-modebar__item[aria-disabled="true"]');
+        const probe = document.createElement('i');
+        probe.style.color = 'var(--ink-faint)';
+        document.body.append(probe);
+        const faint = getComputedStyle(probe).color;
+        probe.remove();
+        const reason = document.getElementById(item.getAttribute('aria-describedby') || '');
+        return {
+          disabled: item.disabled,
+          faint: getComputedStyle(item).color === faint,
+          opacity: getComputedStyle(item).opacity,
+          reason: reason?.textContent.trim(),
+        };
+      });
+      if (look.disabled || !look.faint || look.opacity !== '1')
+        throw new Error(`locked look: ${JSON.stringify(look)}`);
+      if (look.reason !== 'Locked while a shot runs.') throw new Error(`reason: ${look.reason}`);
+      // Reached with the keyboard: a locked mode is still a Tab stop.
+      await mode('Steam').focus();
+      await page.keyboard.press('Enter');
+      await page
+        .locator('.bm-toast', { hasText: 'Stop the shot to change mode.' })
+        .waitFor({ timeout: 2000 });
+      if (m.status.m !== 1 || !m.status.process?.a)
+        throw new Error('a press on a locked mode changed the machine');
       if ((await page.locator('section[aria-label="Live chart"] canvas').count()) !== 1)
         throw new Error('no live chart');
       await capture(page, 'flow-brew-active');

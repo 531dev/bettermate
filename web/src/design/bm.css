@@ -2121,6 +2121,11 @@ input:checked:disabled + .bm-radio__box {
   width: min(calc(100% - var(--space-6)), 400px);
   margin: 0 auto;
 }
+/* The answer to a press on a locked mode sits just above the bar, wherever the bar is. */
+.bm-modebar--float .bm-toasts {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+}
 @media (min-width: 1024px) {
   .bm-modebar--float {
     bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
