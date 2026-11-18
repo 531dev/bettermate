@@ -4,11 +4,13 @@
   --surface-0: #e9e9e9;
   --surface-1: #f4f4f4;
   --surface-2: #ffffff;
+  --control-hover: #dfdfdf;
   --line: #d6d6d6;
   --line-strong: #767676;
   --track: #cdcdcd;
   --ink: #111111;
   --on-ink: #ffffff;
+  --ink-hover: #303030;
   --ink-muted: #555555;
   --ink-faint: #767676;
   --primary: #0f20ec;
@@ -20,9 +22,9 @@
   --heat-text: #a0380e;
   --heat-soft: #fbe0d5;
   --on-heat: #111111;
-  --flow: #1d7a46;
+  --flow: #17693b;
   --weight: #6e6e6e;
-  --series-pressure: var(--primary-text);
+  --series-pressure: var(--primary);
   --series-temperature: var(--heat);
   --series-flow: var(--flow);
   --series-weight: var(--weight);
@@ -33,22 +35,26 @@
   --warning-soft: #fff0c2;
   --danger: #b42323;
   --danger-soft: #fbe3e3;
+  --danger-soft-hover: #ead3d3;
   --focus: var(--primary-text);
   --scrim: #11111199;
+  --state-hover: #11111114;
 }
 [data-theme='dark'] {
   --surface-0: #212121;
   --surface-1: #2b2b2b;
   --surface-2: #363636;
+  --control-hover: #474747;
   --line: #434343;
   --line-strong: #929292;
   --track: #4d4d4d;
   --ink: #f5f5f5;
   --on-ink: #111111;
+  --ink-hover: #dfdfdf;
   --ink-muted: #b8b8b8;
   --ink-faint: #8c8c8c;
   --primary: #5361ff;
-  --primary-hover: #6c78ff;
+  --primary-hover: #444be8;
   --primary-text: #b4b9ff;
   --primary-soft: #2d3160;
   --on-primary: #ffffff;
@@ -56,9 +62,9 @@
   --heat-text: #ff9a70;
   --heat-soft: #4a2e22;
   --on-heat: #111111;
-  --flow: #86d9a2;
+  --flow: #98e6b3;
   --weight: #b8b8b8;
-  --series-pressure: var(--primary-text);
+  --series-pressure: var(--primary);
   --series-temperature: var(--heat);
   --series-flow: var(--flow);
   --series-weight: var(--weight);
@@ -69,8 +75,10 @@
   --warning-soft: #3d2e00;
   --danger: #ff8a80;
   --danger-soft: #4a1c1c;
+  --danger-soft-hover: #5d2d2c;
   --focus: var(--primary-text);
   --scrim: #00000099;
+  --state-hover: #f5f5f514;
 }
 :root {
   --font-sans: 'Funnel Display', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -98,7 +106,9 @@
   --icon-display: 36px;
   --sidebar: 248px;
   --content-max: 1280px;
+  --dialog: 400px;
   --touch-min: 44px;
+  --mark: 6px;
   --display: 480px;
   --display-content: 392px;
   --display-square: 276px;
@@ -107,6 +117,11 @@
   --hairline: 1px;
   --outline: 2px;
   --disabled: 0.4;
+  --layer-modebar: 10;
+  --layer-menu: 20;
+  --layer-scrim: 30;
+  --layer-dialog: 40;
+  --layer-toast: 50;
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 320ms;

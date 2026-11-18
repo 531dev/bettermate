@@ -9,11 +9,13 @@ struct Palette {
     uint32_t surface0;
     uint32_t surface1;
     uint32_t surface2;
+    uint32_t controlHover;
     uint32_t line;
     uint32_t lineStrong;
     uint32_t track;
     uint32_t ink;
     uint32_t onInk;
+    uint32_t inkHover;
     uint32_t inkMuted;
     uint32_t inkFaint;
     uint32_t primary;
@@ -38,6 +40,7 @@ struct Palette {
     uint32_t warningSoft;
     uint32_t danger;
     uint32_t dangerSoft;
+    uint32_t dangerSoftHover;
     uint32_t focus;
 };
 
@@ -45,11 +48,13 @@ inline constexpr Palette LIGHT = {
     0xe9e9e9, // surface0
     0xf4f4f4, // surface1
     0xffffff, // surface2
+    0xdfdfdf, // controlHover
     0xd6d6d6, // line
     0x767676, // lineStrong
     0xcdcdcd, // track
     0x111111, // ink
     0xffffff, // onInk
+    0x303030, // inkHover
     0x555555, // inkMuted
     0x767676, // inkFaint
     0x0f20ec, // primary
@@ -61,11 +66,11 @@ inline constexpr Palette LIGHT = {
     0xa0380e, // heatText
     0xfbe0d5, // heatSoft
     0x111111, // onHeat
-    0x1d7a46, // flow
+    0x17693b, // flow
     0x6e6e6e, // weight
     0x0f20ec, // seriesPressure
     0xe4501c, // seriesTemperature
-    0x1d7a46, // seriesFlow
+    0x17693b, // seriesFlow
     0x6e6e6e, // seriesWeight
     0xd6d6d6, // chartGrid
     0x186a35, // success
@@ -74,6 +79,7 @@ inline constexpr Palette LIGHT = {
     0xfff0c2, // warningSoft
     0xb42323, // danger
     0xfbe3e3, // dangerSoft
+    0xead3d3, // dangerSoftHover
     0x0f20ec, // focus
 };
 
@@ -81,15 +87,17 @@ inline constexpr Palette AMOLED = {
     0x000000, // surface0
     0x141414, // surface1
     0x232323, // surface2
+    0x333333, // controlHover
     0x2c2c2c, // line
     0x8b8b8b, // lineStrong
     0x343434, // track
     0xf2f2f2, // ink
     0x000000, // onInk
+    0xdddddd, // inkHover
     0xa6a6a6, // inkMuted
     0x787878, // inkFaint
     0x5361ff, // primary
-    0x6c78ff, // primaryHover
+    0x444be8, // primaryHover
     0xb4b9ff, // primaryText
     0x1c2461, // primarySoft
     0xffffff, // onPrimary
@@ -97,11 +105,11 @@ inline constexpr Palette AMOLED = {
     0xff9a70, // heatText
     0x3a1c10, // heatSoft
     0x111111, // onHeat
-    0x86d9a2, // flow
+    0x98e6b3, // flow
     0xb8b8b8, // weight
-    0xb4b9ff, // seriesPressure
+    0x5361ff, // seriesPressure
     0xe95b2a, // seriesTemperature
-    0x86d9a2, // seriesFlow
+    0x98e6b3, // seriesFlow
     0xb8b8b8, // seriesWeight
     0x2c2c2c, // chartGrid
     0x5ccf7c, // success
@@ -110,6 +118,7 @@ inline constexpr Palette AMOLED = {
     0x3d2e00, // warningSoft
     0xff6b6b, // danger
     0x4a1414, // dangerSoft
+    0x58201f, // dangerSoftHover
     0xb4b9ff, // focus
 };
 
@@ -129,7 +138,9 @@ inline constexpr int ICON = 24;
 inline constexpr int ICON_DISPLAY = 36;
 inline constexpr int SIDEBAR = 248;
 inline constexpr int CONTENT_MAX = 1280;
+inline constexpr int DIALOG = 400;
 inline constexpr int TOUCH_MIN = 44;
+inline constexpr int MARK = 6;
 inline constexpr int DISPLAY_SIZE = 480;
 inline constexpr int DISPLAY_CONTENT = 392;
 inline constexpr int DISPLAY_SQUARE = 276;

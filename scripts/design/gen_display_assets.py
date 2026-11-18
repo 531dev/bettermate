@@ -199,10 +199,11 @@ DIGITS = "0123456789"
 UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ASCII = "".join(chr(c) for c in range(0x20, 0x7F))
 PUNCT = "".join(chr(c) for c in range(0x20, 0x7F) if not chr(c).isalnum())
-DEGREE, MIDDOT = "°", "·"
-# Profile and stage names are typed by people: keep the accented Latin-1 letters wherever a name can appear.
-LATIN1 = "".join(chr(c) for c in range(0xC0, 0x100) if c not in (0xD7, 0xF7))
-LATIN1_UPPER = "".join(chr(c) for c in range(0xC0, 0xDF) if c != 0xD7)
+DEGREE, MIDDOT, ELLIPSIS = "°", "·", "…"
+# Profile and phase names are typed by people: the text styles carry the Latin-1 Supplement (U+00A0 to U+00FF,
+# which holds degree and middle dot) and the label its capitals, for the Adjust title (Round display, Fonts).
+LATIN1 = "".join(chr(c) for c in range(0xA0, 0x100))
+LATIN1_UPPER = "".join(chr(c) for c in range(0xC0, 0xDF))
 
 SANS, MONO = "FunnelDisplay-Variable.woff2", "GeistMono-Variable.woff2"
 
@@ -211,10 +212,10 @@ SANS, MONO = "FunnelDisplay-Variable.woff2", "GeistMono-Variable.woff2"
 FONTS = [
     ("bm_font_hero", "screen-hero", SANS, DIGITS + ":.- " + DEGREE, False),
     ("bm_font_hero_sm", "screen-hero-sm", SANS, DIGITS + ":.- " + DEGREE, False),
-    ("bm_font_value", "screen-value", SANS, ASCII + DEGREE + MIDDOT + LATIN1, False),
-    ("bm_font_title", "screen-title", SANS, ASCII + DEGREE + MIDDOT + LATIN1, True),
-    ("bm_font_body", "screen-body", SANS, ASCII + DEGREE + MIDDOT + LATIN1, True),
-    ("bm_font_label", "screen-label", MONO, UPPER + DIGITS + PUNCT + DEGREE + MIDDOT + LATIN1_UPPER, False),
+    ("bm_font_value", "screen-value", SANS, ASCII + LATIN1 + ELLIPSIS, False),
+    ("bm_font_title", "screen-title", SANS, ASCII + LATIN1 + ELLIPSIS, True),
+    ("bm_font_body", "screen-body", SANS, ASCII + LATIN1 + ELLIPSIS, True),
+    ("bm_font_label", "screen-label", MONO, UPPER + DIGITS + PUNCT + DEGREE + MIDDOT + LATIN1_UPPER + ELLIPSIS, False),
     ("bm_font_button", "screen-button", MONO, UPPER + " &", False),
 ]
 

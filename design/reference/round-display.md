@@ -21,7 +21,7 @@ All positions are in panel pixels from the top-left of the 480 box. The centre i
 | Ring | radius `ring-inner` 212 to `ring-outer` 234 | Ticks only. Nothing else enters it. |
 | Content circle | `display-content`, 392 px across | Everything that is not a tick. |
 | Text square | `display-square`, 276 px | Any text of two lines. |
-| Exception slot | centred on y 34, in the ring's top gap | One 28 px glyph: `triangle-alert` in `warning`, or `download` when an update waits. Empty when all is normal. |
+| Exception slot | centred on y 34, in the ring's top gap | One 28 px glyph: `triangle-alert` in `warning`, `download` when an update waits, or `triangle-alert` in `danger` on a fault screen. Empty when all is normal. |
 | Label | baseline y 86 to 98 | Mode or state in `screen-label`, `ink-muted`. An exception state (HEATING TO 93°) takes `heat-text`. Standby sets its date nearer the clock, at y 136. |
 | Reading | baseline y 206 to 284 | `screen-hero`, or `screen-hero-sm` between the discs. `ink`. |
 | Unit | 32 px under the reading's baseline | `screen-label`, `ink-muted`. |
@@ -44,25 +44,44 @@ All positions are in panel pixels from the top-left of the 480 box. The centre i
 | Screen | Ring | Reading | Second rank | Action | Only when needed |
 | --- | --- | --- | --- | --- | --- |
 | Standby | Single, `ink-faint`, residual boiler heat | Clock | Date above; one line below (Boiler off · 21°, or Wakes at 06:30) | WAKE, `primary` | Busy comet on the ring while connecting, updating or autotuning, with no pill. AMOLED rest after 30 s. |
-| Brew | Split: temperature with notch, pressure | Boiler temperature, °C under | Profile name with a chevron: opens Profiles | START, `primary` | HEATING TO 93° as the label. Scale weight and TARE on a line under the profile. Warning glyph in the slot. |
-| Shot | Split: temperature, pressure with the phase's notch | Elapsed time | Stage bars under the reading; pressure and weight as two values | STOP, `ink` | With a scale the second value is weight over its target; without one it is boiler temperature. The label reads TEMPERATURE 88° in `heat-text` if the boiler strays more than 3°. |
+| Brew | Split: temperature with notch, pressure | Boiler temperature, °C under | Profile name with a chevron: opens Profiles | START, `primary` | HEATING TO 93° as the label. Scale weight and TARE on a line under the profile. Warning glyph in the slot. A pressed START that is not yet confirmed is a quiet STARTING pill. |
+| Shot | Split: temperature, pressure with the phase's notch | Elapsed time | Phase bars under the reading; pressure and weight as two values | STOP, `ink` | With a scale the second value is weight over its target; without one it is boiler temperature. The label reads TEMPERATURE 88° in `heat-text` if the boiler strays more than 3°. |
 | Shot complete | Split; pressure ticks walk down | Final time | Yield and ratio | DONE, `primary` | Ratio needs a dose on the profile. |
 | Steam, Water | Single: temperature with notch | Target between minus and plus | Live temperature above, in `heat-text` while heating | Water: START then STOP. Steam: none, it starts with the valve. | A status line where the pill would be. |
 | Grind | Single: progress in `ink` | Target between minus and plus, then what has been ground | TIME · WEIGHT row above when a scale is present | START then STOP | Minus, plus and the row hide while grinding; elapsed time takes their place. |
 | Menu | none | none | Up to five 116 px mode discs on a 134 px circle, the active one in `ink` | Power disc at the centre: Standby | Grind disc only with a grinder. |
-| Profiles | none | Profile name in `screen-value` | Three fact cards, the stage names, pagination dots | SELECT, with a pencil disc beside it | Chevron discs at 9 and 3 o'clock; swipes do the same. |
+| Profiles | none | Profile name in `screen-value` | Three fact cards, the phase names, pagination dots | SELECT, with a pencil disc beside it | Chevron discs at 9 and 3 o'clock; swipes do the same. |
 | Adjust | none | The focused value between minus and plus | A row above choosing which value: TEMP · BAR · TIME | SAVE | The title says UNSAVED once anything changed. |
 | Save sheet | none | none | Title | SAVE in `primary`, SAVE AS NEW on `surface-2`, USE ONCE as text | |
 | Warnings | none | none | One card per warning: a chip (ERROR, WARN) and a sentence | DONE, `ink` | |
 | Information | none | QR on a white card | Network name above; address and SCAN TO OPEN below | ABOUT as a text button | The QR card is white in every theme. |
+| Wi-Fi setup | none | QR on a white card | JOIN THIS WI-FI and the machine's own network name above; address and SCAN TO SET UP below | none: setup continues on the phone | Shown until the machine has joined a network. |
+| Fault | none | The fault's name in `screen-title` | An ERROR chip above; one or two lines in `screen-body` below | RESTART or RETRY in `primary`, only when pressing it can help | Takes the screen only when brewing is blocked. `triangle-alert` in `danger` in the slot. |
+| Updating | Single: progress in `ink` | Percentage, `%` under | UPDATING above; "Keep the machine on" and the version below | none | No handle. The screen cannot be left. |
 
 ## Controls
 
-- **Pill.** 64 px tall, fully rounded, label in `screen-button`. `primary` with `on-primary` starts something. `ink` with `on-ink` stops or dismisses. One pill per screen; the save sheet is the only place with two fills, and its second is `surface-2`.
+- **Pill.** 64 px tall, fully rounded, label in `screen-button`. `primary` with `on-primary` starts something. `ink` with `on-ink` stops or dismisses. One pill per screen; the save sheet is the only place with two fills, and its second is `surface-2`. A command that is not yet confirmed shows a quiet pill: `surface-2` with its label in `ink-muted` (STARTING).
 - **Disc.** 60 px for minus and plus at x 82 and x 398 on the reading's centre line. 56 px for chevrons and secondary actions. `surface-2` with an `ink` glyph.
 - **Row.** A 56 px tall track in `surface-1`, 244 px wide, with the chosen segment in `ink`. Two or three choices.
 - **Text button.** `screen-button` in `ink` with no fill, and a 56 px tall hit area.
 - **Card.** `surface-1`, `radius-lg`, for facts and warning rows. Never a border.
+
+## Content limits
+
+Measured in the two faces at their display sizes. Write copy to these counts; in firmware, measure the string and cut it, since letters differ in width.
+
+| Style | Fits | Rule |
+| --- | --- | --- |
+| `screen-hero` | 5 characters: `10:51`, `100.0` | A digit is 65 px wide. |
+| `screen-hero-sm` | 4 characters between the discs: `18.0`, `145` | A digit is 52 px wide; the discs leave 232 px. |
+| `screen-value` | 12 characters in the 276 px text square: `Crème brûlée` | A longer profile name is cut at 11 and ends with `…`. |
+| `screen-title` | 20 characters, or 18 beside a chevron | Fault titles, sheet titles, the profile on Brew. |
+| `screen-body` | 25 characters a line, two lines | Each line is its own sentence. |
+| `screen-label` | 20 characters | 13.2 px a character: `HEATING TO 100°` is 15. |
+| `screen-button` | 9 characters in a 188 px pill, 13 in the 244 px one | 14.5 px a character: `STARTING` is 8. |
+
+A name that does not fit is cut one short and ends with an ellipsis. Never shrink the type, and never scroll text on the display: a marquee redraws its box every frame.
 
 ## Themes on the display
 
@@ -88,11 +107,13 @@ Convert at 4 bpp and enable only these sizes. Funnel Display's figures are tabul
 | --- | --- | --- | --- |
 | `screen-hero` | Funnel Display 500 | 120 | digits, colon, period, minus, degree |
 | `screen-hero-sm` | Funnel Display 500 | 96 | digits, colon, period, minus, degree |
-| `screen-value` | Funnel Display 500 | 44 | Basic Latin, degree, middle dot |
-| `screen-title` | Funnel Display 500 | 28 | Basic Latin, degree, middle dot |
-| `screen-body` | Funnel Display 400 | 22 | Basic Latin, degree, middle dot |
-| `screen-label` | Geist Mono 500 | 20 | uppercase, digits, punctuation, degree, middle dot |
+| `screen-value` | Funnel Display 500 | 44 | Basic Latin, Latin-1 Supplement (U+00A0 to U+00FF), ellipsis |
+| `screen-title` | Funnel Display 500 | 28 | Basic Latin, Latin-1 Supplement, ellipsis |
+| `screen-body` | Funnel Display 400 | 22 | Basic Latin, Latin-1 Supplement, ellipsis |
+| `screen-label` | Geist Mono 500 | 20 | uppercase, digits, punctuation, degree, middle dot, the Latin-1 capitals (U+00C0 to U+00DE), ellipsis |
 | `screen-button` | Geist Mono 600 | 22 | uppercase, space, ampersand |
+
+Profile names are typed by people, so the three text styles carry Latin-1: `Crème brûlée` and `Café München` draw as written, where Basic Latin alone left gaps. Degree and middle dot are part of that range. `screen-label` carries the Latin-1 capitals because the Adjust title sets the profile's name in capitals. The cost is 96 more glyphs in each of three sizes, roughly 70 KB of flash at 4 bpp before compression (an estimate from glyph sizes, not a measured build). A character outside the set, such as Polish ł or Turkish ş, is replaced by its base letter before drawing (`ł` to `l`) and never drawn as an empty box; the web app shows the name as typed.
 
 Give every changing label a fixed width sized for its longest value, so a new digit redraws the same box every time.
 

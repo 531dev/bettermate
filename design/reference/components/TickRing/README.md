@@ -6,4 +6,10 @@ The ring of ticks on the rim of the display, and around the web Dial: lit ticks 
 - The notch marks a target; leave it out for progress and standby.
 - Never replace ticks with a continuous arc, round the ring off with end caps, or add numerals along it.
 
-`BetterMate.ring({left: [value, target, tone], right: [...]})` or `{full: [...]}` returns the SVG; values and targets are fractions from 0 to 1, and a target of -1 means none. `BetterMate.geometry` exposes the angles and counts for LVGL and Preact ports.
+### What the ring may carry
+
+The ring is never the only place a value lives. Every quantity on it is also a numeral or a sentence on the same screen, so the unlit `track` ticks can stay decorative (they are under 3:1 by design) and the ring can be hidden from a screen reader. Lit ticks hold 3:1 or better on every surface in every theme, and the notch is `ink`.
+
+Two tones never sit side by side on one arc, so no reading depends on telling orange from cobalt: temperature is always the left arc or the single ring, pressure always the right.
+
+`BetterMate.ring({left: [value, target, tone], right: [...]})` or `{full: [...]}` returns the SVG, marked `aria-hidden`; values and targets are fractions from 0 to 1, and a target of -1 means none. `BetterMate.geometry` exposes the angles and counts for LVGL and Preact ports.

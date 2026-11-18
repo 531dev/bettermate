@@ -39,7 +39,9 @@ Check on hardware with the `display-frame-stats` build. The pass mark: while any
 | Press | Pill or disc is touched | 2 | 5% for a pill | Swap to `ink` and `on-ink` for 2 frames, then act. |
 | Heating pulse | The last lit temperature tick, while below target | 2 states, each 12 frames | 0.3% | `heat` to `heat-soft` and back, once a second. |
 | Busy comet | Standby while connecting or updating | 1 tick a frame | 0.6% | 3 lit ticks circling the ring: one on, one off. |
-| Stage advance | Shot stage bars | 1 px every 4 frames | under 1% | Grow the bar's filled part. |
+| Phase advance | Shot phase bars | 1 px every 4 frames | under 1% | Grow the bar's filled part. |
+| Pending pill | A command that is not yet confirmed | `frame-tick`, after the 2-frame press | 5% | Swap the pill to `surface-2` with STARTING in `ink-muted`; cut back when the controller answers, or after 2 s. No comet. |
+| Update walk | Firmware update | 1 tick per 1.3% of progress | 0.3% a tick | Tick steps as progress arrives; the percentage snaps. Nothing else on the screen moves. |
 | Finish | Shot complete | `frame-micro` plus a ring walk | 12% in the largest frame | Label and values step in, pill swaps to DONE, pressure ticks walk down 2 a frame. |
 | Screen change | Any | `frame-micro` plus a ring walk | up to 23% in the largest frame | Rule 4. |
 
@@ -66,10 +68,12 @@ Three things to try on hardware. They are untested suggestions, not rules:
 
 - Three durations: `duration-fast` 120 ms for fills, presses and anything leaving; `duration-base` 200 ms for anything entering and for the Switch knob; `duration-slow` 320 ms once, when the dial's ticks catch up after the page loads. Two curves: `ease-out` in, `ease-in` out.
 - Transition colour, opacity and transform only. Never `width`, `height`, `top` or `bottom`: they lay the page out again on every frame. The banner's progress bar and the gauge mark do this today, and both become segment bars.
-- **Press.** A Button scales to 0.97 and a stepper disc to 0.92, in `duration-fast`.
+- **Hover.** A fill change in `duration-fast`, and only where the device has hover. Nothing moves.
+- **Press.** A Button scales to 0.97, the ActionBanner to 0.985 and a stepper disc to 0.92, in `duration-fast`, with the same fill as hover.
 - **Select.** The fill changes in `duration-fast`. Nothing slides except the Switch knob.
-- **Sheets and menus.** Enter with opacity and a 16 px rise in `duration-base` on `ease-out`; leave in `duration-fast` on `ease-in`.
+- **Sheets, menus, dialogs and toasts.** Enter with opacity and a 16 px rise in `duration-base` on `ease-out`; leave in `duration-fast` on `ease-in`. The scrim and a Tooltip change opacity only. A Toast stays 5 s, or 8 s with an action, and waits while it is hovered or focused.
+- **Loader.** Three lit ticks advance one of twelve positions every 80 ms with `steps(12)`. It steps like the display's comet; it never sweeps. Use it only for a command on its way, never for a page.
 - **Live readings.** Digits snap when telemetry arrives. Segments and dial ticks recolour in `duration-fast`, so bars step the way the display's ring does. Do not tween numbers.
 - **Pages.** No page transition. The shell stays, tiles render with `—` and unlit ticks until the first reading, and there is no shimmer.
 - **Charts.** No animation.
-- Under `prefers-reduced-motion: reduce`, remove every transition and transform.
+- Under `prefers-reduced-motion: reduce`, remove every transition and transform and stop the Loader; the words beside it carry the meaning.

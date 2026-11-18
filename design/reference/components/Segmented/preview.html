@@ -1,35 +1,24 @@
-<!-- @dsCard group="Navigation" height=236 -->
+<!-- @dsCard group="Navigation" height=330 -->
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><title>Segmented control and mode bar</title></head>
+<head><meta charset="utf-8"><title>Segmented control</title></head>
 <body>
-<div class="bm-stage" style="flex-direction:column;gap:20px">
-  <div class="bm-rowx" style="gap:24px">
-    <div class="bm-seg" role="group" aria-label="Stop by"><button class="bm-seg__item" aria-pressed="true">Time</button><button class="bm-seg__item" aria-pressed="false">Weight</button></div>
-    <div class="bm-seg" role="group" aria-label="Favourite profiles"><button class="bm-seg__item" aria-pressed="false">First</button><button class="bm-seg__item" aria-pressed="true">Second</button><button class="bm-seg__item" aria-pressed="false">Bloom</button></div>
-    <div class="bm-seg" role="group" aria-label="Theme"><button class="bm-seg__item" aria-pressed="false"><span data-icon="monitor" data-size="18"></span>System</button><button class="bm-seg__item" aria-pressed="false"><span data-icon="sun" data-size="18"></span>Light</button><button class="bm-seg__item" aria-pressed="true"><span data-icon="moon" data-size="18"></span>Dark</button></div>
+<div class="bm-stage" style="flex-direction:column;gap:var(--space-5)">
+  <div class="bm-rowx" style="gap:var(--space-6)">
+    <div class="bm-seg" role="radiogroup" aria-label="Stop by"><button class="bm-seg__item" role="radio" aria-checked="true">Time</button><button class="bm-seg__item" role="radio" aria-checked="false">Weight</button></div>
+    <div class="bm-seg" role="radiogroup" aria-label="Dashboard"><button class="bm-seg__item" role="radio" aria-checked="false">Simple</button><button class="bm-seg__item" role="radio" aria-checked="true">Advanced</button><button class="bm-seg__item" role="radio" aria-checked="false">Customize</button></div>
+    <div class="bm-seg" role="radiogroup" aria-label="Theme"><button class="bm-seg__item" role="radio" aria-checked="false"><span data-icon="monitor" data-size="18"></span>System</button><button class="bm-seg__item" role="radio" aria-checked="false"><span data-icon="sun" data-size="18"></span>Light</button><button class="bm-seg__item" role="radio" aria-checked="true"><span data-icon="moon" data-size="18"></span>Dark</button></div>
+    <div class="bm-seg" role="radiogroup" aria-label="Stop by"><button class="bm-seg__item" role="radio" aria-checked="true">Time</button><button class="bm-seg__item" role="radio" aria-checked="false" disabled>Weight</button></div>
   </div>
-  <div class="bm-rowx" style="gap:24px;align-items:flex-end">
-    <div class="bm-stack" style="width:366px"><span class="bm-eyebrow">Mode bar</span><nav class="bm-modebar" aria-label="Machine mode">
-  <button class="bm-modebar__item" aria-pressed="false"><span data-icon="power" data-size="22"></span>Standby</button>
-  <button class="bm-modebar__item" aria-pressed="true"><span data-icon="coffee" data-size="22"></span>Brew</button>
-  <button class="bm-modebar__item" aria-pressed="false"><span data-icon="wind" data-size="22"></span>Steam</button>
-  <button class="bm-modebar__item" aria-pressed="false"><span data-icon="droplet" data-size="22"></span>Water</button>
-  <button class="bm-modebar__item" aria-pressed="false"><span data-icon="bean" data-size="22"></span>Grind</button>
-</nav></div>
-    <div class="bm-stack" style="width:366px"><span class="bm-eyebrow">While a shot runs</span><nav class="bm-modebar" aria-label="Machine mode">
-  <button class="bm-modebar__item" aria-pressed="false" disabled><span data-icon="power" data-size="22"></span>Standby</button>
-  <button class="bm-modebar__item" aria-pressed="true"><span data-icon="coffee" data-size="22"></span>Brew</button>
-  <button class="bm-modebar__item" aria-pressed="false"><span data-icon="wind" data-size="22"></span>Steam</button>
-  <button class="bm-modebar__item" aria-pressed="false" disabled><span data-icon="droplet" data-size="22"></span>Water</button>
-  <button class="bm-modebar__item" aria-pressed="false" disabled><span data-icon="bean" data-size="22"></span>Grind</button>
-</nav></div>
+  <div class="bm-rowx" style="gap:var(--space-6);align-items:flex-start">
+    <section class="bm-tile" style="width:296px"><span class="bm-eyebrow">Favourites at 320 px</span><div class="bm-seg bm-seg--scroll" role="radiogroup" aria-label="Favourite profiles"><button class="bm-seg__item" role="radio" aria-checked="true"><span class="bm-seg__label">First</span></button><button class="bm-seg__item" role="radio" aria-checked="false"><span class="bm-seg__label">Adaptive v2</span></button><button class="bm-seg__item" role="radio" aria-checked="false"><span class="bm-seg__label">Crème brûlée, slow bloom for light roasts</span></button><button class="bm-seg__item" role="radio" aria-checked="false"><span class="bm-seg__label">Turbo</span></button></div><p class="bm-help">The track scrolls. A long name truncates at 176 px.</p></section>
+    <section class="bm-tile" style="width:296px"><span class="bm-eyebrow">Sharing a row</span><div class="bm-seg bm-seg--block" role="radiogroup" aria-label="Theme"><button class="bm-seg__item" role="radio" aria-checked="true">System</button><button class="bm-seg__item" role="radio" aria-checked="false">Light</button><button class="bm-seg__item" role="radio" aria-checked="false">Dark</button></div><div class="bm-cell"><span class="bm-eyebrow">Inside a cell</span><div class="bm-seg bm-seg--block bm-seg--on-tile" role="radiogroup" aria-label="Stop by"><button class="bm-seg__item" role="radio" aria-checked="true">Time</button><button class="bm-seg__item" role="radio" aria-checked="false">Weight</button></div></div></section>
   </div>
 </div>
 <script>
 BetterMate.hydrate();
-[].forEach.call(document.querySelectorAll('.bm-seg,.bm-modebar'), function (g) {
-  g.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b || b.disabled) return; [].forEach.call(g.querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); });
+[].forEach.call(document.querySelectorAll('.bm-seg'), function (g) {
+  g.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b || b.disabled) return; [].forEach.call(g.querySelectorAll('button'), function (x) { x.setAttribute('aria-checked', x === b ? 'true' : 'false'); }); });
 });
 </script>
 </body>

@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"BetterMate","components":[{"name":"DisplayStandby"},{"name":"DisplayBrew"},{"name":"DisplayShot"},{"name":"DisplayModes"},{"name":"DisplayMenu"},{"name":"TickRing"},{"name":"WebPhone"},{"name":"WebDesktop"},{"name":"WebPages"},{"name":"ActionBanner"},{"name":"Button"},{"name":"StatTile"},{"name":"Chip"},{"name":"SegmentBar"},{"name":"Segmented"},{"name":"Stepper"},{"name":"ListRow"},{"name":"Field"},{"name":"Dial"},{"name":"StageTrack"},{"name":"Icon"},{"name":"MotionDisplay"},{"name":"MotionWeb"}]} */
+/* @ds-bundle: {"format":4,"namespace":"BetterMate","components":[{"name":"DisplayStandby"},{"name":"DisplayBrew"},{"name":"DisplayShot"},{"name":"DisplayModes"},{"name":"DisplayMenu"},{"name":"DisplayStates"},{"name":"TickRing"},{"name":"WebPhone"},{"name":"WebDesktop"},{"name":"WebPages"},{"name":"WebStates"},{"name":"ActionBanner"},{"name":"Button"},{"name":"StatTile"},{"name":"Chip"},{"name":"SegmentBar"},{"name":"Chart"},{"name":"Segmented"},{"name":"ModeBar"},{"name":"Nav"},{"name":"Stepper"},{"name":"ListRow"},{"name":"Tile"},{"name":"Field"},{"name":"Select"},{"name":"NumberField"},{"name":"Dial"},{"name":"StageTrack"},{"name":"Icon"},{"name":"Notice"},{"name":"Toast"},{"name":"EmptyState"},{"name":"Loader"},{"name":"Dialog"},{"name":"Menu"},{"name":"Tooltip"},{"name":"States"},{"name":"MotionDisplay"},{"name":"MotionWeb"}]} */
 (function () {
   'use strict';
   /* Icon paths: copied from web/src/design/outlinePaths.js. 24 unit grid, 1.6 stroke, round caps and joins. */
@@ -48,6 +48,10 @@
   }
   function disc(cx, cy, r, name, fill, ic, size) {
     return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" class="bmf-' + (fill || 'disc') + '"/>' + iconAt(cx, cy, size || 28, name, ic || 'bmf-c-ink');
+  }
+  function quiet(cx, y, w, label, h) {
+    h = h || 64;
+    return '<g class="bmf-pill"><rect x="' + (cx - w / 2) + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + h / 2 + '" class="bmf-disc"/>' + tx(cx, y + h / 2 + 8, 'bmf-btn bmf-muted', label) + '</g>';
   }
   function handle() { return iconAt(240, 446, 32, 'chevron-up', 'bmf-c-muted'); }
   function exception(kind) { return kind ? iconAt(240, 34, 28, kind === 'update' ? 'download' : 'triangle-alert', kind === 'update' ? 'bmf-c-muted' : 'bmf-c-warn') : ''; }
@@ -102,8 +106,8 @@
       var py = o.scale ? 292 : 300;
       s += tx(240 - 10, py, 'bmf-title bmf-ink', name) + iconAt(240 + half + 6, py - 9, 24, 'chevron-right', 'bmf-c-muted');
       if (o.scale) s += tx(240, 324, 'bmf-label bmf-muted', o.scale + ' · TARE');
-      s += pill(240, o.scale ? 340 : 334, 188, 'START', 'primary');
-      return s + handle();
+      s += o.pending ? quiet(240, o.scale ? 340 : 334, 188, 'STARTING') : pill(240, o.scale ? 340 : 334, 188, 'START', 'primary');
+      return s + (o.pending ? '' : handle());
     },
     shot: function (o) {
       var s = ringParts({ left: [o.tempF, o.targetF, 'heat'], right: [o.pressureF, o.pTargetF, 'primary'] });
@@ -158,7 +162,7 @@
       return s + pill(206, 340, 152, 'SELECT', 'primary') + disc(322, 372, 28, 'pencil');
     },
     info: function (o) {
-      var s = tx(240, 84, 'bmf-label bmf-muted', 'CONNECTED TO') + tx(240, 122, 'bmf-title bmf-ink', o.ssid);
+      var s = tx(240, 84, 'bmf-label bmf-muted', o.heading || 'CONNECTED TO') + tx(240, 122, 'bmf-title bmf-ink', o.ssid);
       s += '<rect x="166" y="142" width="148" height="148" rx="14" class="bmf-qr"/>';
       var seed = 7, m = 21, cell = 6, ox = 177, oy = 153;
       function finder(r, c) { return (r < 7 && c < 7) || (r < 7 && c > 13) || (r > 13 && c < 7); }
@@ -168,8 +172,8 @@
         var on = finder(r, c2) ? inFinder(r, c2) : seed % 2 === 0;
         if (on) s += '<rect x="' + (ox + c2 * cell) + '" y="' + (oy + r * cell) + '" width="6" height="6" class="bmf-qr-ink"/>';
       }
-      s += tx(240, 322, 'bmf-label bmf-ink', o.ip) + tx(240, 350, 'bmf-label bmf-muted', 'SCAN TO OPEN');
-      return s + tx(240, 400, 'bmf-btn bmf-ink', 'ABOUT');
+      s += tx(240, 322, 'bmf-label bmf-ink', o.ip) + tx(240, 350, 'bmf-label bmf-muted', o.hint || 'SCAN TO OPEN');
+      return s + (o.action === false ? '' : tx(240, 400, 'bmf-btn bmf-ink', o.action || 'ABOUT'));
     },
     warnings: function (o) {
       var s = tx(240, 112, 'bmf-label bmf-muted', 'BEFORE YOUR NEXT SHOT'), y = 138;
@@ -187,6 +191,23 @@
       s += pill(240, 158, 244, o.actions[0], 'primary');
       s += '<rect x="118" y="234" width="244" height="64" rx="32" class="bmf-disc"/>' + tx(240, 274, 'bmf-btn bmf-ink', o.actions[1]);
       return s + tx(240, 350, 'bmf-btn bmf-muted', o.actions[2]);
+    },
+    fault: function (o) {
+      var lines = o.lines || [], s = iconAt(240, 34, 28, 'triangle-alert', 'bmf-c-danger');
+      s += chipAt(240, 84, 'ERROR', 'danger-soft', 'danger');
+      s += tx(240, 178, 'bmf-title bmf-ink', o.title);
+      lines.forEach(function (line, i) { s += tx(240, 222 + i * 30, 'bmf-body bmf-muted', line); });
+      if (o.action) s += pill(240, 330, 188, o.action[0], o.action[1] || 'ink');
+      return s;
+    },
+    update: function (o) {
+      var p = o.progress || 0, s = ringParts({ full: [p, -1, 'ink'] });
+      s += tx(240, 98, 'bmf-label bmf-muted', o.heading || 'UPDATING');
+      s += tx(240, 252, 'bmf-hero bmf-ink', String(Math.round(p * 100)));
+      s += tx(240, 284, 'bmf-label bmf-muted', '%');
+      s += tx(240, 336, 'bmf-body bmf-ink', o.line || 'Keep the machine on');
+      if (o.note) s += tx(240, 370, 'bmf-label bmf-muted', o.note);
+      return s;
     }
   };
   function face(o) { var fn = screens[o.s] || screens.brew; return wrap(fn(o), o.label || o.s); }
@@ -194,9 +215,49 @@
   /* ---- Web helpers ---- */
   function segbar(on, total, target) { var s = ''; for (var i = 0; i < total; i++) s += '<i class="' + (i < on ? 'on' : '') + (i === target ? ' target' : '') + '"></i>'; return s; }
 
+  /* loader(): the display's busy comet for the web. Twelve ticks, three lit; bundle.css steps the lit group round. */
+  function loader(size) {
+    size = size || 24;
+    var all = '', lit = '';
+    for (var i = 0; i < 12; i++) {
+      var a = (i * 30 - 90) * Math.PI / 180, l = '<line x1="' + (12 + 6.5 * Math.cos(a)).toFixed(2) + '" y1="' + (12 + 6.5 * Math.sin(a)).toFixed(2) + '" x2="' + (12 + 10 * Math.cos(a)).toFixed(2) + '" y2="' + (12 + 10 * Math.sin(a)).toFixed(2) + '"/>';
+      all += l; if (i < 3) lit += l;
+    }
+    return '<svg class="bm-loader" viewBox="0 0 24 24" width="' + size + '" height="' + size + '" fill="none" aria-hidden="true">' + all + '<g class="bm-loader__lit">' + lit + '</g></svg>';
+  }
+
+  /* chart({w, h, label, x:{max, ticks, unit}, y:{max, ticks}, series:[{key, max, unit, digits, points:[[x, y], ...]}]})
+     Lines only. key is pressure, temperature, flow or weight and picks colour, weight and dash. The left axis is y.max;
+     a series with its own max is scaled to it and read from its end label, which states the last value and its unit. */
+  function chartKey(key) { return '<svg class="bm-chart__key" viewBox="0 0 20 6" aria-hidden="true"><line class="bm-chart__line bm-chart__line--' + esc(key) + '" x1="1" y1="3" x2="19" y2="3"/></svg>'; }
+  function chart(o) {
+    var W = o.w || 640, H = o.h || 220, L = 30, R = o.right == null ? 76 : o.right, T = 10, B = 26;
+    var pw = W - L - R, ph = H - T - B, xm = o.x.max, ym = o.y.max, grid = '', s = '', ends = [];
+    function X(v) { return L + pw * v / xm; }
+    function Y(v, max) { return T + ph * (1 - Math.max(0, Math.min(1, v / max))); }
+    (o.y.ticks || []).forEach(function (t) { var y = Y(t, ym); grid += 'M' + L + ' ' + y.toFixed(1) + 'H' + (L + pw); s += tx(L - 6, (y + 4).toFixed(1), 'bm-chart__tick', t, 'end'); });
+    (o.x.ticks || []).forEach(function (t, i, all) { s += tx(X(t).toFixed(1), H - 6, 'bm-chart__tick', t + (i === 0 && o.x.unit ? ' ' + o.x.unit : ''), i === 0 ? 'start' : i === all.length - 1 ? 'end' : 'middle'); });
+    s = '<path class="bm-chart__grid" d="' + grid + '"/>' + s;
+    (o.series || []).forEach(function (se) {
+      var max = se.max || ym, pts = se.points || [], d = '';
+      pts.forEach(function (p, i) { d += (i ? 'L' : 'M') + X(p[0]).toFixed(1) + ' ' + Y(p[1], max).toFixed(1); });
+      if (!pts.length) return;
+      s += '<path class="bm-chart__line bm-chart__line--' + esc(se.key) + '" d="' + d + '"/>';
+      var last = pts[pts.length - 1];
+      ends.push({ y: Y(last[1], max), text: last[1].toFixed(se.digits == null ? 1 : se.digits) + (se.unit || '') });
+    });
+    ends.sort(function (a, b) { return a.y - b.y; });
+    for (var i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 16) ends[i].y = ends[i - 1].y + 16;
+    for (var j = ends.length - 1, floor = T + ph; j >= 0; j--) { if (ends[j].y > floor) ends[j].y = floor; floor = ends[j].y - 16; }
+    ends.forEach(function (e) { s += tx(L + pw + 8, (e.y + 4).toFixed(1), 'bm-chart__end', e.text, 'start'); });
+    return '<svg class="bm-chart" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(o.label || 'Chart') + '">' + s + '</svg>';
+  }
+
   /* hydrate(): fill the declarative hooks used by the previews and by static pages.
      data-icon="play" [data-size]   data-segbar="on/total[/target]"   data-dots="on/total"
-     data-ring='{"left":[0.58,0.58,"heat"],"right":[0,-1,"primary"]}'   data-face='{"s":"brew",...}' */
+     data-ring='{"left":[0.58,0.58,"heat"],"right":[0,-1,"primary"]}'   data-face='{"s":"brew",...}'
+     data-loader [data-size]   data-chart='{...}' (drawn at the element's width)   data-chart-key="flow"
+     A warning or danger Chip with no glyph of its own gets one: triangle-alert or circle-alert. */
   function hydrate(root) {
     root = root || document;
     [].forEach.call(root.querySelectorAll('[data-icon]'), function (el) { el.innerHTML = icon(el.getAttribute('data-icon'), +el.getAttribute('data-size') || 24); });
@@ -204,12 +265,16 @@
     [].forEach.call(root.querySelectorAll('[data-dots]'), function (el) { var p = el.getAttribute('data-dots').split('/'); el.innerHTML = segbar(+p[0], +p[1], -1); });
     [].forEach.call(root.querySelectorAll('[data-ring]'), function (el) { el.insertAdjacentHTML('afterbegin', ring(JSON.parse(el.getAttribute('data-ring')))); });
     [].forEach.call(root.querySelectorAll('[data-face]'), function (el) { el.innerHTML = face(JSON.parse(el.getAttribute('data-face'))); });
+    [].forEach.call(root.querySelectorAll('[data-loader]'), function (el) { el.innerHTML = loader(+el.getAttribute('data-size') || 24); });
+    [].forEach.call(root.querySelectorAll('[data-chart-key]'), function (el) { el.innerHTML = chartKey(el.getAttribute('data-chart-key')); });
+    [].forEach.call(root.querySelectorAll('[data-chart]'), function (el) { var o = JSON.parse(el.getAttribute('data-chart')); if (!o.w) o.w = Math.max(240, Math.round(el.clientWidth)) || 640; el.innerHTML = chart(o); });
+    [].forEach.call(root.querySelectorAll('.bm-chip--warning,.bm-chip--danger'), function (el) { if (!el.querySelector('svg')) el.insertAdjacentHTML('afterbegin', icon(el.classList.contains('bm-chip--danger') ? 'circle-alert' : 'triangle-alert', 14)); });
   }
 
   window.BetterMate = {
     icon: icon, icons: Object.keys(P), ring: ring, ringParts: ringParts, ringArc: ringArc, face: face, wrap: wrap, screens: screens,
-    segbar: segbar, hydrate: hydrate,
+    segbar: segbar, loader: loader, chart: chart, chartKey: chartKey, hydrate: hydrate,
     geometry: { centre: C, inner: R_IN, outer: R_OUT, notch: R_NOTCH, arcs: ARCS, tickAngles: tickAngles, litCount: litCount, notchIndex: notchIndex, point: pt },
-    draw: { tx: tx, iconAt: iconAt, pill: pill, disc: disc, stepper: stepper, stageBars: stageBars, handle: handle }
+    draw: { tx: tx, iconAt: iconAt, pill: pill, disc: disc, stepper: stepper, stageBars: stageBars, handle: handle, chipAt: chipAt, quiet: quiet }
   };
 })();
