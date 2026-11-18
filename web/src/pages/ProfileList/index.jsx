@@ -22,6 +22,7 @@ import { downloadJson } from '../../utils/download.js';
 import { ConfirmDialog } from '../../components/Dialog.jsx';
 import { ProfileRow } from './ProfileRow.jsx';
 import { parseProfile } from './utils.js';
+import { EmptyState } from '../../components/EmptyState.jsx';
 
 const connected = computed(() => machine.value.connected);
 
@@ -460,24 +461,32 @@ export function ProfileList() {
               ))}
             </div>
           ) : profiles.length === 0 ? (
-            <>
-              <h2 className='bm-sub'>No profiles yet</h2>
-              <p className='bm-help'>Create one with New, or import a profile file.</p>
-              <Button className='self-start' onClick={() => importRef.current?.click()}>
-                <Icon name='upload' size={18} />
-                Import
-              </Button>
-            </>
+            <EmptyState
+              level={2}
+              icon='list'
+              title='No profiles yet'
+              action={
+                <Button onClick={() => importRef.current?.click()}>
+                  <Icon name='upload' size={18} />
+                  Import
+                </Button>
+              }
+            >
+              Make one with New, or import a profile file.
+            </EmptyState>
           ) : search ? (
-            <>
-              <h2 className='bm-sub'>No profiles match “{search}”</h2>
-              <p className='bm-help'>The search looks at names and descriptions.</p>
-              <Button className='self-start' onClick={() => setSearchTerm('')}>
-                Clear search
-              </Button>
-            </>
+            <EmptyState
+              level={2}
+              icon='search'
+              title={`No profiles match “${search}”`}
+              action={<Button onClick={() => setSearchTerm('')}>Clear search</Button>}
+            >
+              The search looks at names and descriptions.
+            </EmptyState>
           ) : (
-            <p className='bm-help'>No {activeTab} profiles yet.</p>
+            <EmptyState level={2} icon='list' title={`No ${activeTab} profiles yet`}>
+              Profiles of this kind appear here once you make or import one.
+            </EmptyState>
           )}
         </Tile>
       )}

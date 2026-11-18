@@ -255,7 +255,7 @@ async function shell() {
     const { context, page, problems } = await open('phone', 'light');
     await goto(page, '/', 'Dashboard');
     const panel = page.locator('#navigation');
-    const openNav = page.getByRole('button', { name: 'Open navigation' });
+    const openNav = page.getByRole('button', { name: 'Menu', exact: true });
     check(await page.locator('.bm-topbar').isVisible(), 'phone: the top bar is there');
     check(!(await panel.isVisible()), 'phone: the navigation is closed at rest');
     await step(

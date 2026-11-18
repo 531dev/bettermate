@@ -1856,12 +1856,12 @@ input:checked:disabled + .bm-radio__box {
   margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0 0;
 }
 
-/* Tooltip: above sheets and menus, never wider than the window, and it fades in. */
+/* Tooltip: above Dialogs and menus, never wider than the window, and it fades in by opacity
+   alone in duration-fast. */
 .bm-tooltip {
   z-index: 80;
   max-width: min(240px, calc(100vw - var(--space-4)));
-  pointer-events: none;
-  animation: bm-fade var(--duration-base) var(--ease-out);
+  animation: bm-fade var(--duration-fast) var(--ease-out);
 }
 @keyframes bm-fade {
   from {

@@ -6,6 +6,7 @@ import { recentShotCountSignal, shotMetricSlotsSignal } from '../../../utils/das
 import { cleanName } from '../utils.js';
 import { clock, daysAgo, shortDate } from '../../../utils/time.js';
 import { daysLabel, parseSchedules, timeLabel } from '../wakeSchedule.js';
+import { EmptyState } from '../../../components/EmptyState.jsx';
 
 // Calendar days, so 23:59 yesterday reads as Yesterday: Today, Yesterday, then '12 Nov'.
 function getRelativeDayLabel(timestamp) {
@@ -115,11 +116,13 @@ export function RecentShots({ recent, max, settings, hour12, className }) {
       }
       className={cx('@container', className)}
     >
+      {!loading && shots.length === 0 && (
+        <EmptyState icon='coffee' title='No shots yet'>
+          Your shots appear here as soon as you pull one.
+        </EmptyState>
+      )}
       <List>
         {loading && Array.from({ length: count }, (_, i) => <PendingRow key={i} />)}
-        {!loading && shots.length === 0 && (
-          <p className='bm-help pb-3'>No shots yet. Pull one and it shows up here.</p>
-        )}
         {!loading &&
           shots.slice(0, count).map(shot => <ShotRow key={shot.id} shot={shot} hour12={hour12} />)}
         <WakeRow settings={settings} hour12={hour12} />

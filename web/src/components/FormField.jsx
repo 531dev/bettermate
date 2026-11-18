@@ -4,6 +4,7 @@ import { Button } from './Button.jsx';
 import { cx } from './cx.js';
 import { Field, Input, Select, Setting, Textarea, useDescribedBy } from './Field.jsx';
 import { Icon } from './Icon.jsx';
+import { NumberField } from './NumberField.jsx';
 import { Segmented } from './Segmented.jsx';
 import { Stepper } from './Stepper.jsx';
 
@@ -101,7 +102,9 @@ export function useFormValidation() {
  * Anything typed: a label, an input and one sentence of help. `id` ties the label, the input and
  * its message together, and is the input's `name` unless one is given. The input keeps its native
  * constraints (`min`, `max`, `step`, `minLength`); what they reject on save shows under it.
- *   unit       the input and its unit share one field
+ *   unit       the input and its unit share one field. A number with a short unit
+ *              (`type='number'`) is a NumberField: decimal keyboard, Up and Down step, a comma
+ *              is a point, rounded to `step` and checked against `min` and `max` when focus leaves
  *   multiline  a textarea
  *   optional   says "Optional" beside the label (never in the placeholder)
  *   error      a problem the page found itself; otherwise the form's (FormErrors)
@@ -118,8 +121,14 @@ export function FormField({
   className,
   ...props
 }) {
-  const { error, errorId, invalid } = useFieldError(id, given);
-  const Control = multiline ? Textarea : Input;
+  // A NumberField says what is wrong as soon as focus leaves it, not only on save.
+  const [left, setLeft] = useState(null);
+  const { error, errorId, invalid } = useFieldError(
+    id,
+    given ?? (left?.id === id ? left.text : null),
+  );
+  const numeric = !multiline && props.type === 'number' && unit && `${unit}`.length <= 4;
+  const Control = multiline ? Textarea : numeric ? NumberField : Input;
 
   // A number is typed through texts that are not that number yet: '18.' on its way to '18.5', an
   // empty field on its way to a new value. While the field has focus it shows what was typed and
@@ -142,12 +151,18 @@ export function FormField({
         {...props}
         id={id}
         value={draft ?? props.value}
+        type={numeric ? undefined : props.type}
         onInput={event => {
           if (keepsText) setTyped({ id, text: event.target.value });
+          if (numeric && left && event.target.validity.valid) setLeft(null);
           props.onInput?.(event);
         }}
         onBlur={event => {
           if (keepsText) setTyped(null);
+          if (numeric) {
+            const text = event.target.validationMessage;
+            setLeft(text ? { id, text } : null);
+          }
           props.onBlur?.(event);
         }}
         unit={multiline ? undefined : unit}

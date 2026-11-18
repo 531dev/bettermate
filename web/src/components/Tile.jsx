@@ -1,3 +1,4 @@
+import { useId } from 'preact/hooks';
 import { cx } from './cx.js';
 
 /**
@@ -7,6 +8,7 @@ import { cx } from './cx.js';
  *   eyebrow  a mono label in place of a title
  *   end      what sits at the right of the head: one status Chip or one link
  *   tone     'heat' only while its boiler is heating, 'primary' only for the selected profile
+ * A titled tile is a region named by its title, unless it is given a name of its own.
  */
 export function Tile({
   as: Tag = 'section',
@@ -18,19 +20,33 @@ export function Tile({
   children,
   ...rest
 }) {
+  const titleId = useId();
+  const named = rest['aria-label'] || rest['aria-labelledby'];
   return (
-    <Tag {...rest} className={cx('bm-tile', tone && `bm-tile--${tone}`, className)}>
-      {(title || eyebrow || end) && <TileHead title={title} eyebrow={eyebrow} end={end} />}
+    <Tag
+      aria-labelledby={title && !named ? titleId : undefined}
+      {...rest}
+      className={cx('bm-tile', tone && `bm-tile--${tone}`, className)}
+    >
+      {(title || eyebrow || end) && (
+        <TileHead title={title} titleId={titleId} eyebrow={eyebrow} end={end} />
+      )}
       {children}
     </Tag>
   );
 }
 
 /** The head row of a tile, for when a Tile's own `title`, `eyebrow` and `end` are not enough. */
-export function TileHead({ title, eyebrow, end, children }) {
+export function TileHead({ title, titleId, eyebrow, end, children }) {
   return (
     <div className='bm-tile__head'>
-      {title ? <h2 className='bm-sub'>{title}</h2> : <span className='bm-eyebrow'>{eyebrow}</span>}
+      {title ? (
+        <h2 className='bm-sub' id={titleId}>
+          {title}
+        </h2>
+      ) : (
+        <span className='bm-eyebrow'>{eyebrow}</span>
+      )}
       {children}
       {end}
     </div>

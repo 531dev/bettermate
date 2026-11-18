@@ -15,6 +15,7 @@ import { parseBinaryIndex, indexToShotList } from './parseBinaryIndex.js';
 import { parseBinaryShot } from './parseBinaryShot.js';
 import { clock, dayHeading, when } from '../../utils/time.js';
 import { ShotRow } from './ShotRow.jsx';
+import { EmptyState } from '../../components/EmptyState.jsx';
 
 const connected = computed(() => machine.value.connected);
 
@@ -361,16 +362,20 @@ export function ShotHistory() {
         </p>
       ) : history.length === 0 ? (
         <Tile>
-          <h2 className='bm-sub'>No shots yet</h2>
-          <p className='bm-help'>Pull a shot and it shows up here.</p>
+          <EmptyState level={2} icon='coffee' title='No shots yet'>
+            Your shots appear here, newest first, as soon as you pull one.
+          </EmptyState>
         </Tile>
       ) : totalFilteredItems === 0 ? (
         <Tile>
-          <h2 className='bm-sub'>No shots match</h2>
-          <p className='bm-help'>The search looks at profile names and shot numbers.</p>
-          <Button className='self-start' onClick={showAll}>
-            Show all shots
-          </Button>
+          <EmptyState
+            level={2}
+            icon='search'
+            title='No shots match'
+            action={<Button onClick={showAll}>Show all shots</Button>}
+          >
+            The search looks at profile names and shot numbers.
+          </EmptyState>
         </Tile>
       ) : (
         groups.map(group => (

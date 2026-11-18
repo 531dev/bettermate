@@ -47,7 +47,7 @@ export function AppBar({ onOpenNav, navOpen = false }) {
       ) : (
         <button
           type='button'
-          aria-label='Open navigation'
+          aria-label='Menu'
           aria-expanded={navOpen}
           aria-controls='navigation'
           className='bm-topbar__btn'
@@ -66,7 +66,7 @@ export function AppBar({ onOpenNav, navOpen = false }) {
       {warnings > 0 && (
         <a
           href='/'
-          aria-label={`${warnings} active ${warnings === 1 ? 'warning' : 'warnings'}`}
+          aria-label={`${warnings} ${warnings === 1 ? 'warning' : 'warnings'}`}
           className='bm-topbar__btn text-(--warning)'
         >
           <Icon name='triangle-alert' />

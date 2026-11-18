@@ -11,6 +11,7 @@ import { SkeletonBlock } from '../../../components/SkeletonBlock.jsx';
 import { Loader } from '../../../components/Loader.jsx';
 import { Tile } from '../../../components/Tile.jsx';
 import { Notice } from '../../../components/Notice.jsx';
+import { EmptyState } from '../../../components/EmptyState.jsx';
 
 const machineMode = computed(() => machine.value.status.mode);
 
@@ -161,7 +162,9 @@ function ScaleList({ waiting, failed, scaleData, onConnect }) {
   }
   if (scaleData.length === 0) {
     return (
-      <p className='bm-help'>No scales found. Use Scan to discover Bluetooth scales nearby.</p>
+      <EmptyState icon='scale' title='No scales found'>
+        Wake the scale, then scan again.
+      </EmptyState>
     );
   }
   return (
