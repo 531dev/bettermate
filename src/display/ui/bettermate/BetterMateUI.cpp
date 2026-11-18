@@ -428,6 +428,7 @@ void BetterMateUI::gatherProfile() {
         entry.duration = p.getTotalDuration();
         entry.weight = p.getTotalVolume();
         entry.dose = p.dose;
+        entry.phases = static_cast<unsigned>(p.phases.size());
         // A single phase needs no stage list; its name would only repeat the mode.
         if (p.phases.size() > 1) {
             for (const auto &phase : p.phases) {

@@ -49,15 +49,15 @@ void phaseLabel(const UiState::Shot &shot, char *out, size_t size) {
     for (size_t i = 0; out[i] != '\0'; ++i) {
         if ((static_cast<unsigned char>(out[i]) & 0xC0) == 0x80)
             continue; // inside a glyph
-        if (glyphs == LABEL_GLYPHS - 3)
+        if (glyphs == LABEL_GLYPHS - 1)
             cut = i;
         ++glyphs;
     }
-    if (glyphs <= LABEL_GLYPHS || cut + 4 > size)
+    if (glyphs <= LABEL_GLYPHS || cut + sizeof(ui::ELLIPSIS) > size)
         return;
     while (cut > 0 && out[cut - 1] == ' ')
         --cut;
-    strcpy(out + cut, "...");
+    strcpy(out + cut, ui::ELLIPSIS);
 }
 } // namespace
 

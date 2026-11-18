@@ -36,7 +36,12 @@ lv_obj_t *holder(lv_obj_t *root, int x, int y, int width, int height) {
     return obj;
 }
 
-// A label of one centred line in a box of fixed width. Its text is cut to fit by setFitted, so LVGL neither
+// The design's content limits: a name of at most 12 characters (a longer one is cut at 11 and ends in an
+// ellipsis), and a phase line of at most 25, past which it says how many phases there are.
+constexpr unsigned NAME_GLYPHS = 12;
+constexpr unsigned STAGES_GLYPHS = 25;
+
+// A label of one centred line in a box of fixed width. Its text is cut to fit by ui::fit, so LVGL neither
 // wraps it nor adds dots of its own.
 void oneLine(lv_obj_t *label, Type type, int width) {
     lv_obj_set_size(label, width, font(type)->line_height);
@@ -44,34 +49,24 @@ void oneLine(lv_obj_t *label, Type type, int width) {
     lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
 }
 
-// Sets the text of a one-line label, ending in "..." where it stops fitting. LVGL's own dots cut at the last
-// whole word, "Blooming..." in room for twice that, and leave the cut text in the label, where a later setText of
-// the full name would repaint it on every snapshot. Cut here, the label holds exactly what was set.
-void setFitted(lv_obj_t *label, const char *text, Type type, int width) {
-    const lv_font_t *face = font(type);
-    const int spacing = tracking(type);
-    const int dots = 3 * (lv_font_get_glyph_width(face, '.', '.') + spacing);
-    int x = 0;
-    uint32_t next = 0;
-    uint32_t keep = 0; // bytes that leave room for the dots
-    while (text[next] != '\0') {
-        const uint32_t start = next;
-        const uint32_t letter = _lv_txt_encoded_next(text, &next);
-        if (x + dots - spacing <= width)
-            keep = start;
-        x += lv_font_get_glyph_width(face, letter, _lv_txt_encoded_next(&text[next], nullptr)) + spacing;
-    }
-    if (x - spacing <= width) {
-        ui::setText(label, text);
-        return;
-    }
+// Sets the text of a one-line label, ending in an ellipsis where it stops fitting. LVGL's own dots cut at the
+// last whole word and leave the cut text in the label, where a later setText of the full name would repaint
+// it on every snapshot. Cut here, the label holds exactly what was set.
+void setFitted(lv_obj_t *label, const char *text, Type type, int width, unsigned glyphs = 0) {
     char cut[128];
-    keep = std::min<uint32_t>(keep, sizeof(cut) - 4);
-    while (keep > 0 && ((text[keep] & 0xC0) == 0x80 || text[keep - 1] == ' '))
-        --keep;
-    memcpy(cut, text, keep);
-    memcpy(cut + keep, "...", 4);
+    ui::fit(type, text, width, cut, sizeof(cut), glyphs);
     ui::setText(label, cut);
+}
+
+// The phase names joined by middle dots, or "5 phases" when they would run past the line.
+void setStages(lv_obj_t *label, const UiState::ProfilePreview::Entry &entry, int width) {
+    char line[128];
+    char whole[128];
+    ui::fit(Type::Body, entry.summary.c_str(), width, line, sizeof(line), STAGES_GLYPHS);
+    ui::fold(font(Type::Body), entry.summary.c_str(), whole, sizeof(whole));
+    if (strcmp(line, whole) != 0)
+        snprintf(line, sizeof(line), "%u phases", entry.phases);
+    ui::setText(label, line);
 }
 
 // "36" or "36.5": grams and seconds carry a decimal only when the recipe has one.
@@ -144,10 +139,10 @@ void ProfilesScreen::update(const UiState &s) {
     ui::setText(label, buf);
     show(label, count > 1);
 
-    setFitted(name, entry.name.c_str(), Type::Value, NAME_WIDTH);
+    setFitted(name, entry.name.c_str(), Type::Value, NAME_WIDTH, NAME_GLYPHS);
     setFacts(entry);
     // A single phase needs no stage list: the host leaves the summary empty.
-    setFitted(stages, entry.summary.c_str(), Type::Body, STAGES_WIDTH);
+    setStages(stages, entry, STAGES_WIDTH);
     ui::show(stages, !entry.summary.empty(), false);
     setDots(index, count);
 

@@ -72,7 +72,8 @@ struct UiState {
     struct ProfilePreview {
         struct Entry {
             std::string name;
-            std::string summary;
+            std::string summary; // the phase names joined by middle dots; empty for a single phase
+            unsigned phases = 0;
             float temperature = 0.0f;
             float duration = 0.0f;
             float weight = 0.0f;

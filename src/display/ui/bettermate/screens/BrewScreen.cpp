@@ -5,9 +5,13 @@
 
 namespace bm {
 namespace {
-constexpr int PROFILE_WIDTH = 284;
+// 18 characters of screen-title are about 263 px (the design's 14.6 px a character), the chevron 4 px after.
+constexpr int PROFILE_WIDTH = 300;
 constexpr int PROFILE_HEIGHT = tokens::DISPLAY_TOUCH;
-constexpr int NAME_LIMIT = 216;
+// The name beside its chevron: at most 18 characters (a longer one is cut at 17), and never wider than the
+// group leaves it.
+constexpr int NAME_LIMIT = PROFILE_WIDTH - 4 - 24;
+constexpr unsigned NAME_GLYPHS = 18;
 // The name's baseline and the pill's top edge, without and with the scale line between them.
 constexpr int NAME_BASELINE[2] = {300, 292};
 constexpr int START_Y[2] = {334, 340};
@@ -67,12 +71,12 @@ void BrewScreen::update(const UiState &s) {
     temperature.set(buf);
 
     // Name and chevron read as one centred group, the chevron 4 px after the name. A name too long for the
-    // group is cut and ends in dots.
+    // group is cut and ends in an ellipsis.
     if (shownName != s.profileName || withScale != s.bluetoothScale) {
         shownName = s.profileName;
         withScale = s.bluetoothScale;
         char fitted[64];
-        const int width = ui::fit(Type::Title, shownName.c_str(), NAME_LIMIT, fitted, sizeof(fitted));
+        const int width = ui::fit(Type::Title, shownName.c_str(), NAME_LIMIT, fitted, sizeof(fitted), NAME_GLYPHS);
         ui::setText(profileName, fitted);
         const int left = (PROFILE_WIDTH - (width + 4 + 24)) / 2;
         lv_obj_set_x(profileName, left);

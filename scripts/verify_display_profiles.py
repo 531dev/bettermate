@@ -326,10 +326,11 @@ check_page(sim.layout("first.json"), 1, 5, "Classic", CLASSIC_FACTS, None, "firs
 check_page(sim.layout("middle.json"), 2, 5, "Adaptive v2", ADAPTIVE_FACTS, ADAPTIVE_STAGES, "middle page")
 long_page = sim.layout("long.json")
 long_name = next((t for t in long_page.texts() if t.startswith("Blooming")), "")
-long_stages = next((t for t in long_page.texts() if t.startswith("Preinfusion")), "")
-cut_in_place = long_name.endswith("...") and len(long_name) > len("Blooming...")
-checks.true(cut_in_place, f"a long name is cut where it stops fitting, not at a word: '{long_name}'")
-checks.true(long_stages.endswith("..."), f"a long stage list ends in an ellipsis: '{long_stages}'")
+long_stages = "3 phases"
+# round-display.md, Content limits: a name of more than 12 characters is cut at 11 and ends in "…" (U+2026),
+# and a phase line past 25 characters gives the count instead.
+checks.equal(long_name, "Blooming es…", "a long name is cut at 11 characters, not at a word, and ends in an ellipsis")
+checks.true(long_page.has(long_stages), f"a phase line past 25 characters says how many phases: {long_page.texts()}")
 check_page(long_page, 3, 5, long_name, ["96°", "42.5 S"], long_stages, "long name")
 check_page(sim.layout("timed.json"), 4, 5, "Turbo", ["91°", "15 S"], None, "single timed phase")
 check_page(sim.layout("last.json"), 5, 5, "Lungo", ["94°", "110.5 G", "40 S"], None, "last page")
@@ -437,7 +438,7 @@ sim.run(
     + SELECT + "expect temperature 93; expect text Classic; wait 2500; quit"
 )
 checks.count(sim)
-check_page(sim.layout("copy.json"), 1, 6, "Copy of Classic", ["94°", "36 G", "28 S"], None, "new profile")
+check_page(sim.layout("copy.json"), 1, 6, "Copy of Cla…", ["94°", "36 G", "28 S"], None, "new profile")
 check_page(sim.layout("original.json"), 2, 6, "Classic", CLASSIC_FACTS, None, "original after SAVE AS NEW")
 files = sorted(p.stem for p in (sim.dir / "sim_data" / "littlefs" / "p").glob("*.json"))
 checks.equal(len(files), 6, "SAVE AS NEW added one profile")
@@ -576,10 +577,32 @@ sim.run(
     + MINUS + "expect temperature 95; layout long-unsaved.json; shot long-unsaved.bmp; quit"
 )
 checks.count(sim)
-check_adjust(sim.layout("long.json"), "BLOOMING ESPRESSO...", ROW, "TEMP", "96", "°C", "DONE", "Adjust, long name")
+check_adjust(sim.layout("long.json"), "BLOOMING ESPRESSO FO…", ROW, "TEMP", "96", "°C", "DONE", "Adjust, long name")
 long_unsaved = sim.layout("long-unsaved.json")
-check_adjust(long_unsaved, "BLOOMING... · UNSAVED", ROW, "TEMP", "95", "°C", "SAVE", "Adjust, long name unsaved")
+check_adjust(long_unsaved, "BLOOMING E… · UNSAVED", ROW, "TEMP", "95", "°C", "SAVE", "Adjust, long name unsaved")
 sim.save("long-unsaved.bmp", f"{SHOTS}/adjust-long-name.png")
+
+# ---- letters outside the fonts, and Brew's 18 characters beside the chevron -----------------------------------------
+# round-display.md, Fonts for LVGL: a letter the face lacks (Polish ł, Turkish ş) is drawn as its base letter, never
+# as an empty box. Content limits: Brew's name holds 18 characters; a longer one is cut at 17 and ends in "…".
+
+POLISH = profile("polish", "Łódź Kraków şeker", 93, [phase("Brew", "brew", 28, 100)])
+EIGHTEEN = profile("eighteen", "Morning lungo shot", 93, [phase("Brew", "brew", 28, 100)])
+NINETEEN = profile("nineteen", "Morning lungo shots", 93, [phase("Brew", "brew", 28, 100)])
+sim = Sim("profiles-letters")
+seed(sim, [POLISH, EIGHTEEN, NINETEEN])
+sim.run(
+    BOOT + "shot letters.bmp; layout brew-polish.json;" + OPEN + "layout page-polish.json;" + PENCIL + "layout adjust-polish.json;"
+    + "swipe 240 40 240 200; wait 1200; swipe 240 40 240 200; wait 1200; expect screen brew;"
+    + OPEN + NEXT + SELECT + "layout brew-eighteen.json;" + OPEN + NEXT + NEXT + SELECT + "layout brew-nineteen.json; quit"
+)
+checks.count(sim)
+checks.true(sim.layout("brew-polish.json").has("Lódz Kraków seker"), "Brew draws ł, ź and ş as their base letters")
+checks.true(sim.layout("page-polish.json").has("Lódz Kraków…"), "Profiles folds the letters, then cuts the name at 11")
+checks.true(sim.layout("adjust-polish.json").has("LÓDZ KRAKÓW SEKER"), "the Adjust title folds the letters to capitals")
+checks.true(sim.layout("brew-eighteen.json").has("Morning lungo shot"), "an 18-character name fits beside the chevron")
+checks.true(sim.layout("brew-nineteen.json").has("Morning lungo sho…"), "a 19-character name is cut at 17 with an ellipsis")
+sim.save("letters.bmp", f"{SHOTS}/brew-folded-letters.png")
 
 # ---- the budget where Brew is at its heaviest: three digits, a scale line, the warning glyph ------------------------
 

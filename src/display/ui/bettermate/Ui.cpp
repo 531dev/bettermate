@@ -286,16 +286,112 @@ lv_obj_t *textLeft(lv_obj_t *parent, int x, int baseline, Type type, Tone fg, co
     return obj;
 }
 
-static int fitFace(const lv_font_t *face, lv_coord_t space, const char *str, int width, char *out, size_t size) {
+namespace {
+bool hasGlyph(const lv_font_t *face, uint32_t letter) {
+    lv_font_glyph_dsc_t glyph;
+    return lv_font_get_glyph_dsc(face, &glyph, letter, 0);
+}
+
+// The base letters of Latin Extended-A (U+0100 to U+017F), in order. '?' marks the four ligatures, which
+// become two letters.
+constexpr char LATIN_A[] = "AaAaAaCcCcCcCcDd"
+                           "DdEeEeEeEeEeGgGg"
+                           "GgGgHhHhIiIiIiIi"
+                           "Ii??JjKkkLlLlLlL"
+                           "lLlNnNnNnnNnOoOo"
+                           "Oo??RrRrRrSsSsSs"
+                           "SsTtTtTtUuUuUuUu"
+                           "UuUuWwYyYZzZzZzs";
+static_assert(sizeof(LATIN_A) == 0x80 + 1, "one base letter for each code point of Latin Extended-A");
+
+// What to draw for a letter the face lacks: its base letter, a plain quote or dash for typographic ones, or
+// nothing.
+const char *substitute(uint32_t letter, char *buf) {
+    switch (letter) {
+    case 0x132:
+        return "IJ";
+    case 0x133:
+        return "ij";
+    case 0x152:
+        return "OE";
+    case 0x153:
+        return "oe";
+    case 0x2018:
+    case 0x2019:
+    case 0x201A:
+    case 0x2032:
+        return "'";
+    case 0x201C:
+    case 0x201D:
+    case 0x201E:
+    case 0x2033:
+        return "\"";
+    case 0x2010:
+    case 0x2011:
+    case 0x2012:
+    case 0x2013:
+    case 0x2014:
+    case 0x2212:
+        return "-";
+    default:
+        break;
+    }
+    if (letter >= 0x100 && letter < 0x180) {
+        buf[0] = LATIN_A[letter - 0x100];
+        buf[1] = '\0';
+        return buf;
+    }
+    return "";
+}
+} // namespace
+
+void fold(const lv_font_t *face, const char *str, char *out, size_t size) {
+    size_t length = 0;
+    uint32_t next = 0;
+    while (str[next] != '\0') {
+        const uint32_t start = next;
+        const uint32_t letter = _lv_txt_encoded_next(str, &next);
+        const char *piece = str + start;
+        size_t bytes = next - start;
+        char buf[2];
+        char upper[3];
+        // ASCII is in every text face (the label and button faces as capitals, which their callers write).
+        if (letter >= 0x80 && !hasGlyph(face, letter)) {
+            piece = substitute(letter, buf);
+            bytes = strlen(piece);
+            // The label face has no small letters: a base letter it lacks is drawn as its capital.
+            for (size_t i = 0; i < bytes && i < 2; ++i) {
+                const char c = piece[i];
+                upper[i] = c >= 'a' && c <= 'z' && !hasGlyph(face, static_cast<uint32_t>(c)) ? static_cast<char>(c - 32) : c;
+            }
+            upper[bytes < 2 ? bytes : 2] = '\0';
+            piece = upper;
+        }
+        if (length + bytes + 1 > size)
+            break;
+        memcpy(out + length, piece, bytes);
+        length += bytes;
+    }
+    if (size > 0)
+        out[length] = '\0';
+}
+
+static int fitFace(const lv_font_t *face, lv_coord_t space, const char *str, int width, unsigned glyphs, char *out, size_t size) {
     const auto measure = [&](const char *text) {
         return static_cast<int>(lv_txt_get_width(text, static_cast<uint32_t>(strlen(text)), face, space, LV_TEXT_FLAG_NONE));
     };
-    snprintf(out, size, "%s", str);
+    fold(face, str, out, size);
+    const auto count = [](const char *text) {
+        unsigned n = 0;
+        for (; *text != '\0'; ++text)
+            n += (static_cast<unsigned char>(*text) & 0xC0) != 0x80;
+        return n;
+    };
     int fitted = measure(out);
-    if (fitted <= width)
+    if (fitted <= width && (glyphs == 0 || count(out) <= glyphs))
         return fitted;
     // Drop one glyph at a time (a whole UTF-8 sequence, and any space left hanging) until the rest and its
-    // dots fit.
+    // ellipsis fit: in the width, and in the count when there is one, so a name cut for being long is one short.
     size_t length = strlen(out);
     while (length > 0) {
         do {
@@ -303,19 +399,19 @@ static int fitFace(const lv_font_t *face, lv_coord_t space, const char *str, int
         } while (length > 0 && (static_cast<unsigned char>(out[length]) & 0xC0) == 0x80);
         while (length > 0 && out[length - 1] == ' ')
             --length;
-        if (length + 4 > size)
+        if (length + sizeof(ELLIPSIS) > size)
             continue;
-        memcpy(out + length, "...", 4);
+        memcpy(out + length, ELLIPSIS, sizeof(ELLIPSIS));
         fitted = measure(out);
-        if (fitted <= width)
+        if (fitted <= width && (glyphs == 0 || count(out) <= glyphs))
             return fitted;
     }
     out[0] = '\0';
     return 0;
 }
 
-int fit(Type type, const char *str, int width, char *out, size_t size) {
-    return fitFace(font(type), static_cast<lv_coord_t>(tracking(type)), str, width, out, size);
+int fit(Type type, const char *str, int width, char *out, size_t size, unsigned glyphs) {
+    return fitFace(font(type), static_cast<lv_coord_t>(tracking(type)), str, width, glyphs, out, size);
 }
 
 void clamp(lv_obj_t *obj, int width) {
@@ -337,12 +433,13 @@ void invalidate(const lv_obj_t *obj, const lv_area_t *area) {
 }
 
 void setText(lv_obj_t *obj, const char *str) {
-    char fitted[96];
-    if (look(obj).flags & CLAMPED) {
-        fitFace(lv_obj_get_style_text_font(obj, 0), lv_obj_get_style_text_letter_space(obj, 0), str,
-                lv_obj_get_style_width(obj, 0), fitted, sizeof(fitted));
-        str = fitted;
-    }
+    char fitted[128];
+    const lv_font_t *face = lv_obj_get_style_text_font(obj, 0);
+    if (look(obj).flags & CLAMPED)
+        fitFace(face, lv_obj_get_style_text_letter_space(obj, 0), str, lv_obj_get_style_width(obj, 0), 0, fitted, sizeof(fitted));
+    else
+        fold(face, str, fitted, sizeof(fitted));
+    str = fitted;
     if (strcmp(lv_label_get_text(obj), str) == 0)
         return;
     {
