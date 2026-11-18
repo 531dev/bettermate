@@ -5,6 +5,7 @@ import { Icon } from './Icon.jsx';
 import { Sheet } from './Sheet.jsx';
 import { Spinner } from './Spinner.jsx';
 import { Cell } from './Tile.jsx';
+import { dateTime } from '../utils/time.js';
 
 export default function VisualizerUploadModal({
   isOpen,
@@ -75,7 +76,7 @@ export default function VisualizerUploadModal({
   }, [isOpen]);
 
   const shotFacts = shotInfo && [
-    new Date(shotInfo.timestamp * 1000).toLocaleString(),
+    dateTime(shotInfo.timestamp),
     `${(shotInfo.duration / 1000).toFixed(1)} s`,
     shotInfo.volume > 0 && `${shotInfo.volume} g`,
   ];

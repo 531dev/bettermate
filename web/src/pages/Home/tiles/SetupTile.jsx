@@ -9,7 +9,7 @@ import { ApiServiceContext, machine } from '../../../services/ApiService.js';
 import { grindTargetLabel } from '../machineView.js';
 
 const connected = computed(() => machine.value.connected);
-const MAX_FAVOURITES = 3;
+const MAX_FAVOURITES = 10;
 const STOP_BY = [
   { value: 0, label: 'Time' },
   { value: 1, label: 'Weight' },
@@ -51,14 +51,11 @@ function Favourites({ selectedProfileId, disabled }) {
   }
   return (
     <Segmented
-      block
+      scroll
       label='Favourite profiles'
-      // A long name is cut short inside its third of the track instead of widening it.
-      className='[&>button]:min-w-0'
-      options={shown.map(p => ({
-        value: p.id,
-        label: <span className='min-w-0 truncate'>{p.label}</span>,
-      }))}
+      // Real names keep their room: the track scrolls sideways instead of squeezing them, and a
+      // name longer than 176px ends in an ellipsis. All profiles reaches every one.
+      options={shown.map(p => ({ value: p.id, label: p.label }))}
       value={selectedProfileId}
       onChange={select}
       disabled={disabled}

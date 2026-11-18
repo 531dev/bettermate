@@ -346,6 +346,7 @@ export function GeneralTab({
       <Tile title='Clock'>
         <ToggleField
           label='Use 24h format'
+          helpText='The clock on the machine. The web app always shows 24-hour times.'
           htmlFor='clock24hFormat'
           checked={!!formData.clock24hFormat}
           onChange={onChange('clock24hFormat')}

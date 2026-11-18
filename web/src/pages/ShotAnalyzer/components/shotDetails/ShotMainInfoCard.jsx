@@ -8,6 +8,7 @@ import { SourceMarker } from '../SourceMarker';
 import { getAnalyzerShotDisplayName, getShotDateTimeLabel } from '../useShotNotesState';
 import { ShotSummaryMetricsRow } from './ShotMetricCards';
 import './shotDetails.css';
+import { clock } from '../../../../utils/time.js';
 
 const WEEKDAY_LABELS = [
   'Sunday',
@@ -32,7 +33,7 @@ function getRelativeDayLabel(timestamp) {
     now.getMonth() === shotDate.getMonth() &&
     now.getDate() === shotDate.getDate();
   if (isSameDate) {
-    return shotDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return clock(shotDate);
   }
 
   // Check if yesterday

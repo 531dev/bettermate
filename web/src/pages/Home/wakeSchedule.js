@@ -1,3 +1,5 @@
+import { clockOf } from '../../utils/time.js';
+
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 // "07:00|1111100;08:30|0000011" from the firmware, days Monday first.
@@ -20,14 +22,8 @@ export function daysLabel(days) {
   return on.map(i => DAY_NAMES[i]).join(', ');
 }
 
-export function timeLabel(time, hour12) {
-  const [hours, minutes] = time.split(':').map(Number);
-  return new Date(2000, 0, 1, hours, minutes).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12,
-  });
-}
+/** A wake time on the 24-hour clock: '06:30'. `hour12` is no longer read; the web is 24-hour. */
+export const timeLabel = time => clockOf(time);
 
 // When the machine next wakes on its own, as a short phrase. Empty when no wake is scheduled.
 export function nextWakeLabel(settings, hour12, now = new Date()) {

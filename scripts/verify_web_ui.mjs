@@ -34,7 +34,12 @@ const { chromium } = await import(
 );
 if (output) await mkdir(output, { recursive: true });
 
-const SIZES = { phone: { width: 390, height: 844 }, desktop: { width: 1440, height: 1000 } };
+const SIZES = {
+  phone: { width: 390, height: 844 },
+  desktop: { width: 1440, height: 1000 },
+  // The narrowest screen the design names: every page works there, in one theme.
+  narrow: { width: 320, height: 700 },
+};
 const THEMES = ['light', 'dark'];
 const SETTINGS_TABS = ['general', 'machine', 'calibration', 'plugins', 'bluetooth', 'system'];
 // Every route with the page title it shows.
@@ -79,7 +84,7 @@ const url = path => new URL(path.replace(/^\//, ''), base).href;
 
 /** A window at one size and theme, with what the page complains about collected. */
 async function open(size, theme, { view = 'simple', setupDismissed = true } = {}) {
-  const phone = size === 'phone';
+  const phone = size !== 'desktop';
   const context = await browser.newContext({
     viewport: SIZES[size],
     colorScheme: theme,
@@ -340,7 +345,7 @@ async function shell() {
 async function pages() {
   part = 'pages';
   for (const size of Object.keys(SIZES)) {
-    for (const theme of THEMES) {
+    for (const theme of size === 'narrow' ? ['light'] : THEMES) {
       const { context, page, problems } = await open(size, theme);
       for (const [name, path, title] of PAGES) {
         const id = `${name}, ${size} ${theme}`;
@@ -384,7 +389,9 @@ async function pages() {
             return '';
           };
           const charts = [...document.querySelectorAll('.bm-chartbox canvas')];
+          const favourites = document.querySelector('[aria-label="Favourite profiles"]');
           return {
+            favouritesSqueezed: !!favourites && !favourites.classList.contains('bm-seg--scroll'),
             chartsInCells: charts.filter(canvas => groundOf(canvas) === cell).length,
             chartsUnnamed: charts.filter(canvas => !canvas.getAttribute('aria-label')).length,
             h1: document.querySelectorAll('h1').length,
@@ -406,6 +413,7 @@ async function pages() {
         });
         check(problems.length === 0, `${id}: no errors in the console`, problems.join(' | '));
         check(facts.h1 === 1, `${id}: one page title`, `${facts.h1} h1`);
+        check(!facts.favouritesSqueezed, `${id}: favourites scroll instead of squeezing`);
         check(
           facts.chartsInCells === 0 && facts.chartsUnnamed === 0,
           `${id}: every chart is named and none is drawn on surface-2`,
@@ -426,6 +434,11 @@ async function pages() {
           facts.dressed.length === 0,
           `${id}: no shadow, blur, filter or gradient`,
           facts.dressed.join(' | '),
+        );
+        check(
+          !/\d\s?(AM|PM)\b/i.test(facts.words),
+          `${id}: times are on the 24-hour clock`,
+          facts.words.match(/.{0,12}\d\s?(AM|PM)\b/i)?.[0],
         );
         check(
           !/\b(NaN|undefined|null)\b/.test(facts.words),

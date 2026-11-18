@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'preact/hooks';
 import { cx } from './cx.js';
 import { Icon } from './Icon.jsx';
 
@@ -10,6 +11,8 @@ import { Icon } from './Icon.jsx';
  *   block     the items share the full width
  *   onTile    the track in surface-0 instead of surface-2: use it inside a Cell
  *   describedBy  the id of help under the group
+ *   scroll    more items than the row holds (favourite profiles): the track scrolls sideways,
+ *             each item keeps its name up to 176px, and the selected one is scrolled into view
  */
 export function Segmented({
   options,
@@ -20,14 +23,33 @@ export function Segmented({
   onTile = false,
   disabled = false,
   describedBy,
+  scroll = false,
   className,
 }) {
+  const track = useRef();
+  useEffect(() => {
+    if (!scroll || !track.current) return;
+    const selected = track.current.querySelector('[aria-pressed="true"]');
+    if (!selected) return;
+    // Only the track moves, never the page around it.
+    const box = track.current;
+    const left = selected.offsetLeft - box.offsetLeft;
+    if (left < box.scrollLeft || left + selected.offsetWidth > box.scrollLeft + box.clientWidth)
+      box.scrollLeft = left - (box.clientWidth - selected.offsetWidth) / 2;
+  }, [scroll, value]);
   return (
     <div
+      ref={track}
       role='group'
       aria-label={label}
       aria-describedby={describedBy}
-      className={cx('bm-seg', block && 'bm-seg--block', onTile && 'bm-seg--on-tile', className)}
+      className={cx(
+        'bm-seg',
+        block && !scroll && 'bm-seg--block',
+        scroll && 'bm-seg--scroll',
+        onTile && 'bm-seg--on-tile',
+        className,
+      )}
     >
       {options.map(option => {
         const item = typeof option === 'object' ? option : { value: option, label: option };

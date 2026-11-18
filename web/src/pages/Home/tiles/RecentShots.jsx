@@ -4,32 +4,19 @@ import { SkeletonBlock } from '../../../components/SkeletonBlock.jsx';
 import { Tile } from '../../../components/Tile.jsx';
 import { recentShotCountSignal, shotMetricSlotsSignal } from '../../../utils/dashboardManager.js';
 import { cleanName } from '../utils.js';
+import { clock, daysAgo, shortDate } from '../../../utils/time.js';
 import { daysLabel, parseSchedules, timeLabel } from '../wakeSchedule.js';
 
-// Compares calendar dates, not raw milliseconds, so 11:59 PM yesterday
-// correctly reads as "Yesterday" even if less than 24 h ago. Within the week a shot is named by
-// its day; an older one by its date, which a weekday no longer tells.
+// Calendar days, so 23:59 yesterday reads as Yesterday: Today, Yesterday, then '12 Nov'.
 function getRelativeDayLabel(timestamp) {
   if (!timestamp || timestamp < 10000) return '';
-  const d = new Date(timestamp * 1000);
-  const today = new Date();
-  const shotDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const diffDays = Math.round((todayDay - shotDay) / 86400000);
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return d.toLocaleDateString([], { weekday: 'short' });
-  return d.toLocaleDateString([], { day: 'numeric', month: 'short' });
+  const ago = daysAgo(timestamp);
+  if (ago === 0) return 'Today';
+  if (ago === 1) return 'Yesterday';
+  return shortDate(timestamp);
 }
 
-function formatShotTime(timestamp, hour12) {
-  if (!timestamp || timestamp < 10000) return '';
-  return new Date(timestamp * 1000).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12,
-  });
-}
+const formatShotTime = timestamp => (!timestamp || timestamp < 10000 ? '' : clock(timestamp));
 
 // The facts a row can carry; Dashboard Settings picks three for the Customize view.
 const FACTS = {
@@ -43,15 +30,13 @@ const FACTS = {
 // One thing at the end of a row, on one line. Where the tile is wide enough that is the day and
 // the time; on a phone it is the time of a shot pulled today and the day of an older one, so the
 // facts keep their room.
-function When({ timestamp, hour12 }) {
+function When({ timestamp }) {
   const day = getRelativeDayLabel(timestamp);
   const today = day === 'Today';
   return (
     <span className='whitespace-nowrap'>
       <span className={today ? 'hidden @sm:inline' : undefined}>{day}</span>{' '}
-      <span className={today ? undefined : 'hidden @sm:inline'}>
-        {formatShotTime(timestamp, hour12)}
-      </span>
+      <span className={today ? undefined : 'hidden @sm:inline'}>{formatShotTime(timestamp)}</span>
     </span>
   );
 }

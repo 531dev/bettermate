@@ -13,6 +13,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery.js';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { parseBinaryIndex, indexToShotList } from './parseBinaryIndex.js';
 import { parseBinaryShot } from './parseBinaryShot.js';
+import { clock, dayHeading, when } from '../../utils/time.js';
 import { ShotRow } from './ShotRow.jsx';
 
 const connected = computed(() => machine.value.connected);
@@ -42,29 +43,15 @@ const FILTERS = [
 
 // A machine that never got the time stamps its shots near zero.
 const hasDate = shot => shot.timestamp >= 10000;
-const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-// Today, Yesterday, then the date; the year only once it is not this one. Calendar days, not
-// spans of 24 hours, so a shot from 11:59 PM yesterday reads as Yesterday.
-function dayLabel(shot, month = 'long') {
-  if (!hasDate(shot)) return month === 'long' ? 'No date' : '—';
-  const date = new Date(shot.timestamp * 1000);
-  const today = new Date();
-  const daysAgo = Math.round((startOfDay(today) - startOfDay(date)) / 86400000);
-  if (daysAgo === 0) return 'Today';
-  if (daysAgo === 1) return 'Yesterday';
-  return date.toLocaleDateString([], {
-    weekday: month === 'long' ? 'long' : undefined,
-    day: 'numeric',
-    month,
-    year: date.getFullYear() === today.getFullYear() ? undefined : 'numeric',
-  });
+// A day's tile is named Today, Yesterday or '12 November' (calendar days, so 23:59 yesterday is
+// Yesterday); a row under it shows its 24-hour time. A row with no day above it says both:
+// 'Today 14:41', '12 Nov 07:12'.
+function dayLabel(shot, heading = true) {
+  if (!hasDate(shot)) return heading ? 'No date' : '—';
+  return heading ? dayHeading(shot.timestamp) : when(shot.timestamp);
 }
 
-const timeLabel = shot =>
-  hasDate(shot)
-    ? new Date(shot.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    : '—';
+const timeLabel = shot => (hasDate(shot) ? clock(shot.timestamp) : '—');
 
 /**
  * The tiles of a page of shots. In an order by date, shots that follow each other on one day
@@ -73,7 +60,7 @@ const timeLabel = shot =>
  */
 function groupShots(shots, sortBy, sortLabel) {
   if (sortBy !== 'date' && sortBy !== 'id') {
-    return [{ key: sortBy, label: sortLabel, when: shot => dayLabel(shot, 'short'), shots }];
+    return [{ key: sortBy, label: sortLabel, when: shot => dayLabel(shot, false), shots }];
   }
   const groups = [];
   for (const shot of shots) {

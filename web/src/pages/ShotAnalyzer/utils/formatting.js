@@ -1,4 +1,5 @@
 import { COMPARE_TARGET_DISPLAY_MODES, TIMESTAMP_SECONDS_THRESHOLD } from './constants';
+import { dateTime } from '../../../utils/time.js';
 
 export function formatMetricValue(value, digits = 1) {
   const numericValue = Number(value);
@@ -47,13 +48,7 @@ export const cleanName = name => {
 export const formatTimestamp = timestamp => {
   if (!timestamp) return '';
   const ms = timestamp < TIMESTAMP_SECONDS_THRESHOLD ? timestamp * 1000 : timestamp;
-  return new Date(ms).toLocaleString([], {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return dateTime(ms);
 };
 
 export const formatDuration = samples => {

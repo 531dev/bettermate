@@ -75,7 +75,7 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
         {autotuneActive && (
           <>
             <div className='flex h-64 w-full'>
-              <OverviewChart hour12={!formData.clock24hFormat} />
+              <OverviewChart hour12={false} />
             </div>
             <div className='flex items-center gap-3'>
               <Spinner size={8} />

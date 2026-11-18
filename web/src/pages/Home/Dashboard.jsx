@@ -9,7 +9,6 @@ import { SkeletonBlock } from '../../components/SkeletonBlock.jsx';
 import { StatTile } from '../../components/StatTile.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import {
-  clock24hSignal,
   DASHBOARD_LAYOUTS,
   dashboardLayoutSignal,
   metricOrderSignal,
@@ -122,9 +121,9 @@ export function Dashboard({ view: mode }) {
   const stages = useShotStages(shot.phases, ds);
   const recent = useRecentShots(!custom || showRecentShotsSignal.value);
 
-  // The clock setting reaches this page with the machine's settings; the Settings page mirrors a
-  // change at once.
-  const hour12 = !(clock24hSignal.value || ds.settings?.clock24hFormat);
+  // The web reads the 24-hour clock everywhere (design, Content); the machine's clock setting is
+  // the round display's.
+  const hour12 = false;
 
   const view = describeMachine(ds, {
     shot,
