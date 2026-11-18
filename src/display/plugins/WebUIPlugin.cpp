@@ -96,7 +96,12 @@ void WebUIPlugin::loop() {
     // (not now > last + interval) keeps the interval check millis()-rollover-safe.
     if (!controller->isActive() && (lastUpdateCheck == 0 || now - lastUpdateCheck > UPDATE_CHECK_INTERVAL)) {
         ota->checkForUpdates();
-        pluginManager->trigger("ota:update:status", "value", ota->isUpdateAvailable());
+        // The version travels with the result, so the display can say which update waits.
+        Event status;
+        status.id = "ota:update:status";
+        status.setInt("value", ota->isUpdateAvailable());
+        status.setString("version", ota->getCurrentVersion());
+        pluginManager->trigger(status);
         lastUpdateCheck = now;
         updateOTAStatus(ota->getCurrentVersion());
     }

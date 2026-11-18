@@ -12,6 +12,17 @@ namespace bm {
 // What the machine as a whole is doing, as far as it decides what a screen may offer.
 enum class SystemPhase : uint8_t { Starting, WaitingForController, Ready, Updating, Autotuning, ProtocolMismatch, Error };
 
+// A fault that blocks brewing (design/reference/product-states.md): it takes the screen until its cause is gone.
+enum class Fault : uint8_t {
+    None,
+    ControllerMissing, // no controller for 5 s after the display stopped waiting for it
+    Runaway,           // the controller shut the heater down: only switching the machine off clears it
+    Link,              // the link to the controller failed: restarting the display builds it again
+    Controller,        // any other error the controller reports
+    DisplayOutdated,   // protocol mismatch, the display is the older side
+    ControllerOutdated // protocol mismatch, the controller is the older side
+};
+
 // One consistent snapshot of everything the screens show. It is filled on the UI task and handed to the
 // active screen, so screens never read the controller mid-update and never touch another task's data.
 struct UiState {
@@ -22,7 +33,9 @@ struct UiState {
     SystemPhase system = SystemPhase::Starting;
     bool displayOutdated = false;  // protocol mismatch: the display is the side that needs the update
     bool temperatureError = false; // the error is a boiler runaway
+    Fault fault = Fault::None;     // a fault that blocks brewing, worked out by the host
     bool canWake = false;          // a tap on standby may switch the machine on
+    bool noAnswer = false;         // START was pressed and the controller did not answer within 2 s
     bool amoledPanel = false;      // the panel burns in: Standby rests after a while
     int menuOrigin = 0;            // the mode the menu was opened from, drawn as the active disc
 
@@ -31,6 +44,8 @@ struct UiState {
     bool wifiConnected = false;
     bool accessPoint = false;
     bool updateAvailable = false;
+    std::string updateVersion; // the version an update would install, when the check said which
+    int updateProgress = -1;   // percent of the part being installed; negative until the first report
 
     // Boiler
     float currentTemp = 0.0f;
@@ -72,7 +87,8 @@ struct UiState {
     struct ProfilePreview {
         struct Entry {
             std::string name;
-            std::string summary;
+            std::string summary; // the phase names joined by middle dots; empty for a single phase
+            unsigned phases = 0;
             float temperature = 0.0f;
             float duration = 0.0f;
             float weight = 0.0f;
@@ -121,7 +137,6 @@ struct UiState {
     // Clock
     bool timeValid = false;
     struct tm time{};
-    bool clock24h = true;
 
     // Next scheduled auto wake-up, if any: weekday as in tm_wday, and how far away it is
     bool wakeScheduled = false;

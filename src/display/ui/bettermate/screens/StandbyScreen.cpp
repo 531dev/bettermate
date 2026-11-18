@@ -23,15 +23,8 @@ const char *const WEEKDAYS[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
 const char *const WEEKDAYS_TITLE[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 const char *const MONTHS[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 
-// "9:41" plus AM or PM for a 12-hour clock, "09:41" and no suffix for a 24-hour one.
-const char *formatClock(int hour, int minute, bool clock24h, char *buf, size_t len) {
-    if (clock24h) {
-        snprintf(buf, len, "%02d:%02d", hour, minute);
-        return "";
-    }
-    snprintf(buf, len, "%d:%02d", hour % 12 == 0 ? 12 : hour % 12, minute);
-    return hour < 12 ? "AM" : "PM";
-}
+// The clock is 24-hour everywhere in the system (design/reference/content.md): "06:30", never a suffix.
+void formatClock(int hour, int minute, char *buf, size_t len) { snprintf(buf, len, "%02d:%02d", hour, minute); }
 
 // A triangle wave in whole steps: 0, 1, .., peak, .., 0, .., -peak, .., 0
 int triangle(int step, int peak) {
@@ -45,30 +38,28 @@ int triangle(int step, int peak) {
 }
 
 struct Status {
-    const char *word;     // takes the date's place; nullptr while the machine is simply asleep
-    const char *sentence; // takes the line under the clock
+    const char *sentence; // takes the line under the clock; nullptr while the machine is simply asleep
     bool busy;            // the comet circles
-    bool blocked;         // a fault: the word is drawn in danger
 };
 
+// The date stays above the clock in every state Standby shows (DisplayStates: Connecting). A fault that blocks
+// brewing and a firmware update have screens of their own; the host never leaves Standby on the glass for them.
 Status describe(const UiState &s) {
     switch (s.system) {
     case SystemPhase::Starting:
-        return {"STARTING", "Starting up", true, false};
     case SystemPhase::WaitingForController:
-        return {"CONNECTING", "Waiting for the controller", true, false};
+        return {"Waiting for the controller", true};
     case SystemPhase::Updating:
-        return {"UPDATING", "Keep the machine switched on", true, false};
+        return {"Keep the machine on", true};
     case SystemPhase::Autotuning:
-        return {"AUTOTUNING", "Tuning the boiler", true, false};
+        return {"Tuning the boiler", true};
     case SystemPhase::ProtocolMismatch:
-        return {"VERSION MISMATCH", s.displayOutdated ? "Update the display" : "Update the controller", false, true};
+        return {s.displayOutdated ? "Update the display" : "Update the controller", false};
     case SystemPhase::Error:
-        return {s.temperatureError ? "TEMPERATURE ERROR" : "ERROR", s.temperatureError ? "Restart the machine" : "Unknown error",
-                false, true};
+        return {"Switch the machine off", false};
     case SystemPhase::Ready:
     default:
-        return {nullptr, nullptr, false, false};
+        return {nullptr, false};
     }
 }
 } // namespace
@@ -102,33 +93,35 @@ void StandbyScreen::update(const UiState &s) {
         ring.show(TickRing::Layout::Single, {TickRing::fraction(s.currentTemp, TickRing::MAX_TEMPERATURE), -1.0f, Tone::Faint});
 
     char time[8] = "";
-    const char *meridiem = "";
     if (s.timeValid)
-        meridiem = formatClock(s.time.tm_hour, s.time.tm_min, s.clock24h, time, sizeof(time));
+        formatClock(s.time.tm_hour, s.time.tm_min, time, sizeof(time));
     clock.set(time);
     ui::setTone(clock.obj(), resting ? Tone::Faint : Tone::Ink);
     show(clock.obj(), s.timeValid);
 
-    if (status.word != nullptr) {
-        ui::setText(label, status.word);
-    } else if (s.timeValid) {
-        snprintf(buf, sizeof(buf), "%s %d %s%s%s", WEEKDAYS[s.time.tm_wday % 7], s.time.tm_mday, MONTHS[s.time.tm_mon % 12],
-                 meridiem[0] ? " " BM_MIDDOT " " : "", meridiem);
+    // "THU 12 NOV": weekday, day, month, three letters each.
+    if (s.timeValid) {
+        snprintf(buf, sizeof(buf), "%s %d %s", WEEKDAYS[s.time.tm_wday % 7], s.time.tm_mday, MONTHS[s.time.tm_mon % 12]);
         ui::setText(label, buf);
     }
-    ui::setTone(label, status.blocked ? Tone::Danger : Tone::Muted);
-    show(label, !resting && (status.word != nullptr || s.timeValid));
+    show(label, !resting && s.timeValid);
 
-    // One line says what happens next.
+    // One line says what happens next: what the machine is busy with, an update that waits, the next wake-up,
+    // or how warm the boiler still is. At most 25 characters.
     if (status.sentence != nullptr) {
         snprintf(buf, sizeof(buf), "%s", status.sentence);
+    } else if (s.updateAvailable) {
+        if (!s.updateVersion.empty() && s.updateVersion.size() <= 9)
+            snprintf(buf, sizeof(buf), "Update %s is ready", s.updateVersion.c_str());
+        else
+            snprintf(buf, sizeof(buf), "An update is ready");
     } else if (s.canWake && s.wakeScheduled) {
         char wakeTime[8];
-        const char *suffix = formatClock(s.wakeHour, s.wakeMinute, s.clock24h, wakeTime, sizeof(wakeTime));
+        formatClock(s.wakeHour, s.wakeMinute, wakeTime, sizeof(wakeTime));
         if (s.wakeInMinutes < 24 * 60)
-            snprintf(buf, sizeof(buf), "Wakes at %s%s%s", wakeTime, suffix[0] ? " " : "", suffix);
+            snprintf(buf, sizeof(buf), "Wakes at %s", wakeTime);
         else
-            snprintf(buf, sizeof(buf), "Wakes %s at %s%s%s", WEEKDAYS_TITLE[s.wakeWeekday % 7], wakeTime, suffix[0] ? " " : "", suffix);
+            snprintf(buf, sizeof(buf), "Wakes %s at %s", WEEKDAYS_TITLE[s.wakeWeekday % 7], wakeTime);
     } else if (s.controllerConnected && s.currentTemp > 0) {
         snprintf(buf, sizeof(buf), "Boiler off " BM_MIDDOT " %ld" BM_DEGREE, lroundf(s.currentTemp));
     } else {

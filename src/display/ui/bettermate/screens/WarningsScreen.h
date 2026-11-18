@@ -9,8 +9,8 @@ namespace bm {
 // errors first. DONE leaves. When the controller asks whether to start despite an error, the same screen
 // asks: START goes ahead and CANCEL does not.
 //
-// A card is a tenth of the panel. The two arrive on separate ranks of the screen change, and when a button
-// leaves the screen they go first, one a frame, before the host is asked for the change.
+// A card is a tenth of the panel. They arrive one a rank of the screen change, from the top, and when a button
+// leaves the screen they go first, one a frame from the bottom, before the host is asked for the change.
 class WarningsScreen : public Screen {
   public:
     using Screen::Screen;
@@ -27,8 +27,8 @@ class WarningsScreen : public Screen {
     void onEnter(const UiState &state) override;
 
   private:
-    // Two cards fit above the pill as the design draws them.
-    static constexpr unsigned ROWS = 2;
+    // At most three cards a screen (round-display.md, Content); a fourth warning shows as "+1 more".
+    static constexpr unsigned ROWS = 3;
     static constexpr uint8_t EMPTY = 0xff;
     struct Row {
         lv_obj_t *card = nullptr;

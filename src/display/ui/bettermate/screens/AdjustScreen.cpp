@@ -9,6 +9,7 @@ namespace {
 #define BM_DEGREE "\xC2\xB0"
 #define BM_MIDDOT "\xC2\xB7"
 #define BM_UNSAVED " " BM_MIDDOT " UNSAVED"
+#define BM_ELLIPSIS "\xE2\x80\xA6"
 
 // The label face is fixed width, so a glyph count is a width: 21 glyphs are 272 px, as wide as a title gets at
 // this height before it nears the rim.
@@ -36,20 +37,20 @@ size_t prefix(const char *utf8, unsigned count) {
 }
 
 // The profile in capitals, and the word that matters once anything changed: "CLASSIC · UNSAVED". The word
-// always fits; a name too long for the room that is left ends in "...".
+// always fits; a name too long for the room that is left is cut one short and ends in an ellipsis.
 struct Title {
-    char text[TITLE_GLYPHS * 4 + sizeof("..." BM_UNSAVED)];
+    char text[TITLE_GLYPHS * 4 + sizeof(BM_ELLIPSIS BM_UNSAVED)];
 
     Title(const char *name, bool unsaved) {
         const unsigned room = unsaved ? TITLE_GLYPHS - UNSAVED_GLYPHS : TITLE_GLYPHS;
         const bool cut = glyphs(name) > room;
-        size_t length = prefix(name, cut ? room - 3 : room);
+        size_t length = prefix(name, cut ? room - 1 : room);
         memcpy(text, name, length);
         while (cut && length > 0 && text[length - 1] == ' ')
             --length;
         text[length] = '\0';
         upper(text);
-        snprintf(text + length, sizeof(text) - length, "%s%s", cut ? "..." : "", unsaved ? BM_UNSAVED : "");
+        snprintf(text + length, sizeof(text) - length, "%s%s", cut ? BM_ELLIPSIS : "", unsaved ? BM_UNSAVED : "");
     }
 };
 

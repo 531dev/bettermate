@@ -5,11 +5,15 @@
 
 namespace bm {
 namespace {
+// The design draws two cards under a label at 112. Three need the room above: the label takes the label zone of
+// every screen (86), the cards follow 4 px apart, and the line counting the rest sits over the pill at 340.
+constexpr int LABEL_BASELINE = 86;
 constexpr int CARD_X = 48;
-constexpr int CARD_Y = 138;
+constexpr int CARD_Y = 104;
 constexpr int CARD_WIDTH = 384;
 constexpr int CARD_HEIGHT = 64;
-constexpr int CARD_PITCH = 72;
+constexpr int CARD_PITCH = 68;
+constexpr int MORE_BASELINE = 328;
 // Inside a card: the chip 14 px in, the sentence 14 px after it, its baseline 40 px down.
 constexpr int CHIP_INSET = 14;
 constexpr int CHIP_WIDTH[2] = {76, 90}; // WARN, ERROR
@@ -23,11 +27,12 @@ const WarningType ORDER[] = {WARNING_WATER,         WARNING_SWITCH, WARNING_SCAL
 } // namespace
 
 void WarningsScreen::build(lv_obj_t *root) {
-    label = part(ui::text(root, 240, 112, Type::Label, Tone::Muted, "", 284), 0);
+    label = part(ui::text(root, 240, LABEL_BASELINE, Type::Label, Tone::Muted, "", 284), 0);
     for (unsigned i = 0; i < ROWS; ++i) {
         Row &row = rows[i];
-        // A card a rank: with the label and the buttons ahead of them no frame carries more than one.
-        row.card = part(ui::card(root, CARD_X, CARD_Y + CARD_PITCH * static_cast<int>(i), CARD_WIDTH, CARD_HEIGHT), 1 + i);
+        // A card a rank, from the top: the first comes with the label and the buttons. Two cards in one rank
+        // would be a fifth of the panel, and with a reading still stepping in elsewhere over the step's budget.
+        row.card = part(ui::card(root, CARD_X, CARD_Y + CARD_PITCH * static_cast<int>(i), CARD_WIDTH, CARD_HEIGHT), i);
         // The chip takes the design's width for its word, and its word never wraps inside it.
         row.chip = ui::chip(row.card, CHIP_INSET, CHIP_INSET, "WARN", Tone::WarningSoft, Tone::Warning);
         lv_obj_set_width(row.chip, CHIP_WIDTH[0]);
@@ -35,8 +40,8 @@ void WarningsScreen::build(lv_obj_t *root) {
         row.sentence = ui::textLeft(row.card, CHIP_INSET + CHIP_WIDTH[0] + CHIP_INSET, SENTENCE_BASELINE, Type::Body, Tone::Ink);
         row.shown = EMPTY;
     }
-    // More warnings than cards: the most severe are on the cards and this line counts the rest.
-    more = part(ui::text(root, 240, 314, Type::Label, Tone::Muted, "", 200), 2);
+    // More warnings than cards: the most severe are on the cards and this line counts the rest ("+1 more").
+    more = part(ui::text(root, 240, MORE_BASELINE, Type::Body, Tone::Muted, "", 200), 2);
     // No warning left: say so in the middle of where the cards were.
     clear = part(ui::text(root, 240, 216, Type::Title, Tone::Ink, "All clear"), 1);
 
@@ -104,22 +109,28 @@ void WarningsScreen::update(const UiState &s) {
     // Standby leaves it out (Screen.h, anyWarning).
     const bool asleep = s.mode == MODE_STANDBY;
     unsigned count = 0;
+    const auto add = [&](WarningType type, bool error) {
+        if (count < ROWS)
+            fill(rows[count], type, error);
+        ++count;
+    };
     for (int error = 1; error >= 0; --error) {
+        // A START the controller did not answer heads the warnings: it is what was just tried.
+        if (!error && s.noAnswer)
+            add(NO_ANSWER, false);
         for (const WarningType type : ORDER) {
             if (!(error ? s.error[type] : s.warn[type]))
                 continue;
             if (asleep && (type == WARNING_TEMPERATURE || type == WARNING_FLUSH))
                 continue;
-            if (count < ROWS)
-                fill(rows[count], type, error != 0);
-            ++count;
+            add(type, error != 0);
         }
     }
     for (unsigned i = 0; i < ROWS; ++i)
         show(rows[i].card, i < count);
     if (count > ROWS) {
         char buf[16];
-        snprintf(buf, sizeof(buf), "AND %u MORE", count - ROWS);
+        snprintf(buf, sizeof(buf), "+%u more", count - ROWS);
         ui::setText(more, buf);
     }
     show(more, count > ROWS);
@@ -142,9 +153,9 @@ void WarningsScreen::depart(Intent intent, lv_obj_t *pressed) {
     }
 }
 
-// The cards leave the way they came, backwards: the lower one and the count, then the upper one.
+// The cards leave the way they came, backwards: the lowest one and the count, then the middle one, then the top.
 bool WarningsScreen::shed(unsigned group) {
-    lv_obj_t *const groups[2][2] = {{rows[1].card, more}, {rows[0].card, nullptr}};
+    lv_obj_t *const groups[ROWS][2] = {{rows[2].card, more}, {rows[1].card, nullptr}, {rows[0].card, nullptr}};
     bool any = false;
     for (lv_obj_t *obj : groups[group - 1]) {
         if (obj == nullptr)
@@ -162,9 +173,9 @@ void WarningsScreen::tick(const UiState &state, uint32_t frame) {
         return;
     // One card a frame. The host hears the answer with the last one, so its cut finds the label and the
     // buttons, and the screen that follows has the frames to itself.
-    while (departing <= 2) {
+    while (departing <= ROWS) {
         const bool any = shed(departing);
-        if (departing++ == 2) {
+        if (departing++ == ROWS) {
             host.act(departFor);
             return;
         }
@@ -173,7 +184,7 @@ void WarningsScreen::tick(const UiState &state, uint32_t frame) {
     }
     // Still here: the machine refused. The button lets go now and the cards come back with the next
     // update, a frame later.
-    if (++departing > 2 + RETURN_AFTER) {
+    if (++departing > ROWS + RETURN_AFTER) {
         dress(state);
         departing = 0;
         host.act(Intent::Refresh);

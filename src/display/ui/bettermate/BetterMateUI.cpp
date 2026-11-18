@@ -128,6 +128,7 @@ void BetterMateUI::init() {
     pluginManager->on("controller:mode:change", [this](Event const &event) { request(screenForMode(event.getInt("value"))); });
     pluginManager->on("controller:brew:start", [this](Event const &) {
         confirming = false;
+        noAnswer = false; // it answered
         request(ScreenId::Shot);
     });
     pluginManager->on("controller:brew:clear", [this](Event const &) {
@@ -155,9 +156,34 @@ void BetterMateUI::init() {
     });
     pluginManager->on("ota:update:status", [this](Event const &event) {
         updateAvailable = event.getInt("value") != 0;
+        // The release's tag ("v1.9.1") read as people write a version: "1.9.1".
+        String version = event.getString("version");
+        if (version.startsWith("v") || version.startsWith("V"))
+            version = version.substring(1);
+        {
+            std::lock_guard<std::mutex> guard(versionMutex);
+            updateVersion = version.c_str();
+        }
         markDirty();
     });
-    // Whatever was on the glass, these send the machine back to Standby, which shows the reason.
+    // While an update installs, the plugin reports each part's progress from 0 to 100 (the controller's firmware,
+    // then the display's): the ring walks with the part being installed.
+    pluginManager->on("ota:update:phase", [this](Event const &event) {
+        // 1 to 3 start a part (display firmware, file system, controller firmware); 4 is finished, 5 failed.
+        const int phase = event.getInt("phase");
+        if (phase >= 1 && phase <= 3)
+            updateProgress = 0;
+        else if (phase == 4)
+            updateProgress = 100;
+        markDirty();
+    });
+    pluginManager->on("ota:update:progress", [this](Event const &event) {
+        updateProgress = event.getInt("progress");
+        markDirty();
+    });
+    pluginManager->on("ota:update:start", [this](Event const &) { updateProgress = -1; });
+    // Whatever was on the glass, these send the machine back to Standby. An update and a fault take the glass
+    // themselves while they last (route()); Standby is what is left when they end.
     for (const char *name : {"ota:update:start", "ota:update:end", "controller:error", "controller:protocol:mismatch",
                              "controller:autotune:start", "controller:autotune:result"})
         pluginManager->on(name, [this](Event const &) { request(ScreenId::Standby); });
@@ -211,7 +237,8 @@ void BetterMateUI::runFrame(unsigned long now) {
     // Parts that began stepping in on an earlier frame advance before anything new starts.
     bm::ui::fx::step();
 
-    const auto wanted = static_cast<ScreenId>(requested.load());
+    watchFault(now);
+    const ScreenId wanted = route(static_cast<ScreenId>(requested.load()));
     const bool change = wanted != current || active == nullptr;
     const bool snapshot = dirty.exchange(false) || change || frame - lastSnapshot >= bm::motion::SNAPSHOT_EVERY;
     if (snapshot) {
@@ -285,6 +312,54 @@ void BetterMateUI::beginChange(ScreenId next) {
     active->enter(state);
 }
 
+void BetterMateUI::watchFault(unsigned long now) {
+    const SystemState system = controller->getSystemState();
+    // A controller that is missing is first only a wait (Standby's comet); after 5 s without it, a fault.
+    if (system != SYSTEM_WAITING_CONTROLLER)
+        missingSince = 0;
+    else if (missingSince == 0)
+        missingSince = now == 0 ? 1 : now;
+
+    switch (system) {
+    case SYSTEM_PROTOCOL_MISMATCH:
+        currentFault = controller->getSystemInfo().protocolVersion > gm_proto::PROTOCOL_VERSION ? bm::Fault::DisplayOutdated
+                                                                                              : bm::Fault::ControllerOutdated;
+        break;
+    case SYSTEM_ERROR:
+        switch (controller->getError()) {
+        case ERROR_CODE_RUNAWAY:
+            currentFault = bm::Fault::Runaway;
+            break;
+        case ERROR_CODE_COMM_SEND:
+        case ERROR_CODE_COMM_RCV:
+        case ERROR_CODE_PROTO_ERR:
+            currentFault = bm::Fault::Link;
+            break;
+        default:
+            currentFault = bm::Fault::Controller;
+            break;
+        }
+        break;
+    case SYSTEM_WAITING_CONTROLLER:
+        currentFault = now - missingSince >= MISSING_FAULT_MS ? bm::Fault::ControllerMissing : bm::Fault::None;
+        break;
+    default:
+        currentFault = bm::Fault::None;
+        break;
+    }
+}
+
+ScreenId BetterMateUI::route(ScreenId asked) const {
+    // product-states.md, When several are true: updating, then a blocking fault, then Wi-Fi setup.
+    if (controller->isUpdating())
+        return ScreenId::Updating;
+    if (currentFault != bm::Fault::None)
+        return ScreenId::Fault;
+    if (asked == ScreenId::Standby && apActive)
+        return ScreenId::Setup;
+    return asked;
+}
+
 void BetterMateUI::applyTheme() {
     const int mode = controller->getSettings().getThemeMode();
     if (mode == themeMode)
@@ -337,6 +412,8 @@ void BetterMateUI::gather(unsigned long now, ScreenId target) {
     const SystemInfo info = controller->getSystemInfo();
     state.displayOutdated = info.protocolVersion > gm_proto::PROTOCOL_VERSION;
     state.temperatureError = controller->getError() == ERROR_CODE_RUNAWAY;
+    state.fault = currentFault;
+    state.noAnswer = noAnswer;
     state.controllerConnected = controller->getClientController()->isConnected();
     state.canWake = state.controllerConnected && !info.protocolMismatch && controller->isReady();
     state.amoledPanel = amoledPanel;
@@ -344,6 +421,12 @@ void BetterMateUI::gather(unsigned long now, ScreenId target) {
     state.accessPoint = apActive;
     state.wifiConnected = !state.accessPoint && WiFi.status() == WL_CONNECTED;
     state.updateAvailable = updateAvailable;
+    state.updateProgress = updateProgress;
+    {
+        std::lock_guard<std::mutex> guard(versionMutex);
+        if (state.updateVersion != updateVersion)
+            state.updateVersion = updateVersion;
+    }
     state.currentTemp = controller->getCurrentTemp();
     state.targetTemp = controller->getTargetTemp();
     state.pressure = controller->getCurrentPressure();
@@ -374,7 +457,7 @@ void BetterMateUI::gather(unsigned long now, ScreenId target) {
     gatherProcess();
 
     // What only one screen shows is read only for that screen.
-    if (target == ScreenId::Info) {
+    if (target == ScreenId::Info || target == ScreenId::Setup) {
         gatherNetwork();
         state.displayVersion = BUILD_GIT_VERSION;
         state.controllerVersion = info.version.c_str();
@@ -383,7 +466,6 @@ void BetterMateUI::gather(unsigned long now, ScreenId target) {
         const time_t clock = time(nullptr);
         localtime_r(&clock, &state.time);
         state.timeValid = state.time.tm_year > 2016 - 1900;
-        state.clock24h = settings.isClock24hFormat();
         state.wakeScheduled = false;
         if (state.timeValid && settings.isAutoWakeupEnabled()) {
             const bm::NextWakeup next = bm::nextWakeup(state.time, settings.getAutoWakeupSchedules());
@@ -428,6 +510,7 @@ void BetterMateUI::gatherProfile() {
         entry.duration = p.getTotalDuration();
         entry.weight = p.getTotalVolume();
         entry.dose = p.dose;
+        entry.phases = static_cast<unsigned>(p.phases.size());
         // A single phase needs no stage list; its name would only repeat the mode.
         if (p.phases.size() > 1) {
             for (const auto &phase : p.phases) {
@@ -587,10 +670,13 @@ void BetterMateUI::act(bm::Intent intent) {
     case Intent::Back:
         switch (current) {
         case ScreenId::Warnings:
-            if (confirming)
+            if (confirming) {
                 controller->cancelBrewConfirm();
-            else
+            } else {
+                // Read and put away: the unanswered START is the one warning that has no cause left to clear it.
+                noAnswer = false;
                 request(returnTo);
+            }
             break;
         case ScreenId::Info:
             request(ScreenId::Menu);
@@ -648,7 +734,17 @@ void BetterMateUI::act(bm::Intent intent) {
         request(ScreenId::Info);
         break;
     case Intent::Start:
-        controller->activate();
+        // A new try: the warning about the last one goes. The controller answers by starting the shot
+        // (controller:brew:start) or by asking to confirm it (controller:brew:confirm).
+        noAnswer = false;
+        if (!ignoreStart)
+            controller->activate();
+        break;
+    case Intent::Unanswered:
+        noAnswer = true;
+        break;
+    case Intent::Restart:
+        ESP.restart();
         break;
     case Intent::Flush:
         controller->onFlush();
@@ -782,6 +878,18 @@ void BetterMateUI::act(bm::Intent intent) {
     previewDirty = true;
     markDirty();
 }
+
+#ifdef GAGGIMATE_SIM
+void BetterMateUI::simulateUpdateReady(const char *version) {
+    Event event;
+    event.id = "ota:update:status";
+    event.setInt("value", 1);
+    event.setString("version", version);
+    pluginManager->trigger(event);
+}
+
+void BetterMateUI::simulateUpdateProgress(int percent) { pluginManager->trigger("ota:update:progress", "progress", percent); }
+#endif
 
 void BetterMateUI::loopProfiles() {
     if (profileLoaded)

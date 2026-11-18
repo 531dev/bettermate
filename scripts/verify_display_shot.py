@@ -376,7 +376,7 @@ checks.count(sim)
 first = sim.layout("first.json")
 face(first, "no pressure sensor", "PREINFUSE", second=[(CENTRE, GRAMS)], ring="single")
 run = sim.layout("run.json")
-face(run, "a long phase name", "PRESSURE DECL...", second=[(CENTRE, GRAMS)], ring="single")
+face(run, "a long phase name", "PRESSURE DECLIN…", second=[(CENTRE, GRAMS)], ring="single")
 checks.true(float(values(run)[0][1]) > float(values(first)[0][1]),
             "with a scale and no target the cup's weight counts up over GRAMS")
 checks.equal(run.ring["notch"][0], notch(93, MAX_TEMPERATURE, TICKS_FULL), "the single ring carries the temperature notch")

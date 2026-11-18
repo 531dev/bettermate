@@ -156,6 +156,8 @@ void Screen::updateException(const UiState &state, bool awayFromBrew, bool runni
 }
 
 bool anyWarning(const UiState &s, bool awayFromBrew) {
+    if (s.noAnswer)
+        return true;
     for (int i = 0; i < WARNING_TYPE_COUNT; ++i) {
         if (i == WARNING_TEMPERATURE || (awayFromBrew && i == WARNING_FLUSH))
             continue;
@@ -189,6 +191,8 @@ const char *warningName(WarningType type) {
         return "Scale battery low";
     case WARNING_TEMPERATURE:
         return "Temperature unstable";
+    case NO_ANSWER:
+        return "Controller did not answer";
     default:
         return "Machine warning";
     }

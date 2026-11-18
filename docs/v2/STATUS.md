@@ -208,6 +208,42 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
     - **Not done:** Hardware not present (the Weight tile's EmptyState, settings disabled with "Connect a
       scale to use this") and the Wi-Fi scan states of Setup (a "Scanning" Select, "No networks found" with
       SCAN AGAIN, the 15 s limit). The first start screen was not touched.
+21. Display, design revision of 2026-11-16 (Lane D of `DS-1116-LANES.md`, 2026-11-17):
+    - **Content limits.** `ui::fit` takes a character limit as well as a width and cuts one short with `…`. Brew's
+      name group is 312 px (was 284): 18 characters of screen-title need about 263 px, and 17 plus the ellipsis
+      (wider than a letter) up to 280. Letters the faces lack fold to their base letter (Latin Extended-A,
+      typographic quotes and dashes); a letter with no base is left out.
+    - **Warnings** show three cards and "+N more" (screen-body, muted) under them. Three do not fit above the pill
+      where the design draws two (label 112, cards from 138), so the label takes the label zone at 86 and the cards
+      start at 104, 68 px apart, the count at 328. One card a rank of the screen change (two in one rank went over
+      the 25% step budget with a reading stepping in).
+    - **Standby** is always 24-hour: the display ignores the 12-hour setting (the web still offers it). While
+      connecting the date stays and no state word replaces it. With an update waiting the line reads "Update 1.9.1
+      is ready" (the release tag's `v` dropped; "An update is ready" when the version is unknown or over 9
+      characters). For this the OTA plugin's internal `ota:update:status` event now carries `version`; no REST or
+      WebSocket change.
+    - **Command pending** is Brew's START only. The warning reads "Controller did not answer" (25 characters: the
+      lane's "The controller did not answer" does not fit a card; this fits its 266 px). It heads the WARN cards and
+      raises the slot glyph, and goes on the next START, on a started shot, or with DONE on Warnings. The quiet pill
+      repaints its own box, 5.2% of the 480 panel and 5.5% of the 466 (the design's "5% for a pill"); the handle
+      goes a frame later so no frame carries both.
+    - **Faults that block brewing** (`BetterMateUI::watchFault`): a boiler runaway (no pill: the controller keeps
+      its heater off until it is switched off, and a display restart would only hide the fault), link errors 1 to 3
+      (RESTART restarts the display; today's controller never sends these, so the pill will rarely be seen), any
+      other error code (no pill), a protocol mismatch (no pill; the update is in the web app), and the controller
+      missing for 5 s after the display stopped waiting for it (at boot 10 s + 5; after a loss 5 s). Before those
+      5 s Standby shows the comet and "Waiting for the controller". "Boiler sensor lost" and RETRY from the design
+      have nothing behind them: the controller reports no such fault.
+    - **Updating** shows the progress of the part being installed: the OTA plugin reports 0 to 100 for the
+      controller's firmware and again for the display's, so when both are updated the ring walks up twice. 0 until
+      the first report. Not seen on hardware; the simulator injects progress (`update-progress`).
+    - **Wi-Fi setup** stands in for Standby while the machine's access point is up, and a tap anywhere wakes the
+      machine as on Standby. The design gives it no action and ranks it above Running; taken literally it would
+      lock out a machine that is never put on Wi-Fi. Information in access-point mode uses the same words (JOIN
+      THIS WI-FI, SCAN TO SET UP).
+    - The design re-import changed screen-body's line height (26 to 27); the checks that compared it were updated.
+    - Captures refreshed at 480 px only; `docs/display/v2/466/` still holds the earlier ones for the screens that
+      changed.
 
 ## 4. Restarting — one prompt per session
 
@@ -268,3 +304,4 @@ The web page lanes, the web integration and the display loose ends are done; the
 | `b4777ead`, `e2aab814`, `9632fb4e`, `e4008dbf`, `6c30de97` | Web integration: shared fixes, promotions, `verify_web_ui.mjs`, `docs/webui/`. |
 | `a8a7aaf9`, `60863d34`, `cad656c2`, `989b33cd`, `61d3a45a`, `21b27d42`, `4930eb7f` | Lane W1 (2026-11-16 revision, web fixes): `bm.css` part 1 re-synced and no opacity for state; field help linked and no instructions in placeholders; readable locked modes; chart dashes, end labels and spoken labels; glyphs on warning and danger Chips; 44 px targets; favourites scroll, 24-hour times, 320 px. `verify_web_ui.mjs` passes 1,008 assertions against Vite and the seeded simulator. |
 | `d7d1c7b4`, `915ce19b`, `4f569fc1`, `393905cc`, `d6ab70bc`, `0a4b9f43`, `08ec8925`, `b8d68cc8` | Lane W2 (2026-11-16 revision, web components and product states): Notice and Loader; one Toast region and one status region; Dialog and ConfirmDialog for deletions, Menu details; EmptyState, NumberField, Tooltip, Tile and top bar details; Connecting, Offline, fault, command pending, update ready, updating, saving; the Updating page lazy; `verify_web_ui.mjs` gains a states part; it passes 1,190 assertions against Vite and the seeded simulator. Web bundle 370,154 bytes gzipped (+4,766), entry script 24,663 (+5,999). |
+| `8240451f`, `36ece42b`, `4cdf84d3` | Lane D (design revision of 2026-11-16): `…` and folded letters, content limits, three warnings, Standby's lines, command pending, Fault, Updating, Wi-Fi setup; a fault's title on one line. Checks: core 170, shot 565, modes 520, menu 916, profiles 1414 (480 px only). `pio run -e display`: 3,075,909 bytes of flash, 84,000 of RAM. Decisions in section 3, item 21. |

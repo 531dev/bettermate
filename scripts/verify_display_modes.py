@@ -209,7 +209,7 @@ def steam():
     checks.true(live is not None and abs(heating.ring["lit"][0] - int(live["text"][:-1]) / 160 * 76) <= 1,
                 f"Steam: the lit ticks follow the live temperature ({heating.ring['lit'][0]} of 76)")
     line = heating.find("Heating")
-    checks.true(line is not None and line["baseline"] == 380 and line["font"] == 26, "Steam: the status line is screen-body on baseline 380")
+    checks.true(line is not None and line["baseline"] == 380 and line["font"] == 27, "Steam: the status line is screen-body on baseline 380")
     checks.color(line and line["color"], MUTED, "Steam: the status line is ink-muted")
 
     steaming = sim.layout("steaming.json")

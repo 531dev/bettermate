@@ -223,9 +223,12 @@ def slot(page):
 
 
 def check_cards(page, rows, what):
-    """Warnings: one surface-1 card for each row, 384 x 64 at x 48 and 72 px apart from y 138, its chip and sentence."""
+    """Warnings: one surface-1 card for each row, 384 x 64 at x 48 and 68 px apart from y 104, its chip and sentence.
+
+    The design draws two cards from y 138 under a label at 112; three (round-display.md, Content: at most three a
+    screen) need the room, so the label takes the label zone at 86 and the cards follow it."""
     cards = [o for o in page.objects if o["kind"] == "obj" and o["depth"] == 1 and o["x1"] == 48 and o["x2"] == 431 and o["y2"] - o["y1"] == 63]
-    checks.equal([c["y1"] for c in cards], [138 + 72 * i for i in range(len(rows))], f"{what}: {len(rows)} cards, 72 px apart from y 138")
+    checks.equal([c["y1"] for c in cards], [104 + 68 * i for i in range(len(rows))], f"{what}: {len(rows)} cards, 68 px apart from y 104")
     for card, (level, sentence) in zip(cards, rows):
         error = level == "ERROR"
         checks.color(card.get("fill"), SURFACE_1, f"{what}: the card of '{sentence}' is surface-1")
@@ -242,7 +245,7 @@ def check_cards(page, rows, what):
         checks.color(chip["color"], DANGER if error else WARNING, f"{what}: the word {level} is {'danger' if error else 'warning'}")
         checks.equal((line["x1"], line["baseline"]), (62 + width + 14, card["y1"] + 40), f"{what}: '{sentence}' starts 14 px after its chip, baseline 40 px down")
         checks.color(line["color"], INK, f"{what}: '{sentence}' is ink")
-        checks.equal(line["font"], 26, f"{what}: '{sentence}' is set in screen-body")
+        checks.equal(line["font"], 27, f"{what}: '{sentence}' is set in screen-body")
 
 
 def check_pill(page, text, fill, ink, what):
@@ -398,24 +401,27 @@ def menu_forced():
 def menu_disconnected():
     # Without the controller the display sits on Standby and a tap does not wake it, so the menu is only reached from
     # Information. The script's `mode brew` is a shortcut the display itself never offers; what it shows is
-    # the menu while no mode can be entered.
+    # the menu while no mode can be entered. After 5 s without the controller its absence is a fault that takes the
+    # glass (verify_display_core.py), so each visit here stays inside those 5 s.
     sim = Sim("menu-disconnected")
     drive(
         sim,
         "wait 3500; tap 240 362; wait 1300; expect screen menu; redraw skip.redraw;"
-        "controller disconnected; wait 2500; expect screen standby; redraw lost.redraw;"
-        "mode brew; wait 1500; expect screen brew; tap 240 446; wait 1300; expect screen menu;"
+        "controller disconnected; wait 1200; expect screen standby; redraw lost.redraw;"
+        "mode brew; wait 1000; expect screen brew; tap 240 446; wait 1000; expect screen menu;"
         "expect hidden BREW; expect hidden STEAM; expect hidden WATER; expect hidden GRIND; expect text INFO;"
         "shot alone.bmp; layout alone.json;"
         # Nothing where the modes were.
-        "tap 367 199; wait 500; expect screen menu; tap 319 348; wait 500; expect screen menu;"
+        "tap 367 199; wait 300; expect screen menu;"
+        # Then the fault takes the glass, and gives the menu back when the controller answers.
+        "wait 2500; expect screen fault; redraw skip.redraw;"
+        "controller connected; wait 2500; expect screen menu; expect text BREW; expect text GRIND; redraw found.redraw;"
+        "layout found.json;"
         # A swipe down has no ink disc to go back to: it falls back to the screen of the machine's mode.
-        "swipe 436 200 436 360; wait 1500; expect screen brew; tap 240 446; wait 1300; expect screen menu;"
-        # Information still answers, alone at the top.
-        "tap 240 106; wait 1500; expect screen info; tap 240 446; wait 1300; expect screen menu; redraw skip.redraw;"
-        "controller connected; wait 2500; expect text BREW; expect text GRIND; redraw found.redraw; layout found.json;"
-        "controller disconnected; wait 2500; expect screen standby; mode brew; wait 1500; tap 240 446; wait 1300;"
-        "expect screen menu; tap 240 240; wait 1700; expect screen standby; expect mode 0; quit",
+        "controller disconnected; wait 1000; mode brew; wait 1000; tap 240 446; wait 1000; expect screen menu;"
+        "swipe 436 200 436 360; wait 1200; expect screen brew; controller connected; wait 2500;"
+        "controller disconnected; wait 1000; expect screen standby; mode brew; wait 1000; tap 240 446; wait 1000;"
+        "expect screen menu; tap 240 240; wait 300; expect mode 0; quit",
     )
     page = sim.layout("alone.json")
     check_menu(page, ["INFO"], None, "controller lost")
@@ -447,12 +453,12 @@ def information():
         "tap 240 400; wait 900; expect text ABOUT; expect hidden DISPLAY; expect text SCAN TO OPEN; redraw network.redraw;"
         "shot station-again.bmp;"
         # The setup network: its name, the address of the portal and a code that joins it.
-        "wifi ap; wait 900; expect text SETUP NETWORK; expect text BetterMate; expect text 4.4.4.1; expect text SCAN TO JOIN;"
+        "wifi ap; wait 900; expect text JOIN THIS WI-FI; expect text BetterMate; expect text 4.4.4.1; expect text SCAN TO SET UP;"
         "expect hidden SCAN TO OPEN; shot ap.bmp; layout ap.json;"
-        "wifi ap-open; wait 900; expect text SETUP NETWORK; shot ap-open.bmp; layout ap-open.json;"
+        "wifi ap-open; wait 900; expect text JOIN THIS WI-FI; shot ap-open.bmp; layout ap-open.json;"
         # Nothing to scan: a sentence instead of a code.
         "wifi disconnected; wait 900; expect text OFFLINE; expect text The machine is not on Wi-Fi.;"
-        "expect hidden SCAN TO OPEN; expect hidden SCAN TO JOIN; expect hidden GaggiMate-Sim; expect text ABOUT;"
+        "expect hidden SCAN TO OPEN; expect hidden SCAN TO SET UP; expect hidden GaggiMate-Sim; expect text ABOUT;"
         "shot offline.bmp; layout offline.json;"
         "tap 240 400; wait 900; expect text DISPLAY; expect text sim-3.0; expect hidden The machine is not on Wi-Fi.;"
         "shot offline-about.bmp; tap 240 400; wait 900; expect text The machine is not on Wi-Fi.;"
@@ -496,7 +502,7 @@ def information():
     versions = sim.layout("about.json")
     checks.true(not [o for o in versions.objects if o["kind"] == "qrcode"], "ABOUT: the code is away")
     captions = [versions.find("DISPLAY"), versions.find("CONTROLLER")]
-    stated = sorted((o for o in versions.objects if o.get("font") == 26), key=lambda o: o["y1"])
+    stated = sorted((o for o in versions.objects if o.get("font") == 27), key=lambda o: o["y1"])
     checks.true(None not in captions and len(stated) == 2, "ABOUT: the display's and the controller's version, each under its label")
     if None not in captions and len(stated) == 2:
         checks.true(captions[0]["y2"] < stated[0]["y1"] < captions[1]["y1"] < stated[1]["y1"], "ABOUT: label, version, label, version from the top")
@@ -514,7 +520,7 @@ def information():
     offline = sim.layout("offline.json")
     checks.true(not [o for o in offline.objects if o["kind"] == "qrcode"] and at(offline, (166, 142, 313, 289)) is None, "offline: no code and no card")
     sentence = offline.find("The machine is not on Wi-Fi.")
-    checks.true(sentence is not None and sentence["font"] == 26 and sentence["ty2"] - sentence["ty1"] < 30, "offline: one sentence in screen-body, on one line")
+    checks.true(sentence is not None and sentence["font"] == 27 and sentence["ty2"] - sentence["ty1"] < 30, "offline: one sentence in screen-body, on one line")
     checks.true(sentence is not None and same_color(sentence["color"], MUTED), "offline: the sentence is ink-muted")
 
     budget(sim, "about.redraw", "Information, the code to the versions")
@@ -569,7 +575,7 @@ def warnings_from_brew():
     page = sim.layout("two.json")
     checks.equal(page.ring["layout"], "none", "Warnings draws no ring")
     label = page.find("BEFORE YOUR NEXT SHOT")
-    checks.true(label is not None and label["baseline"] == 112 and label["font"] == 25, "Warnings: the label, screen-label at baseline 112")
+    checks.true(label is not None and label["baseline"] == 86 and label["font"] == 25, "Warnings: the label, screen-label at baseline 86")
     checks.color(label and label["color"], MUTED, "Warnings: the label is ink-muted")
     check_cards(page, [("WARN", "Flush recommended"), ("WARN", "Temperature unstable")], "awake and heating")
     check_pill(page, "DONE", INK, ON_INK, "Warnings")
@@ -610,16 +616,16 @@ def warnings_from_standby():
 
 
 def warnings_confirm():
-    # Five warnings, the flush reminder at error level: the two most severe get the cards and a line counts
-    # the rest. START on Brew then has to be confirmed.
+    # Four warnings, the flush reminder at error level: the three most severe get the cards (round-display.md,
+    # Content: at most three a screen) and a line counts the rest, "+1 more". START on Brew then has to be confirmed.
     sim = seeded("warnings-confirm", warnFlush=2, savedScale="AA:BB:CC:DD:EE:FF", emptyTankDistance=44, fullTankDistance=10)
     drive(
         sim,
         "wait 3500; mode brew; wait 2500; expect screen brew; tap 240 34; wait 1300; expect screen warnings;"
-        "expect text AND 2 MORE; shot four.bmp; layout four.json; tap 240 372; wait 1500; expect screen brew;"
+        "expect text +1 more; shot four.bmp; layout four.json; tap 240 372; wait 1500; expect screen brew;"
         # The steam switch left on is the fifth.
         "key 2 down; wait 800; mode brew; wait 1500; expect screen brew; tap 240 34; wait 1300; expect screen warnings;"
-        "expect text AND 3 MORE; shot five.bmp; layout five.json; tap 240 372; wait 1500; expect screen brew; redraw skip.redraw;"
+        "expect text +2 more; shot five.bmp; layout five.json; tap 240 372; wait 1500; expect screen brew; redraw skip.redraw;"
         # START asks first. CANCEL goes back and nothing runs.
         "tap 240 366; wait 1300; expect screen warnings; expect active 0; expect text START ANYWAY?; expect text CANCEL;"
         "expect hidden DONE; redraw asked.redraw; shot confirm.bmp; layout confirm.json;"
@@ -630,16 +636,19 @@ def warnings_confirm():
         "tap 240 366; wait 1300; expect screen warnings; expect text START ANYWAY?; redraw skip.redraw;"
         "tap 240 372; wait 1500; expect screen shot; expect active 1; redraw start.redraw; quit",
     )
-    rows = [("ERROR", "Flush recommended"), ("WARN", "Water low")]
+    rows = [("ERROR", "Flush recommended"), ("WARN", "Water low"), ("WARN", "Scale disconnected")]
     four = sim.layout("four.json")
     check_cards(four, rows, "four warnings")
-    more = four.find("AND 2 MORE")
-    checks.true(more is not None and more["baseline"] == 314 and same_color(more["color"], MUTED), "four warnings: a muted line counts the two without a card")
+    more = four.find("+1 more")
+    checks.true(more is not None and more["baseline"] == 328 and more["font"] == 27 and same_color(more["color"], MUTED),
+                "four warnings: a muted line in screen-body counts the one without a card")
+    checks.true(more is not None and more["ty2"] < 340, "four warnings: the count sits above the pill")
+    rows = [("ERROR", "Flush recommended"), ("WARN", "Water low"), ("WARN", "Steam switch on")]
     check_cards(sim.layout("five.json"), rows, "five warnings")
     asked = sim.layout("confirm.json")
     check_cards(asked, rows, "the question")
     question = asked.find("START ANYWAY?")
-    checks.true(question is not None and question["baseline"] == 112 and same_color(question["color"], MUTED), "the question takes the label's place")
+    checks.true(question is not None and question["baseline"] == 86 and same_color(question["color"], MUTED), "the question takes the label's place")
     check_pill(asked, "START", PRIMARY, ON_PRIMARY, "the question")
     cancel = asked.find("CANCEL")
     checks.true(cancel is not None and cancel["clickable"] and cancel["y1"] >= 404 and cancel["y2"] - cancel["y1"] + 1 >= 56, "the question: CANCEL is a text button under the pill")

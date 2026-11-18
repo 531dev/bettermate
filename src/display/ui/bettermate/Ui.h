@@ -22,10 +22,16 @@ void paintFace();
 lv_obj_t *text(lv_obj_t *parent, int cx, int baseline, Type type, Tone tone, const char *str = "", int width = 0);
 // Text starting at x.
 lv_obj_t *textLeft(lv_obj_t *parent, int x, int baseline, Type type, Tone tone, const char *str = "", int width = 0);
-// The longest beginning of `str` that fits `width` px in this type, ending in "..." when it had to be cut.
-// Returns the width of what it wrote to `out`.
-int fit(Type type, const char *str, int width, char *out, size_t size);
-// Keeps a label on one line of the given width: from then on setText() cuts longer text and ends it in "...".
+// The ellipsis that ends a cut name (U+2026): every text face carries it.
+constexpr char ELLIPSIS[] = "\xE2\x80\xA6";
+// The longest beginning of `str` that fits `width` px in this type, ending in an ellipsis when it had to be
+// cut. With `glyphs`, a name of more characters than that is cut one short too (round-display.md, Content
+// limits). Returns the width of what it wrote to `out`.
+int fit(Type type, const char *str, int width, char *out, size_t size, unsigned glyphs = 0);
+// Copies `str` with every letter the face lacks replaced by its base letter (l for ł, s for ş), so nothing is
+// drawn as an empty box; a letter with no base is left out. setText() and fit() do this themselves.
+void fold(const lv_font_t *face, const char *str, char *out, size_t size);
+// Keeps a label on one line of the given width: from then on setText() cuts longer text and ends it in "…".
 // (LVGL's own dot mode rewrites the label's text, so an unchanged name would look changed on every snapshot.)
 void clamp(lv_obj_t *label, int width);
 // The setters skip unchanged values: in LVGL 8 every style or text set repaints the object.

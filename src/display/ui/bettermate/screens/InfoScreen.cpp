@@ -45,8 +45,7 @@ void InfoScreen::build(lv_obj_t *root) {
 
     // The design draws no way back. The handle of every other screen stands in, and leads to the menu as
     // it does there; Back keeps the menu's ink disc where it was.
-    lv_obj_t *handle =
-        part(ui::disc(root, 240, 446, tokens::DISPLAY_TOUCH / 2, &bm_icon_chevron_up_32, Tone::Surface0, Tone::Muted), 2);
+    handle = part(ui::disc(root, 240, 446, tokens::DISPLAY_TOUCH / 2, &bm_icon_chevron_up_32, Tone::Surface0, Tone::Muted), 2);
     bind(handle, Intent::Back);
 
     network.clear();
@@ -81,17 +80,21 @@ void InfoScreen::present(const UiState &s, bool arriving) {
     }
     const bool scan = scannable;
 
-    ui::setText(label, s.accessPoint ? "SETUP NETWORK" : scan ? "CONNECTED TO" : "OFFLINE");
+    ui::setText(label, s.accessPoint ? "JOIN THIS WI-FI" : scan ? "CONNECTED TO" : "OFFLINE");
     // A clamped label no longer holds its own text, so the name is compared here.
     if (network != s.network) {
         network = s.network;
         ui::setText(title, network.c_str());
     }
     ui::setText(address, s.address.c_str());
-    ui::setText(caption, s.accessPoint ? "SCAN TO JOIN" : "SCAN TO OPEN");
+    ui::setText(caption, s.accessPoint ? "SCAN TO SET UP" : "SCAN TO OPEN");
     ui::setText(displayVersion, s.displayVersion.c_str());
     ui::setText(controllerVersion, s.controllerVersion.c_str());
     ui::setText(about, aboutAsked ? "NETWORK" : "ABOUT");
+
+    // Wi-Fi setup has no action and no way out: it ends when the machine has joined a network.
+    show(about, !setup);
+    show(handle, !setup);
 
     // ABOUT swaps the code for the versions. The face being left is cut at once and the one asked for
     // arrives a frame later, so the swap never repaints both in one frame.
