@@ -16,6 +16,8 @@ import { AppBar } from './components/AppBar.jsx';
 import { cx } from './components/cx.js';
 import { ModeBar, hidesModeBar } from './components/ModeNav.jsx';
 import { Navigation } from './components/Navigation.jsx';
+import { LiveRegions, Toasts } from './components/Toast.jsx';
+import { startAnnouncer } from './utils/announcer.js';
 
 // Each page lazy-loads as its own Vite chunk so the initial bundle stays small.
 // Chart.js and the analyzer/statistics views are too
@@ -119,6 +121,8 @@ function Shell() {
           {!bare && <ModeBar />}
         </div>
       </div>
+      <Toasts />
+      <LiveRegions />
     </>
   );
 }
@@ -135,5 +139,6 @@ export function App() {
 
 // Must be called before render
 initializeTheme();
+startAnnouncer();
 
 render(<App />, document.getElementById('app'));

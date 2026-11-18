@@ -1,8 +1,9 @@
 import { computed } from '@preact/signals';
-import { useContext, useEffect, useRef, useState } from 'preact/hooks';
+import { useContext } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { useQuery } from 'preact-fetching';
 import { Icon } from './Icon.jsx';
+import { toast } from './Toast.jsx';
 import { ApiServiceContext, machine } from '../services/ApiService.js';
 
 // The machine's modes by firmware id. Each glyph's meaning is fixed across both faces.
@@ -34,16 +35,10 @@ function lockReason({ connected, systemReady, flushing, mode }) {
   return ['Locked while a shot runs.', 'Stop the shot to change mode.'];
 }
 
-// How long the answer to a press on a locked mode stays, as a Toast does.
-const NOTE_MS = 5000;
-
 function ModeBarItems() {
   const apiService = useContext(ApiServiceContext);
   const { path, route } = useLocation();
   const s = status.value;
-  const [note, setNote] = useState(null);
-  const noteTimer = useRef();
-  useEffect(() => () => clearTimeout(noteTimer.current), []);
 
   // Same rules as the dashboard: anything but a ready controller locks the machine in standby.
   const systemReady = connected.value && (!s.system || s.system.state === 'ready');
@@ -58,11 +53,7 @@ function ModeBarItems() {
     flushing: !!s.process?.u,
     mode,
   });
-  // A note from an earlier lock goes once nothing is locked.
   const anyLocked = !systemReady || running;
-  useEffect(() => {
-    if (!anyLocked) setNote(null);
-  }, [anyLocked]);
 
   const { data: settings } = useQuery(
     'settings-cache',
@@ -76,11 +67,8 @@ function ModeBarItems() {
     if (id !== mode) apiService.send({ tp: 'req:change-mode', mode: id });
     if (path !== '/') route('/');
   };
-  const explain = () => {
-    clearTimeout(noteTimer.current);
-    setNote(answer);
-    noteTimer.current = setTimeout(() => setNote(null), NOTE_MS);
-  };
+  // A press on a locked mode answers in the one Toast region.
+  const explain = () => toast(answer);
 
   return (
     <>
@@ -105,9 +93,6 @@ function ModeBarItems() {
       <span id='modebar-lock' className='bm-sr'>
         {anyLocked ? reason : ''}
       </span>
-      <div className='bm-toasts' aria-live='polite'>
-        {note && <p className='bm-toast m-0'>{note}</p>}
-      </div>
     </>
   );
 }

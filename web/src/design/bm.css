@@ -1869,6 +1869,25 @@ input:checked:disabled + .bm-radio__box {
   }
 }
 
+/* Toast: enters with opacity and a 16px rise in duration-base, leaves by opacity alone in
+   duration-fast (Toast, States and timing). */
+.bm-toast {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.bm-toast.is-open {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+.bm-toast.is-leaving {
+  opacity: 0;
+  transform: none;
+  transition: opacity var(--duration-fast) var(--ease-in);
+}
+
 /* Placeholder for content that has not arrived: an empty cell. It does not shimmer. */
 .bm-skeleton {
   border-radius: var(--radius-sm);
