@@ -56,7 +56,11 @@ export function AppBar({ onOpenNav, navOpen = false }) {
           <Icon name='menu' />
         </button>
       )}
-      <a href='/' aria-label='BetterMate dashboard' className='justify-self-center'>
+      <a
+        href='/'
+        aria-label='BetterMate dashboard'
+        className='inline-flex min-h-11 items-center justify-self-center'
+      >
         <Wordmark />
       </a>
       {warnings > 0 && (

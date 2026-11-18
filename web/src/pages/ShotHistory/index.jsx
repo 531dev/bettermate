@@ -303,7 +303,8 @@ export function ShotHistory() {
       <PageHeader
         title='Shot history'
         tabs={
-          <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
+          // The links' 44px hit areas stop short of the search field under them.
+          <div className='flex flex-wrap items-center gap-x-4 gap-y-1 pb-1.5'>
             <a href='/analyzer' className='bm-link'>
               Analyzer
             </a>

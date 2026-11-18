@@ -103,8 +103,15 @@ export const Input = forwardRef(function Input({ unit, className, ...props }, re
         className={cx('bm-input', className)}
       />
     );
+  // The whole field is the input's target: a press on its padding or its unit focuses it.
+  const focusInput = event => {
+    const input = event.currentTarget.querySelector('input');
+    if (event.target === input || !input || input.disabled) return;
+    event.preventDefault();
+    input.focus();
+  };
   return (
-    <span className={cx('bm-input bm-input--group', className)}>
+    <span className={cx('bm-input bm-input--group', className)} onPointerDown={focusInput}>
       <input ref={ref} {...props} aria-describedby={describedBy} />
       <span className='bm-data'>{unit}</span>
     </span>

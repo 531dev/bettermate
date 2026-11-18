@@ -53,9 +53,36 @@
     gap: 6px;
   }
   .an-chipbtn {
+    position: relative;
     border: 0;
     cursor: pointer;
-    transition: color var(--duration-fast) var(--ease-out);
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out);
+  }
+  /* Drawn 24px tall, pressed on 36px (44px to a finger), like every control. */
+  .an-chipbtn::before {
+    content: '';
+    position: absolute;
+    inset: calc(var(--space-2) * -1) 0;
+  }
+  @media (pointer: coarse) {
+    .an-chipbtn::before {
+      inset: calc(var(--space-3) * -1) 0;
+    }
+  }
+  /* A neutral chip button steps one tone on hover and press, as every surface-2 control does. */
+  @media (hover: hover) {
+    .an-chipbtn:not([disabled]):not([class*='bm-chip--']):hover {
+      background-color: var(--control-hover);
+    }
+  }
+  .an-chipbtn:not([disabled]):active {
+    transform: scale(0.97);
+  }
+  .an-chipbtn:not([disabled]):not([class*='bm-chip--']):active {
+    background-color: var(--control-hover);
   }
   .an-chipbtn:focus-visible {
     outline: var(--outline) solid var(--focus);
