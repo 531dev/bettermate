@@ -832,11 +832,9 @@ async function flows() {
 
   // Select a profile.
   const row = (name) =>
-    page
-      .locator(".profile-card-container")
-      .filter({
-        has: page.locator(".bm-item__title").getByText(name, { exact: true }),
-      });
+    page.locator(".profile-card-container").filter({
+      has: page.locator(".bm-item__title").getByText(name, { exact: true }),
+    });
   const inUse = (name) =>
     page.waitForFunction(
       (label) =>
@@ -1123,7 +1121,7 @@ async function states() {
     });
     await capture(page, "state-connecting");
     await step(
-      "offline: after 5 s a danger Notice that interrupts, with TRY AGAIN",
+      "offline: after 5 s a danger Notice that interrupts, without a TRY AGAIN of its own on the Dashboard",
       async () => {
         const notice = noticeTitled(page, "The machine is offline");
         await notice.waitFor({ timeout: 6000 });
@@ -1135,7 +1133,8 @@ async function states() {
           ))
         )
           throw new Error("not danger");
-        await notice.getByRole("button", { name: "Try again" }).waitFor();
+        const buttons = await notice.getByRole("button").count();
+        if (buttons) throw new Error(`${buttons} buttons in the Notice`);
       },
     );
     await step(
@@ -1176,14 +1175,15 @@ async function states() {
     );
     await capture(page, "state-offline");
     await step(
-      "offline: Save in Settings is disabled and says why",
+      "offline: in Settings the Notice says TRY AGAIN, and Save is disabled and says why",
       async () => {
         await page.goto(url("/settings/general"), {
           waitUntil: "domcontentloaded",
         });
-        await noticeTitled(page, "The machine is offline").waitFor({
-          timeout: 8000,
-        });
+        const notice = noticeTitled(page, "The machine is offline");
+        await notice.waitFor({ timeout: 8000 });
+        // No ActionBanner here, so the Notice carries TRY AGAIN.
+        await notice.getByRole("button", { name: "Try again" }).waitFor();
         const save = page.locator(".bm-pinned button");
         await save.waitFor();
         if (!(await save.isDisabled())) throw new Error("Save is enabled");
@@ -1251,6 +1251,79 @@ async function states() {
       },
     );
     await capture(page, "state-fault");
+    await context.close();
+  }
+
+  // Hardware not present: no scale (`bta` false). Simple leaves the weight out; Advanced keeps its
+  // tile with an EmptyState; the choice of stopping by weight shows Time, disabled, with the reason.
+  for (const size of ["phone", "desktop"]) {
+    const { context, page, problems } = await open(size, "light", {
+      view: "advanced",
+    });
+    await relay(page, {
+      edit: (msg) => (msg.tp === "evt:status" ? { ...msg, bta: false } : msg),
+    });
+    m.send({ tp: "req:change-mode", mode: 1 });
+    await m.until((s) => s.m === 1, "brew");
+    await goto(page, "/", "Dashboard");
+    await step(
+      `no scale: the Weight tile keeps its title and says what is missing, with one button (${size})`,
+      async () => {
+        const tile = page.locator(".bm-tile", {
+          has: page.locator(".bm-empty__title", {
+            hasText: "No scale connected",
+          }),
+        });
+        await tile.waitFor({ timeout: 4000 });
+        const title = (await tile.locator(".bm-tile__head").innerText()).trim();
+        if (title.toLowerCase() !== "weight")
+          throw new Error(`titled ${title}`);
+        const link = tile.getByRole("link", { name: "Pair a scale" });
+        if ((await link.getAttribute("href")) !== "/settings/bluetooth")
+          throw new Error("no link to pair a scale");
+      },
+    );
+    await step(
+      `no scale: stop shot by shows Time, disabled, and says why (${size})`,
+      async () => {
+        const group = page.getByRole("group", { name: "Stop shot by" });
+        const time = group.getByRole("button", { name: "Time" });
+        const weight = group.getByRole("button", { name: "Weight" });
+        if ((await time.getAttribute("aria-pressed")) !== "true")
+          throw new Error("Time is not chosen");
+        if (!(await weight.isDisabled()))
+          throw new Error("Weight can be chosen");
+        const help = await group.getAttribute("aria-describedby");
+        const reason =
+          help && (await page.locator(`[id="${help}"]`).innerText());
+        if (reason !== "Connect a scale to use this.")
+          throw new Error(`help: ${reason}`);
+      },
+    );
+    await capture(page, `state-no-scale-${size}`);
+    await page.evaluate(() => localStorage.setItem("dashboardMode", "simple"));
+    await goto(page, "/", "Dashboard");
+    await step(`no scale: Simple leaves the weight out (${size})`, async () => {
+      await page.locator(".home-reading").first().waitFor();
+      const empty = await page
+        .locator(".bm-empty", {
+          hasText: "No scale connected",
+        })
+        .count();
+      const weight = await page
+        .locator(".home-reading", {
+          hasText: /^Weight/i,
+        })
+        .count();
+      if (empty || weight) throw new Error(`${empty} empty, ${weight} weight`);
+    });
+    m.send({ tp: "req:change-mode", mode: 0 });
+    await m.until((s) => s.m === 0, "standby");
+    check(
+      problems.length === 0,
+      `no scale: no errors in the console (${size})`,
+      problems.join(" | "),
+    );
     await context.close();
   }
 

@@ -2,7 +2,9 @@ import { Fragment } from 'preact';
 import { useLocation } from 'preact-iso';
 import { ActionBanner } from '../../components/ActionBanner.jsx';
 import { shownWarnings } from '../../components/AppBar.jsx';
+import { Button } from '../../components/Button.jsx';
 import { cx } from '../../components/cx.js';
+import { EmptyState } from '../../components/EmptyState.jsx';
 import { OverviewChart } from '../../components/OverviewChart.jsx';
 import { ProcessProfileChart } from '../../components/ProcessProfileChart.jsx';
 import { SkeletonBlock } from '../../components/SkeletonBlock.jsx';
@@ -55,7 +57,29 @@ function listedWarnings(ds, view) {
   return activeWarnings(ds.warnings).filter(w => keys.has(w.key));
 }
 
+/**
+ * Which readings of a two-column group take a whole row: an empty tile, and the reading left
+ * alone before it.
+ */
+function fullRows(stats) {
+  const readings = stats.filter(stat => !stat.empty).length;
+  return stats.map((stat, i) => !!stat.empty || (readings % 2 === 1 && i === readings - 1));
+}
+
 function Reading({ stat, className }) {
+  if (stat.empty === 'scale') {
+    return (
+      <Tile title={stat.label} className={cx('home-reading', className)}>
+        <EmptyState
+          icon='scale'
+          title='No scale connected'
+          action={<Button href='/settings/bluetooth'>Pair a scale</Button>}
+        >
+          With a scale, shots stop at their target weight.
+        </EmptyState>
+      </Tile>
+    );
+  }
   return (
     <StatTile
       label={stat.label}
@@ -138,6 +162,7 @@ export function Dashboard({ view: mode }) {
     finishedStats,
     recent,
   });
+  const full = fullRows(stats);
 
   const brewing = ds.isBrewing && !ds.processInfo?.u && (ds.isActive || ds.isFinished);
   // Nothing moves between shots, so Simple only charts a shot and its result.
@@ -160,8 +185,8 @@ export function Dashboard({ view: mode }) {
       action: action && <ActionBanner {...action} />,
       metrics: stats.length > 0 && (
         <div role='group' aria-label='Readings' className={cx(PAIRS, ODD_LAST, 'lg:gap-3')}>
-          {stats.map(stat => (
-            <Reading key={stat.id} stat={stat} />
+          {stats.map((stat, i) => (
+            <Reading key={stat.id} stat={stat} className={full[i] && 'col-span-2'} />
           ))}
         </div>
       ),
@@ -216,6 +241,7 @@ export function Dashboard({ view: mode }) {
     hasSetup: hasSetup(ds),
     stats: stats.length,
     hasChart: showChart,
+    emptyLast: !!stats.at(-1)?.empty,
   });
   return (
     <>
@@ -245,7 +271,11 @@ export function Dashboard({ view: mode }) {
             )}
           >
             {stats.map((stat, i) => (
-              <Reading key={stat.id} stat={stat} className={at.stats[i]} />
+              <Reading
+                key={stat.id}
+                stat={stat}
+                className={cx(at.stats[i], full[i] && 'max-[75rem]:col-span-2')}
+              />
             ))}
           </div>
         )}

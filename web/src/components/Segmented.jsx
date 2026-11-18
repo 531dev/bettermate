@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { cx } from './cx.js';
+import { useDescribedBy } from './Field.jsx';
 import { Icon } from './Icon.jsx';
 
 /**
@@ -27,6 +28,8 @@ export function Segmented({
   className,
 }) {
   const track = useRef();
+  // A Setting's help describes the group too.
+  const described = useDescribedBy(describedBy);
   useEffect(() => {
     if (!scroll || !track.current) return;
     const selected = track.current.querySelector('[aria-pressed="true"]');
@@ -42,7 +45,7 @@ export function Segmented({
       ref={track}
       role='group'
       aria-label={label}
-      aria-describedby={describedBy}
+      aria-describedby={described}
       className={cx(
         'bm-seg',
         block && !scroll && 'bm-seg--block',

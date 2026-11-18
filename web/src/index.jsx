@@ -108,7 +108,7 @@ function Shell() {
             <div className={cx('bm-page', !hidesModeBar(path) && 'bm-page--modebar')}>
               <div className='grid min-w-0 flex-1 grid-cols-1'>
                 <div className='min-w-0'>
-                  {!bare && <MachineNotice className='mb-2 lg:mb-3' />}
+                  {!bare && <MachineNotice className='mb-2 lg:mb-3' retry={path !== '/'} />}
                   <ErrorBoundary>
                     <Router>
                       <Route path='/' component={Home} />

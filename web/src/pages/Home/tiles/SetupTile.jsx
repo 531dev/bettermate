@@ -78,15 +78,17 @@ function Temperature({ ds, disabled }) {
   );
 }
 
-function StopBy({ label, value, onChange, disabled }) {
+// Without a scale the machine stops by time, so the choice shows Time and says what it needs
+// (Product states, Hardware not present).
+function StopBy({ label, value, onChange, disabled, scale }) {
   return (
-    <Setting label={label}>
+    <Setting label={label} help={scale ? undefined : 'Connect a scale to use this.'}>
       <Segmented
         label={label}
         options={STOP_BY}
-        value={value}
+        value={scale ? value : 0}
         onChange={onChange}
-        disabled={disabled}
+        disabled={disabled || !scale}
       />
     </Setting>
   );
@@ -108,14 +110,13 @@ export function SetupTile({ ds, className }) {
     const locked = isActive || isFinished;
     return (
       <Tile aria-label='Grind setup' className={className}>
-        {ds.volumetricAvailable && (
-          <StopBy
-            label='Stop grinding by'
-            value={ds.grindTarget ? 1 : 0}
-            onChange={ds.changeTarget}
-            disabled={locked}
-          />
-        )}
+        <StopBy
+          label='Stop grinding by'
+          value={ds.grindTarget ? 1 : 0}
+          onChange={ds.changeTarget}
+          disabled={locked}
+          scale={!!ds.volumetricAvailable}
+        />
         <Setting label='Grind target'>
           <Stepper
             value={grindTargetLabel(ds)}
@@ -154,14 +155,13 @@ export function SetupTile({ ds, className }) {
     >
       <Favourites selectedProfileId={ds.selectedProfileId} disabled={locked} />
       <Temperature ds={ds} disabled={locked} />
-      {ds.volumetricAvailable && (
-        <StopBy
-          label='Stop shot by'
-          value={ds.brewTarget ? 1 : 0}
-          onChange={ds.changeTarget}
-          disabled={locked}
-        />
-      )}
+      <StopBy
+        label='Stop shot by'
+        value={ds.brewTarget ? 1 : 0}
+        onChange={ds.changeTarget}
+        disabled={locked}
+        scale={!!ds.volumetricAvailable}
+      />
       {ds.volumetricAvailable && ds.brewTarget && ds.targetWeight > 0 && (
         <Setting label='Target weight'>
           <Stepper

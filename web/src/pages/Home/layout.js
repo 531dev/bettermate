@@ -6,7 +6,8 @@
 //   three or four         the readings are a column of their own, one to a row, and the banner
 //                         and Setup share those rows. Simple never has more than four.
 //   more (Advanced)       two beside the dial as above; the rest follow in rows that share the
-//                         12 columns evenly.
+//                         12 columns evenly. An empty tile (no scale) comes last, on a row of
+//                         its own: it is taller than a reading, and would stretch its neighbours.
 //
 // Then the profile curve (12), and the chart (7) beside the recent shots (5). A tile grows to
 // fill its row; nothing leaves a ragged edge, and no reading is stretched across the page.
@@ -72,10 +73,11 @@ function column(lead, stats, hasChart) {
 }
 
 /**
- * Places the ActionBanner, the Setup tile, `stats` readings and the recent shots.
+ * Places the ActionBanner, the Setup tile, `stats` readings and the recent shots. `emptyLast`
+ * says the last reading is an empty tile.
  * Returns the classes of { dial, action, setup, stats: [one per reading], recent }.
  */
-export function place({ hasAction, hasSetup, stats, hasChart }) {
+export function place({ hasAction, hasSetup, stats, hasChart, emptyLast = false }) {
   // The banner and Setup take the left of a row each, in that order; readings fill what is left.
   const lead = [hasAction && 'action', hasSetup && 'setup'].filter(Boolean);
   if (lead.length > 0 && (stats === 3 || stats === 4)) return column(lead, stats, hasChart);
@@ -112,6 +114,8 @@ export function place({ hasAction, hasSetup, stats, hasChart }) {
       : RECENT.alone;
 
   // The rest: rows of at most four, as even as they come, each sharing the 12 columns.
+  const empty = emptyLast && waiting.at(-1) === stats - 1 ? waiting.pop() : null;
+  if (empty != null) placed.stats[empty] = SHARE[1];
   const count = Math.ceil(waiting.length / 4);
   for (let r = 0; r < count; r++) {
     const size = Math.ceil(waiting.length / (count - r));

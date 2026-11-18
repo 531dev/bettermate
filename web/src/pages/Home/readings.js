@@ -65,7 +65,8 @@ function lastShot({ shots, loading }) {
 }
 
 /**
- * The readings of the dashboard, in order, each as the props of a StatTile plus `id` and `note`.
+ * The readings of the dashboard, in order, each as the props of a StatTile plus `id` and `note`,
+ * or `empty: 'scale'` for the Weight tile of a machine without a scale.
  *   view           'simple', 'advanced' or 'custom'
  *   chosen         the reading ids of the Customize view
  *   finishedStats  useFinishedStats(): the finished shot's max pressure and average flow
@@ -86,13 +87,20 @@ export function pickReadings(ds, { view, chosen = [], finishedStats, recent }) {
         : shotRunning
           ? SHOT
           : restingIds(ds, shotFinished);
+  // Simple leaves the weight out without a scale; where it is asked for, its tile says what is
+  // missing (Product states, Hardware not present).
+  const noScale = metric => metric.id === 'weight' && view !== 'simple' && ds.hasReading;
   const live = ids
     .map(metricById)
     .filter(Boolean)
-    .filter(metric => (view === 'custom' ? metric.available(ds) : metric.present(ds)))
+    .filter(
+      metric => noScale(metric) || (view === 'custom' ? metric.available(ds) : metric.present(ds)),
+    )
     .map(metric => {
       // Until the first telemetry there is nothing to read: a dash and an unlit bar.
       if (!ds.hasReading) return { id: metric.id, label: metric.label, bar: {} };
+      if (noScale(metric) && !metric.present(ds))
+        return { id: metric.id, label: metric.label, empty: 'scale' };
       const stat = {
         id: metric.id,
         label: metric.label,
@@ -103,8 +111,13 @@ export function pickReadings(ds, { view, chosen = [], finishedStats, recent }) {
       return stat;
     });
 
-  if (shotFinished) return [...results(finishedStats), ...live];
   // The last shot belongs to the resting machine, where the next one is decided.
   const resting = view !== 'custom' && mode <= 1 && !shotRunning;
-  return resting ? [...live, ...lastShot(recent)] : live;
+  const all = shotFinished
+    ? [...results(finishedStats), ...live]
+    : resting
+      ? [...live, ...lastShot(recent)]
+      : live;
+  // An empty tile is taller than a reading: it goes last, on a row of its own.
+  return [...all.filter(stat => !stat.empty), ...all.filter(stat => stat.empty)];
 }

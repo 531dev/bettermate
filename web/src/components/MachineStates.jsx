@@ -31,9 +31,10 @@ function useLate(active, ms) {
 /**
  * The one Notice about the machine as a whole, first on every page: a fault that blocks brewing,
  * offline, connecting, or how the last update went. Only the most severe shows (Product states,
- * When several are true); the rest wait in their Chips.
+ * When several are true); the rest wait in their Chips. `retry` is false on the Dashboard, whose
+ * ActionBanner already says TRY AGAIN (one action, in one place).
  */
-export function MachineNotice({ className }) {
+export function MachineNotice({ className, retry = true }) {
   const link = connection.value;
   const problem = fault.value;
   const update = ota.value;
@@ -69,9 +70,11 @@ export function MachineNotice({ className }) {
         className={className}
         title='The machine is offline'
         actions={
-          <Button variant='outline' onClick={retryConnection}>
-            Try again
-          </Button>
+          retry && (
+            <Button variant='outline' onClick={retryConnection}>
+              Try again
+            </Button>
+          )
         }
       >
         {seen ? `Last seen ${clock(seen)}. ` : ''}Check that it is switched on and on Wi-Fi.
