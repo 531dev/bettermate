@@ -171,6 +171,43 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
       now says it sets the display's clock. A recent shot older than yesterday shows `11 Nov` on a phone instead
       of the weekday (amends item 14). History's day tiles read `11 November`.
     - **Favourites.** Up to ten favourites in a scrolling track (was three squeezed into thirds).
+20. Lane W2 of `DS-1116-LANES.md`, web components and product states (2026-11-17):
+    - **Components.** Notice, Toast, EmptyState, Loader, Dialog (with ConfirmDialog), NumberField and
+      MenuSeparator are new; Menu, Tooltip, Tile, the mode bar and the top bar follow their cards. Spinner,
+      Sheet, ConfirmButton, ConfirmMenuItem, `useConfirmAction` and the paragraph Notice of part 2 are gone.
+      Popover stays (the Analyzer's and Statistics' filters; the design has no card for it), and so do the
+      skeletons of Settings tabs, the profile curve and Recent shots while a list loads (they are not readings).
+    - **One status region.** The Toast region is not itself live: a Toast's words go to the one hidden
+      `role="status"` region (a failure to the one `role="alert"` region), which also says the mode, Heating,
+      Ready, Shot started, each phase and "Shot finished: 30.2 seconds, 36.1 grams." Offline and a fault are
+      said by their live danger Notice, not by a second sentence.
+    - **Deleting asks in a Dialog** (profile, all profiles, a shot) instead of arming a control for 4 s; the
+      shot's delete is a ghost DELETE button. The top bar's menu button is named "Menu" (was "Open navigation").
+    - **NumberField** is used by every `FormField` number with a unit of up to four characters, in Settings as
+      well as the profile editor. Up and Down add the field's own step but at least 0.1 (temperature steps 0.1
+      where the card's table says 0 decimals, because the editor's field has `step='0.1'`). A range is said
+      under the field when focus leaves, not only on save.
+    - **Connection.** Connecting shows only after 1 s (a page that connects at once does not flash a Notice);
+      after a loss it is Connecting for 5 s and then Offline. Offline, the readings show `—` although the last
+      ones are still known. `ApiService` now retries every 5 s at most (was a backoff to 30 s) and has
+      `reconnect()` for TRY AGAIN: a change to how it reconnects, not to the contract.
+    - **Faults** are the display's `sys` states `error`, `waiting` (controller not found) and `mismatch`, each
+      with its own words; `starting` and `autotuning` are not faults. There is no RESTART on the web: no request
+      restarts the controller. A mismatch links to Settings, System. Only Standby stays unlocked.
+    - **Command pending** covers START and STOP (shot, flush, water, grind). Wake, Done and mode changes are not
+      held. A brew that the controller asks to confirm first counts as an answer.
+    - **Updates.** "Version X is ready" is on every Settings tab, with INSTALL (the display's firmware first
+      when both parts have one) and DETAILS. Updating takes the window from the press of INSTALL (given up with
+      a Toast after 10 s without progress) until the machine is back: after phase 4 it waits for the
+      connection to drop and return, or 20 s. "Updated to X" and "The update failed" have a close button: the
+      design gives them no end, and nothing else would clear them.
+    - **Saving.** Settings says "Settings saved" in a Toast (the Saved Chip is gone; "Saved, restarting"
+      stays). A profile save that fails used to leave SAVING forever; it now keeps the form, shows a danger
+      Notice above it and repeats it in a Toast. Offline, both Saves are disabled with "The machine is
+      offline. Save once it is back."
+    - **Not done:** Hardware not present (the Weight tile's EmptyState, settings disabled with "Connect a
+      scale to use this") and the Wi-Fi scan states of Setup (a "Scanning" Select, "No networks found" with
+      SCAN AGAIN, the 15 s limit). The first start screen was not touched.
 
 ## 4. Restarting — one prompt per session
 
@@ -230,3 +267,4 @@ The web page lanes, the web integration and the display loose ends are done; the
 | `90488c24`, `90034020`, `4cd810c7` | Display loose ends: 466 px, the origin repaint, up to 16 stage bars. |
 | `b4777ead`, `e2aab814`, `9632fb4e`, `e4008dbf`, `6c30de97` | Web integration: shared fixes, promotions, `verify_web_ui.mjs`, `docs/webui/`. |
 | `a8a7aaf9`, `60863d34`, `cad656c2`, `989b33cd`, `61d3a45a`, `21b27d42`, `4930eb7f` | Lane W1 (2026-11-16 revision, web fixes): `bm.css` part 1 re-synced and no opacity for state; field help linked and no instructions in placeholders; readable locked modes; chart dashes, end labels and spoken labels; glyphs on warning and danger Chips; 44 px targets; favourites scroll, 24-hour times, 320 px. `verify_web_ui.mjs` passes 1,008 assertions against Vite and the seeded simulator. |
+| `d7d1c7b4`, `915ce19b`, `4f569fc1`, `393905cc`, `d6ab70bc`, `0a4b9f43`, `08ec8925`, `b8d68cc8` | Lane W2 (2026-11-16 revision, web components and product states): Notice and Loader; one Toast region and one status region; Dialog and ConfirmDialog for deletions, Menu details; EmptyState, NumberField, Tooltip, Tile and top bar details; Connecting, Offline, fault, command pending, update ready, updating, saving; the Updating page lazy; `verify_web_ui.mjs` gains a states part; it passes 1,190 assertions against Vite and the seeded simulator. Web bundle 370,154 bytes gzipped (+4,766), entry script 24,663 (+5,999). |
