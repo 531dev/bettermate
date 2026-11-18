@@ -149,6 +149,28 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
     focused, as the profile editor's do; the pump flow calibration's buttons are all secondary, so Cancel and
     Start calibration look alike; Setup has no focus trap (the shell is not rendered under it, so Tab leaves for
     the browser as on any page); a wide `end` in a tile head moves under the title.
+19. Lane W1 of `DS-1116-LANES.md`, the web fixes of the 2026-11-16 revision (2026-11-17):
+    - **Recipes.** `bm.css` part 1 is the new `bundle.css` again; part 2 keeps the Dial-tick segment bars (6 px
+      apart, 3 px in a fill track: spacing outside the `space-*` scale, kept on purpose) and the app's paragraph
+      Notice (words in the tone's colour) until Lane W2 brings the design's Notice. `bm-tick` is `data` (13 px, was
+      11). The desktop ActionBanner keeps `button-lg` (it was enlarged to 20 px). `control-sm` (36 px) stays for a
+      fine pointer and grows to 44 px on touch; a 28 px icon button has a 36 px hit area.
+    - **Locked modes.** As the user decided, Steam locks with the others while a process runs. A locked mode is
+      `aria-disabled`, focusable, described by a hidden sentence that names the cause (shot, flush, grinding, water,
+      not connected, not ready), and a press answers above the mode bar for 5 s ("Stop the shot to change mode.").
+      That answer is a provisional Toast inside `ModeNav.jsx`; Lane W2 should move it into the one Toast region.
+    - **Fields.** An error replaces the help under its field, as the design says (item 18 kept both). Optional
+      fields say "Optional" beside the label.
+    - **Charts.** Only the shared charts (`chartTheme.js`: Dashboard, History, profile curves) follow the Chart
+      card. The Analyzer and Statistics charts are unchanged: their compare mode already draws shot 2 dashed, so
+      a dashed flow line would clash there. The shared charts keep their two value axes; the end labels sit in a
+      gutter right of the right-hand axis, not on the design's single-axis anatomy. A target is a fine 2 3 dash at
+      1.5 px and an estimate (puck flow, weight flow) a fine dash-dot, so neither reads as flow or weight. Shot
+      history still draws up to six readings where the design says at most four.
+    - **Times.** The web is always on the 24-hour clock (Content: "no AM or PM"); the machine's "Use 24h format"
+      now says it sets the display's clock. A recent shot older than yesterday shows `11 Nov` on a phone instead
+      of the weekday (amends item 14). History's day tiles read `11 November`.
+    - **Favourites.** Up to ten favourites in a scrolling track (was three squeezed into thirds).
 
 ## 4. Restarting — one prompt per session
 
@@ -207,3 +229,4 @@ The web page lanes, the web integration and the display loose ends are done; the
 | `2014b256`, `abfb0e82`, `ee556143` | Dashboard lane. |
 | `90488c24`, `90034020`, `4cd810c7` | Display loose ends: 466 px, the origin repaint, up to 16 stage bars. |
 | `b4777ead`, `e2aab814`, `9632fb4e`, `e4008dbf`, `6c30de97` | Web integration: shared fixes, promotions, `verify_web_ui.mjs`, `docs/webui/`. |
+| `a8a7aaf9`, `60863d34`, `cad656c2`, `989b33cd`, `61d3a45a`, `21b27d42`, `4930eb7f` | Lane W1 (2026-11-16 revision, web fixes): `bm.css` part 1 re-synced and no opacity for state; field help linked and no instructions in placeholders; readable locked modes; chart dashes, end labels and spoken labels; glyphs on warning and danger Chips; 44 px targets; favourites scroll, 24-hour times, 320 px. `verify_web_ui.mjs` passes 1,008 assertions against Vite and the seeded simulator. |

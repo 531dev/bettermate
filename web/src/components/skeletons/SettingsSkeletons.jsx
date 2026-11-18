@@ -75,7 +75,7 @@ export function BluetoothTabSkeleton() {
     <TileSkeleton>
       {Array.from({ length: 3 }, (_, i) => (
         <div key={i} className='flex min-h-15 items-center gap-3'>
-          <SkeletonBlock className='h-10 w-10 shrink-0 rounded-pill' />
+          <SkeletonBlock className='rounded-pill h-10 w-10 shrink-0' />
           <div className='flex flex-1 flex-col gap-2'>
             <SkeletonBlock className='h-4 w-28' />
             <SkeletonBlock className='h-3 w-40' />

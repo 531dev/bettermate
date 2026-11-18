@@ -36,12 +36,12 @@ more pages use out of the pages (the last section says what moved and what staye
 | `Card.jsx` | default `Card` | `xs,sm,md,lg,xl,title,className,role,fullHeight` | The old API on a Tile |
 | `CardTitle.jsx` | `CardTitle` | `className` | `h3.bm-eyebrow` |
 | `StatTile.jsx` | `Stat`, `StatTile` | Stat: `label, value, unit, target, bar{value,target,tone,total}, size('sm'), children`; StatTile adds `chip, heating` | A reading; a missing value shows `—` |
-| `Chip.jsx` | `Chip` | `tone, dot(true\|css color), className` | Status word |
+| `Chip.jsx` | `Chip`, `TONE_GLYPH` | `tone, dot(true\|css color), className` | Status word; a `warning` Chip leads with `triangle-alert`, a `danger` one with `circle-alert` (14 px) |
 | `SegmentBar.jsx` | `SegmentBar`, `Dots` | SegmentBar: `value 0..1, target 0..1, total=20, tone, fill=true, label, as`; Dots: `on, total, cols, label` | Segments, dot matrix |
-| `Segmented.jsx` | `Segmented` | `options[{value,label,icon?,disabled?,title?}]\|strings, value, onChange, label, block, onTile, disabled` | A choice of two or three. `block` items share the width on 8 px of padding and stay as wide as their word; for labels without a limit add `[&>button]:min-w-0` and wrap each label in a `truncate` span |
+| `Segmented.jsx` | `Segmented` | `options[{value,label,icon?,disabled?,title?}]\|strings, value, onChange, label, block, scroll, onTile, disabled, describedBy` | A choice of two or three. `block` items share the width equally and their labels end in an ellipsis; `scroll` is a sideways track for more (favourite profiles) |
 | `Stepper.jsx` | `Stepper` | `value, onDecrease, onIncrease, canDecrease, canIncrease, decreaseLabel, increaseLabel, onCell, disabled` | Holding repeats |
 | `ListRow.jsx` | `List`, `ListRow` | `href\|onClick, icon, current, title, meta, end, action` | `action` holds a Menu outside the row's target |
-| `Field.jsx` | `Field`, `Setting`, `Input`, `Select`, `Textarea`, `Switch`, `Checkbox`, `Radio` | Field: `label, help, htmlFor, as`; Setting: `label, help, htmlFor`; Input: `unit` + native; Switch: `checked, onChange(next), label, name, id, disabled` | Input, Select and Textarea forward refs. A number input with a `unit` has no spin buttons |
+| `Field.jsx` | `Field`, `Setting`, `Input`, `Select`, `Textarea`, `Switch`, `Checkbox`, `Radio`, `useDescribedBy` | Field: `label, help, htmlFor, as, optional`; Setting: `label, help, htmlFor`; Input: `unit` + native; Switch: `checked, onChange(next), label, name, id, disabled` | Input, Select and Textarea forward refs; with Switch they are described by the help of the Field or Setting around them. Instructions go in `help`, never in a placeholder. Select is the bundle's markup (`bm-inputwrap` > `select.bm-select` + chevron); its `className` reaches the wrapper. A number input with a `unit` has no spin buttons |
 | `FormField.jsx` | `FormField`, `PasswordField`, `SelectField`, `SegmentedField`, `Choice`, `StepperSetting`, `FieldError`, `FormErrors`, `useFieldError`, `useFormValidation` | FormField: `id, label, help, unit, multiline, error` + native; Choice: `id, label, help, options, value, onChange`; the others: `label, help` + the control's props | The fields of a form saved as a whole (Settings, the profile editor). `FormErrors.Provider value={{ id: message }}` gives each field its problem, shown as a danger notice under the control (`id-error`). `useFormValidation()` turns the browser's own validation into those messages. A number field keeps what is typed while it has focus |
 | `Button.jsx` | `Button` | `variant('primary'\|'ink'\|'outline'\|'ghost'\|'danger'), size('sm'\|'lg'), iconOnly, block, href, type` | Forwards its ref |
 | `IconButton.jsx` | `IconButton` | `icon, label, size('sm'), pressed, href, iconSize=18` | `bm-iconbtn`: a round ghost button for dense toolbars and rows; 36 px (28 px `sm`), 44 px for a finger. Forwards its ref |
@@ -63,7 +63,7 @@ more pages use out of the pages (the last section says what moved and what staye
 | `SettingsFormField.jsx` | `ToggleField`, `SortableConfigurator` | ToggleField: `label, htmlFor, checked, onChange, helpText`; SortableConfigurator: `order, definitions, hidden, onOrderChange, emptyMessage, extraControls` | ToggleField is a Switch and still reports `event.target.checked` |
 | `AppBar.jsx` | `AppBar`, `shownWarnings(status)` | | Use `shownWarnings` wherever warnings are listed |
 | `ModeNav.jsx` | `ModeBar`, `MODES`, `hidesModeBar(path)` | | The one floating mode bar |
-| `Chart.jsx` | `ChartComponent`, `ChartLegend` | ChartComponent: `data, className, plotClassName, plotStyle, chartClassName, legend, label, chartRef`; ChartLegend: `datasets, className` | A Chart.js line chart with its legend as neutral Chips above the canvas. `data` is a config built with `utils/chartTheme.js`; nothing animates |
+| `Chart.jsx` | `ChartComponent`, `ChartLegend` | ChartComponent: `data, className, plotClassName, plotStyle, chartClassName, legend, label, chartRef`; ChartLegend: `datasets, className` | A Chart.js line chart: lines told apart by dash and weight, each named at its right end (value and unit), the legend (Chips with line samples) only over 480 px, the canvas `role="img"` with a label of series, span and final values (`label` is said first). `data` is a config built with `utils/chartTheme.js`; nothing animates |
 | `OverviewChart.jsx` | `OverviewChart`, `clearPhaseTransitions` | `hour12` | The live chart: a shot from 0 s, the last minute on the clock between shots. `hour12` is the machine's clock setting |
 | `ExtendedProfileChart.jsx`, `ProcessProfileChart.jsx` | `ExtendedProfileChart`, `ProcessProfileChart` | `data, className, style, selectedPhase, onPhaseClick, showPhaseLabels`; Process: `data, processInfo, className, style` | A profile's pressure and flow curve; `style` sizes the plot. Process marks the running phase |
 | `PumpFlowCalibration/` | default | `currentCoeffs, onApplied` | The pump flow calibration run of Settings, Calibration |
@@ -76,6 +76,7 @@ Outside `components/`:
 | File | Export | Purpose |
 | --- | --- | --- |
 | `utils/chartTheme.js` | `chartOptions({scales, annotations})`, `line(series, label, data, {kind})`, `valueAxis({min,max}, {position, grid, format, hidden})`, `secondsAxis(min, max, format)`, `secondsStep(span)`, `niceAxis(low, high)`, `phaseLine(x, name, showName)`, `band(xMin, xMax)`, `applyChartTheme(config, canvas)`, `seriesColor(series)`, `chartFont()`, `bandColor(kind)`, `DASHED` | The builders of a shared chart's config, following the Charts rules of `web-ui.md`. They leave colours and fonts out; `applyChartTheme` resolves the tokens into the config before the chart is built and again on a theme change (`ChartComponent` calls it) |
+| `utils/time.js` | `clock`, `clockOf`, `when`, `dayHeading`, `shortDate`, `dateTime`, `daysAgo`, `toDate` | Times and dates as Content writes them: `14:41`, `Today 14:41`, `12 Nov 07:12`, `11 November`; always 24-hour |
 | `hooks/useMediaQuery.js` | `useMediaQuery(query)` | Whether a media query matches, kept current, for what CSS cannot do alone |
 | `hooks/useConfirmAction.js` | `useConfirmAction(timeoutMs)` | Arm, then run: behind `ConfirmButton` and the Profiles page's confirming menu item |
 
@@ -98,9 +99,9 @@ items fit a 320 px phone); `bm-tile__head` wraps, so an end too wide for the row
 
 ## Decisions taken in the foundation
 
-- The mode lock is kept as it was: while a process runs every other mode is disabled, and nothing locks while the
-  machine is in Steam (leaving Steam is how steaming ends). The design's mock draws Steam enabled during a shot; a web
-  mode change stops the running process, so the lock stays.
+- The mode lock is kept (the user, 2026-11-17): while a process runs every other mode is locked, Steam included, and
+  nothing locks while the machine is in Steam. Locked is not disabled: `aria-disabled`, focusable, `ink-faint`, with
+  its reason in a hidden sentence and in words above the bar when pressed.
 - The top bar shows a back arrow instead of the menu on detail pages. Its warning glyph appears when
   `shownWarnings(status)` is not empty: none in standby, flush only in Brew, never `temperature`.
 - The collapsible desktop rail and the phone-landscape mode rail are gone: one floating mode bar at every size.
