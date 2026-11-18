@@ -129,7 +129,6 @@ export function ExtendedPhase({ phase, index, onChange, pressureAvailable }) {
           <FormField
             id={`phase-${index}-name`}
             label='Phase name'
-            placeholder='Name'
             value={phase.name}
             onInput={e => onFieldChange('name', e.target.value)}
           />

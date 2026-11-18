@@ -1,29 +1,66 @@
+import { createContext } from 'preact';
 import { forwardRef } from 'preact/compat';
+import { useContext, useId } from 'preact/hooks';
 import { cx } from './cx.js';
 import { Icon } from './Icon.jsx';
 
-function FieldLabel({ htmlFor, children }) {
+// The id of the help under a Field or a Setting, so that the control inside reads it with its name.
+const FieldHelp = createContext(undefined);
+
+/**
+ * The control's `aria-describedby`: what it was given, then the help of the Field around it.
+ * Input, Select, Textarea and Switch use it; a control of a page's own can too.
+ */
+export function useDescribedBy(given) {
+  const help = useContext(FieldHelp);
+  return [given, help].filter(Boolean).join(' ') || undefined;
+}
+
+function FieldLabel({ htmlFor, optional, children }) {
+  const content = optional ? (
+    <>
+      <span className='min-w-0'>{children}</span>
+      <span className='bm-field__opt'>Optional</span>
+    </>
+  ) : (
+    children
+  );
   return htmlFor ? (
     <label className='bm-field__label' htmlFor={htmlFor}>
-      {children}
+      {content}
     </label>
   ) : (
-    <span className='bm-field__label'>{children}</span>
+    <span className='bm-field__label'>{content}</span>
+  );
+}
+
+/** One sentence of help, with the id its control points at. */
+function Help({ id, children }) {
+  return (
+    <span id={id} className='bm-help block'>
+      {children}
+    </span>
   );
 }
 
 /**
- * A labelled control: the label above in sentence case, one sentence of help below.
+ * A labelled control: the label above in sentence case, one sentence of help below. The help is
+ * where an instruction goes ("Leave blank to keep the saved one"), never the placeholder; Input,
+ * Select, Textarea and Switch inside are described by it.
  * By default it is a <label> around one input. Pass `htmlFor` to make the label and the control
  * siblings, or `as='div'` when the control is a group such as a Segmented.
+ *   optional  says "Optional" at the label's right; required fields are not marked
  */
-export function Field({ label, help, htmlFor, as, className, children }) {
+export function Field({ label, help, htmlFor, as, optional = false, className, children }) {
   const Tag = as || (htmlFor ? 'div' : 'label');
+  const helpId = `${useId()}-help`;
   return (
     <Tag className={cx('bm-field', className)}>
-      <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
-      {children}
-      {help && <span className='bm-help block'>{help}</span>}
+      <FieldLabel htmlFor={htmlFor} optional={optional}>
+        {label}
+      </FieldLabel>
+      <FieldHelp.Provider value={help ? helpId : undefined}>{children}</FieldHelp.Provider>
+      {help && <Help id={helpId}>{help}</Help>}
     </Tag>
   );
 }
@@ -33,31 +70,42 @@ export function Field({ label, help, htmlFor, as, className, children }) {
  * Switch or a Stepper; `htmlFor` ties the label to the control's id.
  */
 export function Setting({ label, help, htmlFor, className, children }) {
+  const helpId = `${useId()}-help`;
   const name = <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>;
   return (
     <div className={cx('bm-setting', className)}>
       {help ? (
         <span className='min-w-0'>
           {name}
-          <span className='bm-help block'>{help}</span>
+          <Help id={helpId}>{help}</Help>
         </span>
       ) : (
         name
       )}
-      {children}
+      <FieldHelp.Provider value={help ? helpId : undefined}>{children}</FieldHelp.Provider>
     </div>
   );
 }
 
 /**
- * A text input: 44px, surface-2, a hairline that becomes the focus ring. Say what blank means in
- * the placeholder. With `unit` the input and its unit share one field: `<Input unit='°C' />`.
+ * A text input: 44px, surface-2, a line-strong edge. A placeholder only shows an example of the
+ * format ('192.168.1.20'); an instruction goes in the Field's help. With `unit` the input and its
+ * unit share one field: `<Input unit='°C' />`.
  */
 export const Input = forwardRef(function Input({ unit, className, ...props }, ref) {
-  if (unit == null) return <input ref={ref} {...props} className={cx('bm-input', className)} />;
+  const describedBy = useDescribedBy(props['aria-describedby']);
+  if (unit == null)
+    return (
+      <input
+        ref={ref}
+        {...props}
+        aria-describedby={describedBy}
+        className={cx('bm-input', className)}
+      />
+    );
   return (
     <span className={cx('bm-input bm-input--group', className)}>
-      <input ref={ref} {...props} />
+      <input ref={ref} {...props} aria-describedby={describedBy} />
       <span className='bm-data'>{unit}</span>
     </span>
   );
@@ -69,9 +117,10 @@ export const Input = forwardRef(function Input({ unit, className, ...props }, re
  * page styles the select itself as `.its-class > .bm-select`.
  */
 export const Select = forwardRef(function Select({ className, children, ...props }, ref) {
+  const describedBy = useDescribedBy(props['aria-describedby']);
   return (
     <span className={cx('bm-inputwrap', className)}>
-      <select ref={ref} {...props} className='bm-select'>
+      <select ref={ref} {...props} aria-describedby={describedBy} className='bm-select'>
         {children}
       </select>
       <Icon name='chevron-down' size={18} className='bm-input__icon' />
@@ -81,7 +130,15 @@ export const Select = forwardRef(function Select({ className, children, ...props
 
 /** The input recipe at several lines. */
 export const Textarea = forwardRef(function Textarea({ className, ...props }, ref) {
-  return <textarea ref={ref} {...props} className={cx('bm-textarea', className)} />;
+  const describedBy = useDescribedBy(props['aria-describedby']);
+  return (
+    <textarea
+      ref={ref}
+      {...props}
+      aria-describedby={describedBy}
+      className={cx('bm-textarea', className)}
+    />
+  );
 });
 
 /**
@@ -91,10 +148,12 @@ export const Textarea = forwardRef(function Textarea({ className, ...props }, re
  *   name    submits with a form the way a checkbox would
  */
 export function Switch({ checked = false, onChange, label, name, className, ...rest }) {
+  const describedBy = useDescribedBy(rest['aria-describedby']);
   return (
     <>
       <button
         {...rest}
+        aria-describedby={describedBy}
         type='button'
         role='switch'
         aria-checked={!!checked}

@@ -6,7 +6,7 @@ import { Icon } from './Icon.jsx';
 const HOLD_DELAY = 400;
 const HOLD_EVERY = 150;
 
-function StepButton({ icon, label, onStep, disabled }) {
+function StepButton({ icon, label, onStep, disabled, describedBy }) {
   const step = useRef(onStep);
   step.current = onStep;
   const timers = useRef({});
@@ -38,6 +38,7 @@ function StepButton({ icon, label, onStep, disabled }) {
       type='button'
       className='bm-stepper__btn'
       aria-label={label}
+      aria-describedby={describedBy}
       disabled={disabled}
       onPointerDown={press}
       onPointerUp={release}
@@ -62,6 +63,7 @@ function StepButton({ icon, label, onStep, disabled }) {
  *   canDecrease, canIncrease      false at a limit: that disc is disabled, never hidden
  *   decreaseLabel, increaseLabel  the discs' names for screen readers
  *   onCell                        discs in surface-1, for inside a Cell
+ *   describedBy                   the id of help that both discs read with their names
  */
 export function Stepper({
   value,
@@ -73,6 +75,7 @@ export function Stepper({
   increaseLabel = 'Raise',
   onCell = false,
   disabled = false,
+  describedBy,
   className,
 }) {
   return (
@@ -82,6 +85,7 @@ export function Stepper({
         label={decreaseLabel}
         onStep={onDecrease}
         disabled={disabled || !canDecrease}
+        describedBy={describedBy}
       />
       <span className='bm-stepper__value'>{value ?? '—'}</span>
       <StepButton
@@ -89,6 +93,7 @@ export function Stepper({
         label={increaseLabel}
         onStep={onIncrease}
         disabled={disabled || !canIncrease}
+        describedBy={describedBy}
       />
     </span>
   );

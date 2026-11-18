@@ -272,18 +272,18 @@ export default function ShotNotes({ shot, onNotesUpdate, onNotesLoaded }) {
         label={
           <>
             Notes{' '}
-            <span className='bm-data'>
-              {notes.notes.length}/{MAX_NOTES}
+            <span className='bm-field__count'>
+              {notes.notes.length} / {MAX_NOTES}
             </span>
           </>
         }
+        help='How it tasted, and what to change next time.'
       >
         <Textarea
           rows='4'
           value={notes.notes}
           maxLength={MAX_NOTES}
           onInput={e => handleInputChange('notes', e.target.value)}
-          placeholder='Taste, and what to change next time'
         />
       </Field>
 

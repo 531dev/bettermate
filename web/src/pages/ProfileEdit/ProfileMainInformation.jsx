@@ -19,7 +19,7 @@ export function ProfileMainInformation(props) {
         label='Description'
         multiline
         rows={2}
-        placeholder='Optional'
+        optional
         value={props.data?.description}
         onInput={props.onChangeDescription}
       />
@@ -43,7 +43,7 @@ export function ProfileMainInformation(props) {
           label='Coffee dose'
           unit='g'
           type='number'
-          placeholder='Optional'
+          optional
           help='Shown as IN on the display. It does not set the grinder target.'
           value={props.data?.dose ?? ''}
           onInput={props.onChangeDose}

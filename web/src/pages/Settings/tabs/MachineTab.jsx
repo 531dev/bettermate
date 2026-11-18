@@ -36,7 +36,7 @@ function SunriseColor({ id, label, value, fallback, onChange }) {
       <span className='bm-field__label'>{label}</span>
       <span className='flex items-center gap-2'>
         <span
-          className='rounded-pill relative size-9 shrink-0 border border-(--line) has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-(--focus)'
+          className='rounded-pill relative size-9 shrink-0 border border-(--line-strong) has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-(--focus)'
           style={{ background: color }}
         >
           <input

@@ -1,8 +1,8 @@
 import { createContext } from 'preact';
-import { useCallback, useContext, useRef, useState } from 'preact/hooks';
+import { useCallback, useContext, useId, useRef, useState } from 'preact/hooks';
 import { Button } from './Button.jsx';
 import { cx } from './cx.js';
-import { Field, Input, Select, Setting, Textarea } from './Field.jsx';
+import { Field, Input, Select, Setting, Textarea, useDescribedBy } from './Field.jsx';
 import { Icon } from './Icon.jsx';
 import { Segmented } from './Segmented.jsx';
 import { Stepper } from './Stepper.jsx';
@@ -17,11 +17,15 @@ import { Stepper } from './Stepper.jsx';
  */
 export const FormErrors = createContext({});
 
-/** A field's problem, as a notice under its control. `id` is `<input id>-error`. */
+/**
+ * A field's problem under its control, in danger with the error glyph. It takes the help's place.
+ * `id` is `<input id>-error`.
+ */
 export function FieldError({ id, children }) {
   return (
-    <span id={id} className='bm-notice bm-notice--danger px-3 py-2'>
-      {children}
+    <span id={id} className='bm-field__msg bm-field__msg--error'>
+      <Icon name='circle-alert' size={14} aria-hidden='true' />
+      <span>{children}</span>
     </span>
   );
 }
@@ -99,6 +103,7 @@ export function useFormValidation() {
  * constraints (`min`, `max`, `step`, `minLength`); what they reject on save shows under it.
  *   unit       the input and its unit share one field
  *   multiline  a textarea
+ *   optional   says "Optional" beside the label (never in the placeholder)
  *   error      a problem the page found itself; otherwise the form's (FormErrors)
  * Everything else reaches the input.
  */
@@ -108,6 +113,7 @@ export function FormField({
   help,
   unit,
   multiline = false,
+  optional = false,
   error: given,
   className,
   ...props
@@ -124,7 +130,13 @@ export function FormField({
   const draft = keepsText && typed?.id === id ? typed.text : null;
 
   return (
-    <Field label={label} htmlFor={id} help={help} className={className}>
+    <Field
+      label={label}
+      htmlFor={id}
+      help={error ? undefined : help}
+      optional={optional}
+      className={className}
+    >
       <Control
         name={id}
         {...props}
@@ -140,10 +152,23 @@ export function FormField({
         }}
         unit={multiline ? undefined : unit}
         {...invalid}
-        className={error ? 'border-(--danger)' : undefined}
       />
       {error && <FieldError id={errorId}>{error}</FieldError>}
     </Field>
+  );
+}
+
+/** The input of a PasswordField, inside its Field so that it reads the help's id. */
+function PasswordInput({ shown, invalid, ...input }) {
+  const describedBy = useDescribedBy(invalid['aria-describedby']);
+  return (
+    <input
+      type={shown ? 'text' : 'password'}
+      autoComplete='off'
+      {...invalid}
+      aria-describedby={describedBy}
+      {...input}
+    />
   );
 }
 
@@ -152,16 +177,9 @@ export function PasswordField({ id, label, help, ...input }) {
   const [shown, setShown] = useState(false);
   const { error, errorId, invalid } = useFieldError(id);
   return (
-    <Field label={label} htmlFor={id} help={help}>
+    <Field label={label} htmlFor={id} help={error ? undefined : help}>
       <span className='bm-input bm-input--group pr-0 has-[button:focus-visible]:outline-none'>
-        <input
-          id={id}
-          name={id}
-          type={shown ? 'text' : 'password'}
-          autoComplete='off'
-          {...invalid}
-          {...input}
-        />
+        <PasswordInput id={id} name={id} shown={shown} invalid={invalid} {...input} />
         <Button
           iconOnly
           variant='ghost'
@@ -196,10 +214,20 @@ export function SelectField({ id, label, help, className, children, ...select })
  * Everything else reaches the Segmented.
  */
 export function SegmentedField({ label, name, help, className, children, ...segmented }) {
+  const helpId = `${useId()}-help`;
   return (
     <Field label={label} as='div' className={className}>
-      <Segmented block label={name ?? label} {...segmented} />
-      {help && <span className='bm-help block'>{help}</span>}
+      <Segmented
+        block
+        label={name ?? label}
+        describedBy={help ? helpId : undefined}
+        {...segmented}
+      />
+      {help && (
+        <span id={helpId} className='bm-help block'>
+          {help}
+        </span>
+      )}
       {children}
     </Field>
   );
@@ -249,12 +277,17 @@ export function Choice({ id, label, help, options, value, onChange, className })
  * Stepper.
  */
 export function StepperSetting({ label, help, className, ...stepper }) {
+  const helpId = `${useId()}-help`;
   return (
     <div className={cx('bm-field', className)}>
       <Setting label={label}>
-        <Stepper {...stepper} />
+        <Stepper describedBy={help ? helpId : undefined} {...stepper} />
       </Setting>
-      {help && <span className='bm-help block'>{help}</span>}
+      {help && (
+        <span id={helpId} className='bm-help block'>
+          {help}
+        </span>
+      )}
     </div>
   );
 }

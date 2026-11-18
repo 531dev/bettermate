@@ -9,6 +9,7 @@ import { Icon } from './Icon.jsx';
  *   label     names the group for screen readers
  *   block     the items share the full width
  *   onTile    the track in surface-0 instead of surface-2: use it inside a Cell
+ *   describedBy  the id of help under the group
  */
 export function Segmented({
   options,
@@ -18,12 +19,14 @@ export function Segmented({
   block = false,
   onTile = false,
   disabled = false,
+  describedBy,
   className,
 }) {
   return (
     <div
       role='group'
       aria-label={label}
+      aria-describedby={describedBy}
       className={cx('bm-seg', block && 'bm-seg--block', onTile && 'bm-seg--on-tile', className)}
     >
       {options.map(option => {

@@ -192,7 +192,6 @@ function Phase({ phase, index, count, onChange, onRemove, onMove, pressureAvaila
         <FormField
           id={`phase-${index}-name`}
           label='Phase name'
-          placeholder='Name'
           value={phase.name}
           onInput={e => onFieldChange('name', e.target.value)}
         />

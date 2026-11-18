@@ -144,19 +144,21 @@ export function ShotDetailsCard({ entry, isCompare }) {
             <label className='bm-field__label' htmlFor={notesId}>
               Notes
             </label>
-            <span className='bm-caption' id={notesCountId}>
-              {(notes.notes || '').length}/{NOTES_MAX_LENGTH}
+            <span className='bm-field__count' id={notesCountId}>
+              {(notes.notes || '').length} / {NOTES_MAX_LENGTH}
             </span>
           </div>
           <Textarea
             id={notesId}
-            aria-describedby={notesCountId}
+            aria-describedby={`${notesCountId} ${notesId}-help`}
             value={notes.notes || ''}
             maxLength={NOTES_MAX_LENGTH}
             onInput={event => handleFieldChange('notes', event.target.value)}
             onBlur={flushSave}
-            placeholder='Tasting notes, brewing observations…'
           />
+          <span id={`${notesId}-help`} className='bm-help'>
+            Tasting notes, and what you saw while brewing.
+          </span>
         </div>
       </Tile>
     </div>

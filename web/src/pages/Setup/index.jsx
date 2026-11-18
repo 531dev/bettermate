@@ -99,7 +99,11 @@ function WifiStep({ ssid, setSsid, password, setPassword, savedSsid, onBack, onS
       <Field
         label='Password'
         htmlFor='setup-password'
-        help='Your password is saved on the machine only.'
+        help={
+          sameNetwork
+            ? 'Leave blank to keep the saved one. It is saved on the machine only.'
+            : 'Your password is saved on the machine only.'
+        }
       >
         <div className='flex gap-2'>
           <Input
@@ -108,7 +112,6 @@ function WifiStep({ ssid, setSsid, password, setPassword, savedSsid, onBack, onS
             type={shown ? 'text' : 'password'}
             value={password}
             autoComplete='off'
-            placeholder={sameNetwork ? 'Leave blank to keep the saved one' : undefined}
             onInput={e => setPassword(e.target.value)}
           />
           <Button
