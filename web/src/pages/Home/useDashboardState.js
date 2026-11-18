@@ -2,12 +2,15 @@ import { computed } from '@preact/signals';
 import { useContext, useEffect, useState } from 'preact/hooks';
 import { useQuery } from 'preact-fetching';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
+import { sendCommand } from '../../utils/commands.js';
+import { connection, fault, lastSeen, retryConnection } from '../../utils/machineState.js';
 
 const status = computed(() => machine.value.status);
 const capabilities = computed(() => machine.value.capabilities);
 const connected = computed(() => machine.value.connected);
 // Slow state arrives a tick before telemetry, and only telemetry frames extend the history.
-const hasReading = computed(() => machine.value.history.length > 0);
+// Offline, what the page last heard is not a reading any more: it shows a dash.
+const hasReading = computed(() => machine.value.connected && machine.value.history.length > 0);
 
 export function useDashboardState() {
   const apiService = useContext(ApiServiceContext);
@@ -75,13 +78,24 @@ export function useDashboardState() {
     apiService.send({ tp: 'req:change-mode', mode: newMode });
   };
 
-  const activate = () => send(isGrinding ? 'req:grind:activate' : 'req:process:activate');
+  // Start and stop wait for the machine to confirm them (Command pending).
+  const activate = () =>
+    sendCommand(
+      'Starting',
+      () => send(isGrinding ? 'req:grind:activate' : 'req:process:activate'),
+      next => !!next.process?.a || !!next.grindActive,
+    );
   const deactivate = () => {
-    send(isGrinding ? 'req:grind:deactivate' : 'req:process:deactivate');
-    if (isFlushing) {
-      send('req:process:clear');
-      setFlushPending(false);
-    }
+    const flushing = isFlushing;
+    sendCommand(
+      'Stopping',
+      () => {
+        send(isGrinding ? 'req:grind:deactivate' : 'req:process:deactivate');
+        if (flushing) send('req:process:clear');
+      },
+      next => !next.process?.a && !next.grindActive,
+    );
+    if (flushing) setFlushPending(false);
   };
   const clear = () => {
     send('req:process:clear');
@@ -123,6 +137,10 @@ export function useDashboardState() {
     systemReady,
     systemState,
     systemMessage,
+    link: connection.value,
+    lastSeen: lastSeen.value,
+    fault: fault.value,
+    retry: retryConnection,
     currentTemperature: s.currentTemperature,
     targetTemperature: s.targetTemperature,
     currentPressure: s.currentPressure,

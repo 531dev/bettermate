@@ -8,6 +8,8 @@ import { Button } from '../../components/Button.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
 import { Dialog } from '../../components/Dialog.jsx';
+import { Notice } from '../../components/Notice.jsx';
+import { toast } from '../../components/Toast.jsx';
 import { Loader } from '../../components/Loader.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { ExtendedProfileForm } from './ExtendedProfileForm.jsx';
@@ -107,13 +109,24 @@ export function ProfileEdit() {
     }
     fetchData();
   }, [params.id, open, isConnected, apiService]);
+  // A save that fails keeps the form as typed, says so above it, and repeats it in a Toast.
+  const [saveFailed, setSaveFailed] = useState(false);
   const onSave = useCallback(
     async data => {
       setSaving(true);
-      const response = await apiService.request({ tp: 'req:profiles:save', profile: data });
-      open(response.profile);
-      setSaving(false);
-      location.route('/profiles');
+      setSaveFailed(false);
+      try {
+        const response = await apiService.request({ tp: 'req:profiles:save', profile: data });
+        if (response.error || !response.profile) throw new Error(response.error || 'no profile');
+        open(response.profile);
+        setSaving(false);
+        toast('Profile saved');
+        location.route('/profiles');
+      } catch {
+        setSaving(false);
+        setSaveFailed(true);
+        toast('Could not save. Check the connection.', { alert: true });
+      }
     },
     [apiService, open, location],
   );
@@ -169,6 +182,11 @@ export function ProfileEdit() {
           )
         }
       />
+      {saveFailed && (
+        <Notice live tone='danger' title='Could not save' className='mb-2'>
+          The profile is as you typed it. Check the connection to the machine and save again.
+        </Notice>
+      )}
 
       {/* Choosing the type of a new profile starts it; it is not an edit yet. */}
       {!data?.type && <ProfileTypeSelection onSelect={type => open({ ...data, type })} />}

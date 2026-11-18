@@ -9,8 +9,9 @@ import { Notice } from '../../components/Notice.jsx';
  * What the form is waiting for, in one line above Save. A problem is a notice; unsaved and saved
  * are a word in a Chip. Nothing shows while the form matches the machine.
  *   invalid  how many fields the last save rejected
- *   state    'failed', 'saved' or 'restarting' after a save; 'unanswered' after a save with a
- *            restart that got no answer; 'unloaded' when settings never arrived
+ *   state    'failed' or 'restarting' after a save ('saved' is a Toast); 'unanswered' after a
+ *            save with a restart that got no answer; 'unloaded' when settings never arrived;
+ *            'offline' while the machine cannot be reached, which disables Save
  *   dirty    the form differs from what the machine holds
  */
 function SaveStatus({ invalid, state, dirty }) {
@@ -49,9 +50,11 @@ function SaveStatus({ invalid, state, dirty }) {
       </Notice>
     );
   }
+  if (state === 'offline') {
+    return <p className='bm-help'>The machine is offline. Save once it is back.</p>;
+  }
   if (dirty) return <Chip tone='warning'>Unsaved changes</Chip>;
   if (state === 'restarting') return <Chip tone='success'>Saved, restarting</Chip>;
-  if (state === 'saved') return <Chip tone='success'>Saved</Chip>;
   return null;
 }
 
@@ -64,11 +67,12 @@ export function PinnedSave({ form, submitting, disabled, invalid, state, dirty }
     <PinnedAction
       type='submit'
       form={form}
-      disabled={submitting || disabled}
+      disabled={submitting || disabled || state === 'offline'}
+      aria-busy={submitting ? 'true' : undefined}
       status={<SaveStatus invalid={invalid} state={state} dirty={dirty} />}
     >
       {submitting && <Loader size={18} />}
-      Save
+      {submitting ? 'Saving' : 'Save'}
     </PinnedAction>
   );
 }

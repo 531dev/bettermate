@@ -5,6 +5,8 @@ import { useQuery } from 'preact-fetching';
 import { Icon } from './Icon.jsx';
 import { toast } from './Toast.jsx';
 import { ApiServiceContext, machine } from '../services/ApiService.js';
+import { pendingCommand } from '../utils/commands.js';
+import { connection, fault } from '../utils/machineState.js';
 
 // The machine's modes by firmware id. Each glyph's meaning is fixed across both faces.
 export const MODES = [
@@ -26,9 +28,12 @@ export const hidesModeBar = path => path.startsWith('/profiles/') || path.starts
 
 // Why the other modes are locked, as the hidden sentence a locked mode is described by, and what
 // a press on one answers.
-function lockReason({ connected, systemReady, flushing, mode }) {
+function lockReason({ connected, offline, faulted, systemReady, pending, flushing, mode }) {
+  if (offline) return ['Locked while the machine is offline.', 'The machine is offline.'];
   if (!connected) return ['Locked until the machine connects.', 'The machine is not connected.'];
+  if (faulted) return ['Locked until the fault is fixed.', 'Fix the fault to change mode.'];
   if (!systemReady) return ['Locked until the machine is ready.', 'The machine is not ready yet.'];
+  if (pending) return ['Locked while the machine answers.', 'Wait for the machine to answer.'];
   if (flushing) return ['Locked while the flush runs.', 'Stop the flush to change mode.'];
   if (mode === GRIND_MODE) return ['Locked while grinding.', 'Stop grinding to change mode.'];
   if (mode === WATER_MODE) return ['Locked while water runs.', 'Stop the water to change mode.'];
@@ -47,13 +52,17 @@ function ModeBarItems() {
   // shot. Steam runs for as long as the mode is selected, so being in Steam never locks; while
   // anything else runs Steam locks with the rest (a web mode change stops the process).
   const running = !!s.process?.a && mode !== STEAM_MODE;
+  const pending = !!pendingCommand.value;
   const [reason, answer] = lockReason({
     connected: connected.value,
+    offline: connection.value === 'offline',
+    faulted: !!fault.value,
     systemReady,
+    pending,
     flushing: !!s.process?.u,
     mode,
   });
-  const anyLocked = !systemReady || running;
+  const anyLocked = !systemReady || running || pending;
 
   const { data: settings } = useQuery(
     'settings-cache',

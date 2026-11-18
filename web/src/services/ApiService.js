@@ -14,7 +14,8 @@ export default class ApiService {
   socket = null;
   listeners = {};
   reconnectAttempts = 0;
-  maxReconnectDelay = 30000; // Maximum delay of 30 seconds
+  // Offline, the page retries every 5 s at most (design, Product states, Time limits).
+  maxReconnectDelay = 5000;
   baseReconnectDelay = 1000; // Start with 1 second delay
   reconnectTimeout = null;
   isConnecting = false;
@@ -47,6 +48,15 @@ export default class ApiService {
     } finally {
       this.isConnecting = false;
     }
+  }
+
+  // TRY AGAIN: a new attempt now, unless one is open or under way.
+  reconnect() {
+    const state = this.socket?.readyState;
+    if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) return;
+    clearTimeout(this.reconnectTimeout);
+    this.reconnectAttempts = 0;
+    this.connect();
   }
 
   _onOpen() {

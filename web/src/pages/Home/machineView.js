@@ -1,4 +1,5 @@
 import { PRESSURE_SCALE_MAX, TEMP_SCALE_MAX, share } from '../../utils/metricDefinitions.js';
+import { clock } from '../../utils/time.js';
 import { fmtElapsed, getPhaseLabel } from './utils.js';
 
 // Within this margin the boiler counts as at temperature, same as the touch UI's steam hint.
@@ -37,14 +38,15 @@ function heatEta(history, target) {
 const READY = { label: 'Ready', tone: 'success', dot: true };
 const FINISHED = { label: 'Finished', tone: 'success' };
 const running = label => ({ label, tone: 'primary', dot: true });
+const FAULT = { label: 'Fault', tone: 'danger' };
 const SYSTEM_CHIPS = {
   offline: { label: 'Connecting' },
   starting: { label: 'Starting' },
-  waiting: { label: 'No controller', tone: 'warning' },
+  waiting: FAULT,
   updating: running('Updating'),
   autotuning: running('Autotuning'),
-  mismatch: { label: 'Version mismatch', tone: 'danger' },
-  error: { label: 'Fault', tone: 'danger' },
+  mismatch: FAULT,
+  error: FAULT,
 };
 
 const amount = value => `${Number((value ?? 0).toFixed(1))}`;
@@ -123,11 +125,31 @@ export function describeMachine(ds, { shot = {}, nextWake = '', openGrinderSetti
   const wake = { label: 'Wake up', sub: 'Starts heating', icon: 'power' };
 
   if (!ds.systemReady) {
+    const resting = { title: 'Standby', ring: restingRing, dial: boiler() };
+    // Offline the next thing to do is to try again; it retries by itself every 5 s as well.
+    if (ds.link === 'offline') {
+      return {
+        ...resting,
+        chip: { label: 'Offline', tone: 'danger' },
+        action: {
+          label: 'Try again',
+          sub: ds.lastSeen ? `Last seen ${clock(ds.lastSeen)}` : 'Not reached yet',
+          icon: 'refresh-cw',
+          onClick: ds.retry,
+        },
+      };
+    }
+    // A fault leaves nothing to start: the banner says why, the Notice above says what to do.
+    if (ds.fault) {
+      return {
+        ...resting,
+        chip: FAULT,
+        action: { ...wake, sub: 'Fix the fault to brew', disabled: true },
+      };
+    }
     return {
-      title: 'Standby',
+      ...resting,
       chip: SYSTEM_CHIPS[ds.systemState] ?? { label: 'Not ready', tone: 'warning' },
-      ring: restingRing,
-      dial: boiler(),
       // The controller's own words for why, without the trailing dots it adds on the display.
       action: { ...wake, sub: `${ds.systemMessage}`.replace(/\.+$/, ''), disabled: true },
     };

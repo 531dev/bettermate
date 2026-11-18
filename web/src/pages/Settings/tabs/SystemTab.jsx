@@ -10,6 +10,7 @@ import { Loader } from '../../../components/Loader.jsx';
 import { Stat } from '../../../components/StatTile.jsx';
 import { Cell, Tile } from '../../../components/Tile.jsx';
 import { SegmentedField } from '../../../components/FormField.jsx';
+import { installUpdate } from '../../../utils/machineState.js';
 import { TILE_GRID } from '../grid.js';
 import { Notice } from '../../../components/Notice.jsx';
 
@@ -60,50 +61,6 @@ const signalChip = rssi => {
 };
 
 const percent = (part, total) => (total > 0 ? (part / total) * 100 : 0);
-
-function OtaProgressView({ phase, progress }) {
-  const finished = phase === 4;
-  const failed = phase === 5;
-  const shown = finished ? 100 : progress;
-  const getOtaPhaseText = p => {
-    switch (p) {
-      case 1:
-        return 'Updating display firmware';
-      case 2:
-        return 'Updating display filesystem';
-      case 3:
-        return 'Updating controller firmware';
-      case 5:
-        return 'Update failed';
-      default:
-        return 'Finished';
-    }
-  };
-
-  return (
-    <Tile>
-      <div className='flex flex-col items-center gap-4 py-8 text-center'>
-        {!failed && !finished && <Loader size={24} />}
-        <h2 className='bm-heading'>{getOtaPhaseText(phase)}</h2>
-        {failed ? (
-          <Notice live tone='danger' title='The update failed' className='max-w-md text-left'>
-            The previous version is still running. Check the network connection and start the update
-            again.
-          </Notice>
-        ) : (
-          <div className='flex w-full max-w-xs flex-col gap-2'>
-            <div className='bm-stat__row justify-center'>
-              <span className='bm-stat__value'>{shown}</span>
-              <span className='bm-stat__unit'>%</span>
-            </div>
-            <SegmentBar value={shown / 100} />
-          </div>
-        )}
-        {(finished || failed) && <Button href='/'>Back</Button>}
-      </div>
-    </Tile>
-  );
-}
 
 function VersionCell({
   label,
@@ -276,8 +233,6 @@ export function SystemTab() {
   // The channel picked but not saved yet; the saved one comes with the versions.
   const [pickedChannel, setPickedChannel] = useState(null);
   const savingChannel = useRef(false);
-  const [phase, setPhase] = useState(0);
-  const [progress, setProgress] = useState(0);
   const { rssi, lat, rtx } = link.value;
 
   const downloadSupportData = useCallback(async () => {
@@ -317,16 +272,6 @@ export function SystemTab() {
   }, [apiService]);
 
   useEffect(() => {
-    const listenerId = apiService.on('evt:ota-progress', msg => {
-      setProgress(msg.progress);
-      setPhase(msg.phase);
-    });
-    return () => {
-      apiService.off('evt:ota-progress', listenerId);
-    };
-  }, [apiService]);
-
-  useEffect(() => {
     const listenerId = apiService.on('evt:history-rebuild-progress', msg => {
       setRebuildProgress({
         total: msg.total || 0,
@@ -362,12 +307,8 @@ export function SystemTab() {
     [apiService, channel],
   );
 
-  const onUpdate = useCallback(
-    component => {
-      apiService.send({ tp: 'req:ota-start', cp: component });
-    },
-    [apiService],
-  );
+  // Installing takes the window (the shell's Updating page) until the machine is back.
+  const onUpdate = installUpdate;
 
   const [rebuilding, setRebuilding] = useState(false);
   const [rebuilt, setRebuilt] = useState(false);
@@ -379,10 +320,6 @@ export function SystemTab() {
     setRebuildProgress({ total: 0, current: 0, status: 'starting' });
     apiService.send({ tp: 'req:history:rebuild' });
   }, [apiService]);
-
-  if (phase > 0) {
-    return <OtaProgressView phase={phase} progress={progress} />;
-  }
 
   if (isLoading) {
     return <SystemTabSkeleton />;

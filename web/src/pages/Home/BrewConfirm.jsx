@@ -3,6 +3,7 @@ import { Button } from '../../components/Button.jsx';
 import { Dialog } from '../../components/Dialog.jsx';
 import { Notice } from '../../components/Notice.jsx';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
+import { settleCommand } from '../../utils/commands.js';
 import { activeWarnings, parseWarningStates, warningTone } from '../../utils/warnings.js';
 
 // Asks before a shot whenever the controller asks for it, whichever UI or button started the brew.
@@ -16,9 +17,11 @@ export function BrewConfirm() {
   const processActive = !!machine.value.status.process?.a;
 
   useEffect(() => {
-    const confirmId = apiService.on('evt:brew:confirm', m =>
-      setWarnings(activeWarnings(parseWarningStates(m.warn))),
-    );
+    const confirmId = apiService.on('evt:brew:confirm', m => {
+      // The machine answered the start by asking first.
+      settleCommand();
+      setWarnings(activeWarnings(parseWarningStates(m.warn)));
+    });
     const cancelId = apiService.on('evt:brew:confirm:cancel', () => setWarnings(null));
     return () => {
       apiService.off('evt:brew:confirm', confirmId);

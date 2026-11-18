@@ -1,5 +1,6 @@
 import { cx } from './cx.js';
 import { Icon } from './Icon.jsx';
+import { Loader } from './Loader.jsx';
 import { SegmentBar } from './SegmentBar.jsx';
 
 /**
@@ -11,6 +12,7 @@ import { SegmentBar } from './SegmentBar.jsx';
  *   stop      a process is running: the ground turns ink and the label says to stop
  *   progress  0 to 1 while it runs, drawn as 24 segments inside the banner
  *   stretch   on the desktop grid, fill the row and set the label at the bottom left
+ *   busy      a command is on its way: a Loader in the disc and `aria-busy`; presses wait
  */
 export function ActionBanner({
   label,
@@ -19,13 +21,17 @@ export function ActionBanner({
   stop = false,
   progress,
   stretch = false,
+  busy = false,
   className,
+  onClick,
   ...rest
 }) {
   return (
     <button
       type='button'
       {...rest}
+      aria-busy={busy ? 'true' : undefined}
+      onClick={busy ? undefined : onClick}
       className={cx('bm-cta', stop && 'bm-cta--stop', stretch && 'bm-cta--stretch', className)}
     >
       <span className='bm-cta__text'>
@@ -33,9 +39,7 @@ export function ActionBanner({
         {sub && <span className='bm-cta__sub'>{sub}</span>}
         {progress != null && <SegmentBar as='span' value={progress} total={24} />}
       </span>
-      <span className='bm-cta__disc'>
-        <Icon name={icon} />
-      </span>
+      <span className='bm-cta__disc'>{busy ? <Loader size={24} /> : <Icon name={icon} />}</span>
     </button>
   );
 }

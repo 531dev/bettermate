@@ -32,6 +32,9 @@ import {
 } from '../../components/skeletons/SettingsSkeletons.jsx';
 import { FormErrors } from '../../components/FormField.jsx';
 import { ImportNotice } from './ImportNotice.jsx';
+import { UpdateNotice } from './UpdateNotice.jsx';
+import { toast } from '../../components/Toast.jsx';
+import { connection as linkState } from '../../utils/machineState.js';
 import { PinnedSave, RestartTile } from './SaveBar.jsx';
 import { GeneralTab } from './tabs/GeneralTab.jsx';
 
@@ -62,6 +65,7 @@ const FORM_ID = 'settings-page-form';
 
 // The page only needs to know whether the socket is up, not every telemetry frame.
 const connected = computed(() => machine.value.connected);
+const update = computed(() => machine.value.connected && machine.value.status.update);
 
 const CHECKBOX_KEYS = [
   'homekit',
@@ -450,11 +454,13 @@ export function Settings() {
         setFormData(updatedData);
         setImportNotice(null);
         setSaveState(restart ? 'restarting' : 'saved');
+        toast(restart ? 'Settings saved, restarting' : 'Settings saved');
       } catch (error) {
         console.error('Failed to save settings:', error);
         // The machine restarts as soon as it has saved, and can be gone before its answer
         // arrives: without an answer, a save with a restart is unknown, not failed.
         setSaveState(restart ? 'unanswered' : 'failed');
+        if (!restart) toast('Could not save. Check the connection.', { alert: true });
       } finally {
         setSubmitting(false);
       }
@@ -562,6 +568,8 @@ export function Settings() {
           }
         />
 
+        {update.value && <UpdateNotice />}
+
         {importNotice && (
           <ImportNotice
             notice={importNotice}
@@ -646,7 +654,13 @@ export function Settings() {
             submitting={submitting}
             disabled={!loaded}
             invalid={Object.keys(errors).length}
-            state={!isLoading && !loaded ? 'unloaded' : saveState}
+            state={
+              linkState.value === 'offline'
+                ? 'offline'
+                : !isLoading && !loaded
+                  ? 'unloaded'
+                  : saveState
+            }
             dirty={dirty}
           />
         )}

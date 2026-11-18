@@ -18,6 +18,7 @@ import {
 } from '../../utils/dashboardManager.js';
 import { metricById } from '../../utils/metricDefinitions.js';
 import { PANEL_DEFINITIONS, panelIds } from '../../utils/panelDefinitions.js';
+import { pendingCommand } from '../../utils/commands.js';
 import { activeWarnings } from '../../utils/warnings.js';
 import { BrewConfirm } from './BrewConfirm.jsx';
 import { CHART, CURVE, place } from './layout.js';
@@ -145,7 +146,13 @@ export function Dashboard({ view: mode }) {
   // The curve tile holds its place while the profile loads, and leaves when the profile turns
   // out to have no curve: an empty chart would say nothing.
   const showCurve = !shot.profile || shot.hasCurve;
-  const action = view.action && { ...view.action, 'aria-label': view.action.label };
+  // While a start or stop waits for the machine, the banner says so and takes no second press.
+  const pending = pendingCommand.value;
+  const action =
+    view.action &&
+    (pending
+      ? { ...view.action, label: pending.label, busy: true, 'aria-label': pending.label }
+      : { ...view.action, 'aria-label': view.action.label });
 
   if (custom) {
     const panels = {

@@ -16,8 +16,10 @@ import { AppBar } from './components/AppBar.jsx';
 import { cx } from './components/cx.js';
 import { ModeBar, hidesModeBar } from './components/ModeNav.jsx';
 import { Navigation } from './components/Navigation.jsx';
+import { MachineNotice, UpdatingPage } from './components/MachineStates.jsx';
 import { LiveRegions, Toasts } from './components/Toast.jsx';
 import { startAnnouncer } from './utils/announcer.js';
+import { startMachineState, updating } from './utils/machineState.js';
 
 // Each page lazy-loads as its own Vite chunk so the initial bundle stays small.
 // Chart.js and the analyzer/statistics views are too
@@ -38,6 +40,7 @@ const DashboardSettings = lazy(() =>
 );
 
 const apiService = new ApiService();
+startMachineState(apiService);
 
 const RedirectTo = to =>
   function Redirect() {
@@ -68,6 +71,17 @@ function Shell() {
     return () => wide.removeEventListener('change', onChange);
   }, []);
 
+  // Updating takes the whole window: no navigation, no mode bar, nothing to press.
+  if (updating.value) {
+    return (
+      <>
+        <UpdatingPage />
+        <Toasts />
+        <LiveRegions />
+      </>
+    );
+  }
+
   return (
     <>
       {!bare && (
@@ -90,6 +104,7 @@ function Shell() {
             <div className={cx('bm-page', !hidesModeBar(path) && 'bm-page--modebar')}>
               <div className='grid min-w-0 flex-1 grid-cols-1'>
                 <div className='min-w-0'>
+                  {!bare && <MachineNotice className='mb-2 lg:mb-3' />}
                   <ErrorBoundary>
                     <Router>
                       <Route path='/' component={Home} />
