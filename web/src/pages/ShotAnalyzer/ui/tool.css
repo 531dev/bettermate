@@ -12,11 +12,6 @@
     font: 400 13px/18px var(--font-mono);
     font-feature-settings: 'tnum';
   }
-  /* An icon button on a surface-2 ground that is not a Cell or a menu steps down to surface-1. */
-  .an-on-cell .bm-iconbtn {
-    --iconbtn-hover: var(--surface-1);
-  }
-
   /* --------------------------------------------------------------------------
      Compare identity: shot 1 is a solid ink disc and draws solid lines; shot 2
      is a dashed ring and draws dashed lines. Further shots of a statistics
@@ -70,7 +65,7 @@
     color: var(--ink-faint);
   }
   .an-chipbtn[disabled] {
-    opacity: var(--disabled);
+    color: var(--ink-faint);
     cursor: default;
   }
   /* The dot takes its series colour from `--an-series`, so a hidden one can drop its fill. */
@@ -168,13 +163,13 @@
     cursor: pointer;
     transition: background-color var(--duration-fast) var(--ease-out);
   }
-  .an-press:hover {
-    background: var(--surface-2);
+  @media (hover: hover) {
+    .an-press:hover {
+      background: var(--state-hover);
+    }
   }
-  .bm-cell .an-press:hover,
-  .bm-menu .an-press:hover,
-  .an-on-cell .an-press:hover {
-    background: var(--surface-1);
+  .an-press:active {
+    background: var(--state-hover);
   }
   /* A place to drop files, shown only while a file is dragged over the window. */
   .an-drop {
@@ -184,7 +179,7 @@
   /* Inputs in a dense desktop row take the small control height. Phones keep 44px. */
   @media (pointer: fine) {
     .bm-input.an-input--sm,
-    .bm-select.an-input--sm > select {
+    .an-input--sm > .bm-select {
       height: var(--control-sm);
       font-size: 13px;
       line-height: 18px;

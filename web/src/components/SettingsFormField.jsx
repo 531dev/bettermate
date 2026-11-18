@@ -153,7 +153,7 @@ export function SortableConfigurator({
                   onOrderChange(next);
                 }}
                 onDragEnd={endDrag}
-                className={cx(row, '@container', isDragging && 'opacity-(--disabled)')}
+                className={cx(row, '@container', isDragging && 'text-(--ink-faint)')}
                 style={{
                   borderTop: overPos === 'before' ? dropLine : undefined,
                   borderBottom: overPos === 'after' ? dropLine : undefined,
@@ -208,7 +208,7 @@ export function SortableConfigurator({
               draggable
               onDragStart={e => startDrag(e, def.id, 'available')}
               onDragEnd={endDrag}
-              className={cx(row, 'cursor-grab', draggingId === def.id && 'opacity-(--disabled)')}
+              className={cx(row, 'cursor-grab', draggingId === def.id && 'text-(--ink-faint)')}
             >
               <Icon name='menu' size={18} className='text-(--ink-faint)' />
               <span className='min-w-0 flex-1'>{def.label}</span>

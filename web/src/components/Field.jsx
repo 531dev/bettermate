@@ -63,14 +63,18 @@ export const Input = forwardRef(function Input({ unit, className, ...props }, re
   );
 });
 
-/** A native select in the input recipe. Its options are its children. */
+/**
+ * A native select in the input recipe, with the chevron inside it. Its options are its children.
+ * `className` reaches the wrapper (`bm-inputwrap`), so layout utilities size the whole field; a
+ * page styles the select itself as `.its-class > .bm-select`.
+ */
 export const Select = forwardRef(function Select({ className, children, ...props }, ref) {
   return (
-    <span className={cx('bm-select', className)}>
-      <select ref={ref} {...props}>
+    <span className={cx('bm-inputwrap', className)}>
+      <select ref={ref} {...props} className='bm-select'>
         {children}
       </select>
-      <Icon name='chevron-down' size={18} />
+      <Icon name='chevron-down' size={18} className='bm-input__icon' />
     </span>
   );
 });

@@ -39,7 +39,7 @@
     transition: background-color var(--duration-fast) var(--ease-out);
   }
   .an-table__row:hover > td {
-    background: var(--surface-2);
+    background: var(--state-hover);
   }
   /* The band that names a phase above the shots compared in it. */
   .an-table__group > td {

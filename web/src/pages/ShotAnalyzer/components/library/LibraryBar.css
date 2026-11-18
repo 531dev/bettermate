@@ -133,7 +133,6 @@
   }
   .an-slot.an-slot--warning .bm-iconbtn,
   .an-slot.an-slot--warning .bm-iconbtn:hover {
-    --iconbtn-hover: var(--surface-2);
     color: var(--warning);
   }
   /* A finger gets 44px buttons, so they take the pill's full height and its end. */

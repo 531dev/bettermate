@@ -54,7 +54,7 @@
   }
   /* Inputs on a cell are surface-2 like the cell: the hairline is their edge. */
   .an-lib__field.bm-input,
-  .an-lib__field.bm-select > select {
+  .an-lib__field > .bm-select {
     background: var(--surface-1);
   }
   .an-lib__list {

@@ -40,7 +40,7 @@ export function Segmented({
             onClick={() => !selected && onChange?.(item.value)}
           >
             {item.icon && <Icon name={item.icon} size={18} />}
-            {item.label}
+            <span className='bm-seg__label'>{item.label}</span>
           </button>
         );
       })}
