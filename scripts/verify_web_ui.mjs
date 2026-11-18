@@ -371,7 +371,22 @@ async function pages() {
               style.backgroundImage.includes('gradient')
             );
           });
+          // A chart is never drawn in a cell: pressure is 2.6:1 on surface-2 in Dark.
+          probe.style.background = 'var(--surface-2)';
+          document.body.append(probe);
+          const cell = getComputedStyle(probe).backgroundColor;
+          probe.remove();
+          const groundOf = node => {
+            for (; node; node = node.parentElement) {
+              const fill = getComputedStyle(node).backgroundColor;
+              if (fill !== 'rgba(0, 0, 0, 0)' && fill !== 'transparent') return fill;
+            }
+            return '';
+          };
+          const charts = [...document.querySelectorAll('.bm-chartbox canvas')];
           return {
+            chartsInCells: charts.filter(canvas => groundOf(canvas) === cell).length,
+            chartsUnnamed: charts.filter(canvas => !canvas.getAttribute('aria-label')).length,
             h1: document.querySelectorAll('h1').length,
             sideways: Math.max(
               root.scrollWidth - window.innerWidth,
@@ -391,6 +406,11 @@ async function pages() {
         });
         check(problems.length === 0, `${id}: no errors in the console`, problems.join(' | '));
         check(facts.h1 === 1, `${id}: one page title`, `${facts.h1} h1`);
+        check(
+          facts.chartsInCells === 0 && facts.chartsUnnamed === 0,
+          `${id}: every chart is named and none is drawn on surface-2`,
+          `${facts.chartsInCells} in cells, ${facts.chartsUnnamed} unnamed`,
+        );
         check(facts.sideways <= 0, `${id}: nothing scrolls sideways`, `${facts.sideways}px`);
         check(
           facts.theme === theme && facts.ground,
@@ -689,6 +709,10 @@ async function flows() {
     await page.locator('#main canvas').first().waitFor({ timeout: 15000 });
     if ((await rows.first().getAttribute('aria-expanded')) !== 'true')
       throw new Error('the row is not open');
+    // The Chart card: the canvas says its series, its span and its final values with units.
+    const said = await page.locator('#main .bm-chartbox canvas').first().getAttribute('aria-label');
+    if (!/^Shot \d+\. Pressure.* over \d+ seconds\. Final values: [\d.]+ bar/.test(said || ''))
+      throw new Error(`the chart says: ${said}`);
     await page.waitForTimeout(500);
     await capture(page, 'flow-history-open');
   });

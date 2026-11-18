@@ -66,7 +66,7 @@ function getChartData(shot) {
         ...drawn('pf', 'flow', 'Puck flow', { ...onRight, kind: 'estimate' }),
         ...drawn('ct', 'temperature', 'Temp', {}),
         ...drawn('v', 'weight', 'Weight', { yAxisID: 'y2' }),
-        ...drawn('vf', 'weight', 'Weight flow', { ...onRight, kind: 'estimate' }),
+        ...drawn('vf', 'weight', 'Weight flow', { ...onRight, kind: 'estimate', unit: 'g/s' }),
         ...drawn('tp', 'pressure', undefined, { ...onRight, kind: 'target' }),
         ...drawn('tf', 'flow', undefined, { ...onRight, kind: 'target' }),
         ...drawn('tt', 'temperature', undefined, { kind: 'target' }),
@@ -103,7 +103,7 @@ export function HistoryChart({ shot }) {
       plotClassName='h-56 flex-none sm:h-72'
       chartClassName='h-full w-full'
       data={chartData}
-      label={`Readings of shot ${shot.id}`}
+      label={`Shot ${shot.id}`}
     />
   );
 }

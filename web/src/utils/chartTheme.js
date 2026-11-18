@@ -1,15 +1,18 @@
 import { color } from 'chart.js/helpers';
 
-// How the shared charts are drawn (design/reference/web-ui.md, Charts): lines only, 2.5px for
-// pressure and 2px for the rest, round joins, no fill and no points; four horizontal grid lines and
-// no vertical ones; ticks in the data style at 11px; no animation. The legend is HTML (Chart.jsx).
+// How the shared charts are drawn (design/reference/web-ui.md, Charts, and the Chart card): lines
+// only, told apart by weight and dash as well as colour (pressure solid 2.5px, temperature solid
+// 2px, flow dashed 6 4, weight dotted 1 5 with round caps), round joins, no fill and no points;
+// each line named at its right end with its last value and unit (Chart.jsx draws those); four
+// horizontal grid lines and no vertical ones; ticks in the data style, 13px; no animation. The
+// legend is HTML (Chart.jsx), shown only on a chart wider than 480px.
 //
 // A canvas cannot read CSS variables, so the builders below leave every color and font out and
 // `applyChartTheme` resolves the tokens into the config: before the chart is built, and again
 // whenever the theme changes.
 
 const SERIES = ['pressure', 'temperature', 'flow', 'weight'];
-const TICK_SIZE = 11;
+const TICK_SIZE = 13;
 
 /** The color of a series as CSS, for a legend dot: it follows the theme by itself. */
 export const seriesColor = series => `var(--series-${series})`;
@@ -25,6 +28,7 @@ function readTheme() {
     series: Object.fromEntries(SERIES.map(name => [name, read(`--series-${name}`)])),
     grid: read('--chart-grid'),
     tick: read('--ink-muted'),
+    ink,
     marker: read('--line-strong'),
     // A selected stretch of the time axis is a soft step of ink; a hovered one is half of that.
     band: color(ink).alpha(0.1).rgbString(),
@@ -101,34 +105,169 @@ export function niceAxis(low, high, steps = [1, 2, 4, 5, 10, 20, 25, 40, 50, 100
   return { min: Math.floor(low), max: Math.ceil(high) };
 }
 
-/** The dash of a target, and of the stretch of a profile's curve that is only a limit. */
-export const DASHED = { borderDash: [5, 4], borderCapStyle: 'butt' };
-
-const LINE_KINDS = {
-  // A target is the dashed line of its series. It breaks where its y is null: no target set.
-  target: { ...DASHED, spanGaps: false },
-  // A reading worked out from another one (puck flow, weight flow) is the dotted line of its series.
-  estimate: { borderDash: [0.01, 5] },
+/** Each series' own line, so that none depends on its hue. */
+export const SERIES_LINE = {
+  pressure: { borderWidth: 2.5, borderDash: [], borderCapStyle: 'round' },
+  temperature: { borderWidth: 2, borderDash: [], borderCapStyle: 'round' },
+  flow: { borderWidth: 2, borderDash: [6, 4], borderCapStyle: 'butt' },
+  weight: { borderWidth: 2, borderDash: [1, 5], borderCapStyle: 'round' },
 };
 
+/** The fine dash of a target, and of the stretch of a profile's curve that is only a limit. */
+export const DASHED = { borderDash: [2, 3], borderCapStyle: 'butt', borderWidth: 1.5 };
+
+const LINE_KINDS = {
+  // A target is a fine dashed line of its series' colour. It breaks where its y is null.
+  target: { ...DASHED, spanGaps: false },
+  // A reading worked out from another one (puck flow, weight flow): a fine dash and dot in the
+  // colour of its source.
+  estimate: { borderDash: [4, 3, 1, 3], borderCapStyle: 'butt', borderWidth: 1.5 },
+};
+
+/** The unit an end label gives each series; an estimate names its own (weight flow is g/s). */
+const UNITS = { pressure: 'bar', temperature: '°', flow: 'ml/s', weight: 'g' };
+
 /**
- * One line of a chart: 2.5px for the pressure reading, 2px for every other line.
- *   series  'pressure' | 'temperature' | 'flow' | 'weight': its color token
- *   label   its name in the legend; a target has none of its own
+ * One line of a chart, drawn as its series is (SERIES_LINE) or as its kind.
+ *   series  'pressure' | 'temperature' | 'flow' | 'weight': its color token and line
+ *   label   its name in the legend; a target has none of its own and no end label
  *   data    [{ x, y }], already sorted by x: the charts skip Chart.js parsing
  *   kind    'target' or 'estimate', see above
+ *   unit    of its end label, when it is not its series' own
  */
-export function line(series, label, data, { kind, ...rest } = {}) {
+export function line(series, label, data, { kind, unit, ...rest } = {}) {
   return {
     series,
     label,
     data,
     kind,
-    borderWidth: series === 'pressure' && !kind ? 2.5 : 2,
+    unit: unit ?? UNITS[series],
+    ...SERIES_LINE[series],
     ...LINE_KINDS[kind],
     ...rest,
   };
 }
+
+// ── End labels and what a screen reader hears ──────────────────────────────────────────────
+
+const SPOKEN_UNITS = {
+  bar: 'bar',
+  '°': 'degrees',
+  'ml/s': 'millilitres a second',
+  g: 'grams',
+  'g/s': 'grams a second',
+};
+
+/** A reading as its end label writes it: '9.0 bar', '93°', '2.1 ml/s', '36.1 g'. */
+export const endText = (value, unit) =>
+  unit === '°' ? `${Math.round(value)}°` : `${value.toFixed(1)} ${unit}`;
+
+const spoken = (value, unit) =>
+  unit === '°'
+    ? `${Math.round(value)} degrees`
+    : `${value.toFixed(1)} ${SPOKEN_UNITS[unit] || unit}`;
+
+/** The lines that carry an end label: named readings with at least one point. */
+function labelled(chart) {
+  const out = [];
+  chart.data.datasets.forEach((dataset, index) => {
+    if (!dataset.label || dataset.kind === 'target' || !dataset.unit) return;
+    if (!chart.isDatasetVisible(index)) return;
+    const points = dataset.data;
+    let last = points.length - 1;
+    while (last >= 0 && (points[last]?.y == null || Number.isNaN(points[last].y))) last--;
+    if (last < 0) return;
+    out.push({ dataset, point: points[last] });
+  });
+  return out;
+}
+
+const listed = words =>
+  words.length < 2 ? words.join('') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`;
+
+/**
+ * What the chart says to a screen reader: its series, the span of time, and the final values.
+ *   lead  the chart's own name, said first: 'Shot 12'
+ */
+export function describeChart(chart, lead) {
+  const lines = labelled(chart);
+  const head = lead ? `${lead}. ` : '';
+  if (!lines.length) return `${head}No readings yet.`;
+  const names = lines.map(({ dataset }, i) => (i ? dataset.label.toLowerCase() : dataset.label));
+  const x = chart.scales.x;
+  const span = x ? Math.round(x.max - x.min) : 0;
+  return (
+    `${head}${listed(names)} over ${span} seconds. Final values: ` +
+    `${listed(lines.map(({ dataset, point }) => spoken(point.y, dataset.unit)))}.`
+  );
+}
+
+// Labels keep this far apart, and this far from the plot or its right-hand scale.
+const LABEL_STEP = 16;
+const LABEL_GAP = 8;
+
+/**
+ * Names each line at its right end with its last value and unit, in ink, in a gutter right of
+ * the plot (and of a right-hand scale); labels that would touch are nudged 16px apart. It also
+ * keeps the canvas's spoken label current, since a live chart grows without a render.
+ */
+export const endLabels = {
+  id: 'endLabels',
+  beforeLayout(chart) {
+    const lines = labelled(chart);
+    const { ctx } = chart;
+    ctx.save();
+    ctx.font = chartFont();
+    const widest = Math.max(
+      0,
+      ...lines.map(({ dataset, point }) => ctx.measureText(endText(point.y, dataset.unit)).width),
+    );
+    ctx.restore();
+    // The raw config, which the layout reads next (writes through `chart.options` are lost).
+    // Reserve a little more than this frame needs, so a label growing by a digit does not move
+    // the plot on every reading.
+    const layout = (chart.config.options.layout ||= {});
+    if (typeof layout.padding !== 'object') layout.padding = {};
+    layout.padding.right = widest ? Math.ceil((widest + LABEL_GAP) / 8) * 8 : 0;
+  },
+  afterDatasetsDraw(chart) {
+    const lines = labelled(chart);
+    const area = chart.chartArea;
+    const t = theme || readTheme();
+    const canvas = chart.canvas;
+    const said = describeChart(chart, canvas.dataset.chartName);
+    if (canvas.getAttribute('aria-label') !== said) canvas.setAttribute('aria-label', said);
+    if (!lines.length || !area) return;
+
+    const marks = lines
+      .map(({ dataset, point }) => {
+        const scale = chart.scales[dataset.yAxisID || 'y'];
+        const y = scale.getPixelForValue(point.y);
+        return {
+          text: endText(point.y, dataset.unit),
+          y: Math.min(area.bottom, Math.max(area.top, y)),
+        };
+      })
+      .sort((a, b) => a.y - b.y);
+    for (let i = 1; i < marks.length; i++)
+      marks[i].y = Math.max(marks[i].y, marks[i - 1].y + LABEL_STEP);
+    const overflow = marks.length ? marks.at(-1).y - area.bottom : 0;
+    if (overflow > 0) {
+      marks.at(-1).y = area.bottom;
+      for (let i = marks.length - 2; i >= 0; i--)
+        marks[i].y = Math.min(marks[i].y, marks[i + 1].y - LABEL_STEP);
+    }
+
+    const { ctx } = chart;
+    ctx.save();
+    ctx.font = chartFont();
+    ctx.fillStyle = t.ink;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (const mark of marks) ctx.fillText(mark.text, chart.width, mark.y);
+    ctx.restore();
+  },
+};
 
 /**
  * A value axis with four ticks from `min` to `max`.
@@ -169,6 +308,8 @@ export function secondsAxis(min, max, format = (value, index) => (index ? value 
       align: 'inner',
       maxRotation: 0,
       padding: 4,
+      // The first label sits inside the edge, so it needs more room than Chart.js counts for it.
+      autoSkipPadding: 12,
       callback: format,
     },
   };
@@ -249,6 +390,7 @@ export function chartOptions({ scales, annotations = {}, ...rest }) {
     normalized: true,
     spanGaps: true,
     events: [],
+    layout: { padding: { right: 0 } },
     elements: {
       line: { fill: false, tension: 0, borderJoinStyle: 'round', borderCapStyle: 'round' },
       point: { radius: 0, hoverRadius: 0, hitRadius: 0 },

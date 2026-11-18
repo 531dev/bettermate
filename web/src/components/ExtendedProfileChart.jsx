@@ -14,15 +14,14 @@ import { ChartComponent } from './Chart.jsx';
 
 const POINT_INTERVAL = 0.1; // s
 
-// Where a phase holds the other quantity, this one is only its limit: dashed like a target, and
-// 2px like every line but the pressure a phase holds.
+// Where a phase holds the other quantity, this one is only its limit: the fine dash of a target.
 const limit = (ctx, value) => (ctx.p0.raw.target ? undefined : value);
 const curve = (series, label, data) =>
   line(series, label, data, {
     segment: {
       borderDash: ctx => limit(ctx, DASHED.borderDash),
       borderCapStyle: ctx => limit(ctx, DASHED.borderCapStyle),
-      borderWidth: ctx => limit(ctx, 2),
+      borderWidth: ctx => limit(ctx, DASHED.borderWidth),
     },
   });
 
@@ -227,7 +226,7 @@ export function ExtendedProfileChart({
       plotStyle={style}
       chartClassName={`${className}${pressable ? ' cursor-pointer' : ''}`}
       data={config}
-      label='Pressure and flow over the phases of the profile'
+      label="The profile's curve"
     />
   );
 }

@@ -1,40 +1,47 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { Chart, LineController, LineElement, LinearScale, PointElement } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { applyChartTheme, chartFont, seriesColor } from '../utils/chartTheme.js';
+import { applyChartTheme, chartFont, endLabels, seriesColor } from '../utils/chartTheme.js';
 import { Chip } from './Chip.jsx';
 import { cx } from './cx.js';
 
 // Everything these charts draw with, so a page registers nothing to use one.
 Chart.register(LineController, LineElement, PointElement, LinearScale, annotationPlugin);
 
-// A reading worked out from another one shares the color of its source and draws dotted, so its
-// mark in the legend is a short dotted stroke instead of the dot, as in the Analyzer's legend.
-const dottedMark = series => ({
-  width: 12,
-  height: 0,
-  borderTop: `2px dotted ${seriesColor(series)}`,
-  borderRadius: 0,
-  background: 'none',
-});
+/** A sample of a line as the chart draws it: its colour, weight, dash and caps. */
+function LineKey({ dataset }) {
+  const dash = dataset.borderDash?.length ? dataset.borderDash.join(' ') : undefined;
+  return (
+    <svg className='bm-chart__key' viewBox='0 0 20 6' aria-hidden='true'>
+      <line
+        x1='1'
+        y1='3'
+        x2='19'
+        y2='3'
+        stroke={seriesColor(dataset.series)}
+        stroke-width={dataset.borderWidth ?? 2}
+        stroke-dasharray={dash}
+        stroke-linecap={dataset.borderCapStyle || 'round'}
+      />
+    </svg>
+  );
+}
 
-/** The legend: a neutral Chip for each series, its dot in the series color. A target has none. */
+/**
+ * The legend: a neutral Chip for each series with a sample of its line. A target has none.
+ * Inside a ChartComponent it shows only on a chart wider than 480px; the end labels name the
+ * lines below that.
+ */
 export function ChartLegend({ datasets, className }) {
   const named = datasets.filter(dataset => dataset.label && dataset.kind !== 'target');
   return (
-    <div className={cx('flex flex-wrap gap-1.5', className)}>
-      {named.map(dataset =>
-        dataset.kind === 'estimate' ? (
-          <Chip key={dataset.label}>
-            <i className='bm-chip__dot' style={dottedMark(dataset.series)} />
-            {dataset.label}
-          </Chip>
-        ) : (
-          <Chip key={dataset.label} dot={seriesColor(dataset.series)}>
-            {dataset.label}
-          </Chip>
-        ),
-      )}
+    <div className={cx('bm-chartbox__legend', className)}>
+      {named.map(dataset => (
+        <Chip key={dataset.label}>
+          <LineKey dataset={dataset} />
+          {dataset.label}
+        </Chip>
+      ))}
     </div>
   );
 }
@@ -48,7 +55,8 @@ export function ChartLegend({ datasets, className }) {
  *   plotStyle       the same as a style: a height in px that a setting holds
  *   chartClassName  the canvas
  *   legend          false to leave the Chips out and place a ChartLegend elsewhere
- *   label           the canvas's name for screen readers; the series names by default
+ *   label           the chart's own name, said before what it shows: the series, the span of
+ *                   time and the final values, kept current as it grows
  *   chartRef        receives the Chart, for a live chart that appends to its own data and updates
  */
 export function ChartComponent({
@@ -68,7 +76,7 @@ export function ChartComponent({
 
   useEffect(() => {
     applyChartTheme(shown.current, canvas.current);
-    const created = new Chart(canvas.current, shown.current);
+    const created = new Chart(canvas.current, { ...shown.current, plugins: [endLabels] });
     chart.current = created;
 
     let alive = true;
@@ -119,23 +127,14 @@ export function ChartComponent({
     chart.current.update('none');
   }, [data]);
 
-  const names = data.data.datasets
-    .filter(dataset => dataset.label && dataset.kind !== 'target')
-    .map(dataset => dataset.label);
-
   return (
-    <div className={cx('flex min-w-0 flex-col gap-3', className)} style={style}>
+    <div className={cx('bm-chartbox flex min-w-0 flex-col gap-3', className)} style={style}>
       {legend && <ChartLegend datasets={data.data.datasets} />}
       <div
         className={cx('relative min-h-0 w-full min-w-0 flex-1', plotClassName)}
         style={plotStyle}
       >
-        <canvas
-          ref={canvas}
-          className={chartClassName}
-          role='img'
-          aria-label={label || `${names.join(', ')} over time`}
-        />
+        <canvas ref={canvas} className={chartClassName} role='img' data-chart-name={label} />
       </div>
     </div>
   );

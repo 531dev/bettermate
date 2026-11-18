@@ -1563,6 +1563,22 @@ button.bm-item {
   border-radius: 2px;
 }
 
+/* A shared chart's box: its legend shows only when the chart is wider than 480px; under that the
+   end labels name the lines (Chart card). */
+.bm-chartbox {
+  container-type: inline-size;
+}
+.bm-chartbox__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+@container (max-width: 480px) {
+  .bm-chartbox__legend {
+    display: none;
+  }
+}
+
 /* Dial: ticks recolour in duration-fast. The reading snaps. */
 .bm-dial .bmf-tick {
   transition: stroke var(--duration-fast) var(--ease-out);
