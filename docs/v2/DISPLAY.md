@@ -48,7 +48,7 @@ it as the layout source. This file says how those become code under `src/display
 | `Screen.h` | `Screen` (parts, ranks, bindings, the handle and the exception slot), `Host`, `Intent`, `ScreenId`, `anyWarning`, `warningName`, `formatTime`, `upper`. |
 | `UiState.h` | The snapshot a screen reads. A screen never reads the controller. |
 | `BetterMateUI.*` | The host: events, snapshot, routing, intents, frames, theme, brightness, favourites task. |
-| `screens/` | One class per screen: Standby, Brew, Shot, Mode (Steam, Water, Grind), Menu, Profiles, Adjust, Sheet, Warnings, Info. |
+| `screens/` | One class per screen: Standby, Brew, Shot, Mode (Steam, Water, Grind), Menu, Profiles, Adjust, Sheet, Warnings, Info (and Wi-Fi setup), Fault, Update. The host puts up Update, Fault and Wi-Fi setup itself while their state lasts (`BetterMateUI::route`, in the order of product-states.md); a screen never asks for them. |
 
 ## Writing a screen
 
@@ -86,7 +86,9 @@ Rules that keep it cheap and correct:
 6. Motion between snapshots (a timer, a growing bar) goes in `tick(state, frame)`, counted in frames, repainting only
    what moved. One ambient motion at a time: the ring's pulse or its comet.
 7. A name that may be too long is cut with `ui::fit` or kept on a `ui::clamp`ed label; never LVGL's dot mode, which
-   rewrites the label's text so that an unchanged name looks changed on every snapshot. The label face has capitals, digits and punctuation only; the button face has `A-Z`, space and `&`. Uppercase any
+   rewrites the label's text so that an unchanged name looks changed on every snapshot. A cut ends in `…` (U+2026);
+   give `fit` the design's character limit too (round-display.md, Content limits) and it cuts one short. `setText`
+   and `fit` replace a letter the face lacks with its base letter (`ł` to `l`), so nothing is drawn as a box. The label face has capitals, digits and punctuation only; the button face has `A-Z`, space and `&`. Uppercase any
    name you put in them with `upper()`. The hero faces have digits, `:`, `.`, `-`, space and `°`.
 8. Units: a large reading carries a small unit label under it; small text writes `93°`, `9.0 BAR`, `36 G` in the label
    face and `93°`, `36 g` in the body face. Sentence case in `Body`; no state words for the normal state.
@@ -115,8 +117,8 @@ SIM_HTTP_PORT=8101 SDL_VIDEODRIVER=dummy <repo>/.pio/build/display-sim/program -
 ```
 
 Script verbs are listed in `sim/SimScript.h` (`mode`, `tap`, `press`/`release`, `hold`, `swipe`, `key`, `scale`,
-`weight`, `pumped`, `pressure-sensor`, `controller`, `error`, `protocol`, `autotune`, `update`, `wifi`, `panel`,
-`theme`, `expect ...`). The checks are `scripts/verify_display_{core,shot,modes,menu,profiles}.py`, each on
+`weight`, `pumped`, `pressure-sensor`, `controller`, `error`, `protocol`, `autotune`, `update`, `update-ready`,
+`update-progress`, `unanswered`, `wifi`, `panel`, `theme`, `expect ...`). The checks are `scripts/verify_display_{core,shot,modes,menu,profiles}.py`, each on
 `scripts/display_sim.py`; they keep the captures under `docs/display/v2/` unless `UPDATE_SHOTS=1` is set.
 
 The 466 px panels run the same scripts and the same checks. Points in a script and boxes in a `layout` dump are

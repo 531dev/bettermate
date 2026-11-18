@@ -149,6 +149,42 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
     focused, as the profile editor's do; the pump flow calibration's buttons are all secondary, so Cancel and
     Start calibration look alike; Setup has no focus trap (the shell is not rendered under it, so Tab leaves for
     the browser as on any page); a wide `end` in a tile head moves under the title.
+19. Display, design revision of 2026-11-16 (Lane D of `DS-1116-LANES.md`, 2026-11-17):
+    - **Content limits.** `ui::fit` takes a character limit as well as a width and cuts one short with `…`. Brew's
+      name group is 312 px (was 284): 18 characters of screen-title need about 263 px, and 17 plus the ellipsis
+      (wider than a letter) up to 280. Letters the faces lack fold to their base letter (Latin Extended-A,
+      typographic quotes and dashes); a letter with no base is left out.
+    - **Warnings** show three cards and "+N more" (screen-body, muted) under them. Three do not fit above the pill
+      where the design draws two (label 112, cards from 138), so the label takes the label zone at 86 and the cards
+      start at 104, 68 px apart, the count at 328. One card a rank of the screen change (two in one rank went over
+      the 25% step budget with a reading stepping in).
+    - **Standby** is always 24-hour: the display ignores the 12-hour setting (the web still offers it). While
+      connecting the date stays and no state word replaces it. With an update waiting the line reads "Update 1.9.1
+      is ready" (the release tag's `v` dropped; "An update is ready" when the version is unknown or over 9
+      characters). For this the OTA plugin's internal `ota:update:status` event now carries `version`; no REST or
+      WebSocket change.
+    - **Command pending** is Brew's START only. The warning reads "Controller did not answer" (25 characters: the
+      lane's "The controller did not answer" does not fit a card; this fits its 266 px). It heads the WARN cards and
+      raises the slot glyph, and goes on the next START, on a started shot, or with DONE on Warnings. The quiet pill
+      repaints its own box, 5.2% of the 480 panel and 5.5% of the 466 (the design's "5% for a pill"); the handle
+      goes a frame later so no frame carries both.
+    - **Faults that block brewing** (`BetterMateUI::watchFault`): a boiler runaway (no pill: the controller keeps
+      its heater off until it is switched off, and a display restart would only hide the fault), link errors 1 to 3
+      (RESTART restarts the display; today's controller never sends these, so the pill will rarely be seen), any
+      other error code (no pill), a protocol mismatch (no pill; the update is in the web app), and the controller
+      missing for 5 s after the display stopped waiting for it (at boot 10 s + 5; after a loss 5 s). Before those
+      5 s Standby shows the comet and "Waiting for the controller". "Boiler sensor lost" and RETRY from the design
+      have nothing behind them: the controller reports no such fault.
+    - **Updating** shows the progress of the part being installed: the OTA plugin reports 0 to 100 for the
+      controller's firmware and again for the display's, so when both are updated the ring walks up twice. 0 until
+      the first report. Not seen on hardware; the simulator injects progress (`update-progress`).
+    - **Wi-Fi setup** stands in for Standby while the machine's access point is up, and a tap anywhere wakes the
+      machine as on Standby. The design gives it no action and ranks it above Running; taken literally it would
+      lock out a machine that is never put on Wi-Fi. Information in access-point mode uses the same words (JOIN
+      THIS WI-FI, SCAN TO SET UP).
+    - The design re-import changed screen-body's line height (26 to 27); the checks that compared it were updated.
+    - Captures refreshed at 480 px only; `docs/display/v2/466/` still holds the earlier ones for the screens that
+      changed.
 
 ## 4. Restarting — one prompt per session
 
@@ -207,3 +243,4 @@ The web page lanes, the web integration and the display loose ends are done; the
 | `2014b256`, `abfb0e82`, `ee556143` | Dashboard lane. |
 | `90488c24`, `90034020`, `4cd810c7` | Display loose ends: 466 px, the origin repaint, up to 16 stage bars. |
 | `b4777ead`, `e2aab814`, `9632fb4e`, `e4008dbf`, `6c30de97` | Web integration: shared fixes, promotions, `verify_web_ui.mjs`, `docs/webui/`. |
+| `8240451f`, `36ece42b` | Lane D (design revision of 2026-11-16): `…` and folded letters, content limits, three warnings, Standby's lines, command pending, Fault, Updating, Wi-Fi setup. Checks: core 166, shot 565, modes 520, menu 916, profiles 1414 (480 px only). `pio run -e display`: 3,075,909 bytes of flash, 84,000 of RAM. Decisions in section 3, item 19. |
