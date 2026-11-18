@@ -16,7 +16,7 @@ import { AppBar } from './components/AppBar.jsx';
 import { cx } from './components/cx.js';
 import { ModeBar, hidesModeBar } from './components/ModeNav.jsx';
 import { Navigation } from './components/Navigation.jsx';
-import { MachineNotice, UpdatingPage } from './components/MachineStates.jsx';
+import { MachineNotice } from './components/MachineStates.jsx';
 import { LiveRegions, Toasts } from './components/Toast.jsx';
 import { startAnnouncer } from './utils/announcer.js';
 import { startMachineState, updating } from './utils/machineState.js';
@@ -35,6 +35,8 @@ const StatisticsPage = lazy(() =>
   import('./pages/Statistics/index.jsx').then(m => m.StatisticsPage),
 );
 const Setup = lazy(() => import('./pages/Setup/index.jsx').then(m => m.Setup));
+// Firmware installs rarely; its page loads when one starts.
+const UpdatingPage = lazy(() => import('./components/UpdatingPage.jsx').then(m => m.UpdatingPage));
 const DashboardSettings = lazy(() =>
   import('./pages/DashboardSettings/index.jsx').then(m => m.DashboardSettings),
 );
@@ -75,7 +77,9 @@ function Shell() {
   if (updating.value) {
     return (
       <>
-        <UpdatingPage />
+        <ErrorBoundary>
+          <UpdatingPage />
+        </ErrorBoundary>
         <Toasts />
         <LiveRegions />
       </>
