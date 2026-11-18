@@ -1894,8 +1894,10 @@ input:checked:disabled + .bm-radio__box {
   background: var(--surface-2);
 }
 
-/* Sheets and menus enter with opacity and a 16px rise in duration-base on ease-out, and leave in
-   duration-fast on ease-in. `.is-open` is the entered state; the scrim behind a sheet fades with it. */
+/* Dialogs and menus enter with opacity and a 16px rise in duration-base on ease-out, and leave in
+   duration-fast on ease-in. `.is-open` is the entered state; the scrim behind a Dialog fades with
+   it. The Dialog rises with `translate`, so part 1's centring transform stays. It sits above the
+   scrim; a Menu opened inside it sits above both. */
 .bm-scrim {
   z-index: 60;
   opacity: 0;
@@ -1905,7 +1907,18 @@ input:checked:disabled + .bm-radio__box {
   opacity: 1;
   transition: opacity var(--duration-base) var(--ease-out);
 }
-.bm-sheet,
+.bm-dialog {
+  z-index: 61;
+  max-height: calc(100dvh - var(--space-6));
+  opacity: 0;
+  translate: 0 16px;
+  transition:
+    opacity var(--duration-fast) var(--ease-in),
+    translate var(--duration-fast) var(--ease-in);
+}
+.bm-dialog--sheet {
+  bottom: max(var(--space-3), env(safe-area-inset-bottom));
+}
 .bm-menu {
   opacity: 0;
   transform: translateY(16px);
@@ -1913,38 +1926,21 @@ input:checked:disabled + .bm-radio__box {
     opacity var(--duration-fast) var(--ease-in),
     transform var(--duration-fast) var(--ease-in);
 }
-.bm-sheet.is-open,
+.bm-dialog.is-open,
 .bm-menu.is-open {
   opacity: 1;
+  translate: none;
   transform: none;
   transition:
     opacity var(--duration-base) var(--ease-out),
+    translate var(--duration-base) var(--ease-out),
     transform var(--duration-base) var(--ease-out);
 }
-.bm-sheet {
-  position: fixed;
-  z-index: 61;
-  right: 0;
-  bottom: max(var(--space-3), env(safe-area-inset-bottom));
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  width: min(calc(100% - var(--space-6)), 440px);
-  max-height: calc(100dvh - var(--space-6));
-  margin: 0 auto;
-  padding: var(--space-5);
-  overflow-y: auto;
-  border-radius: var(--radius-xl);
-  background: var(--surface-1);
+.bm-dialog.is-open {
+  transform: translate(-50%, -50%);
 }
-@media (min-width: 600px) {
-  .bm-sheet {
-    top: 0;
-    bottom: 0;
-    height: fit-content;
-    margin: auto;
-  }
+.bm-dialog--sheet.is-open {
+  transform: translateX(-50%);
 }
 /* A menu is portalled to the body and placed by Menu.jsx, above sheets. */
 .bm-menu {
@@ -2143,12 +2139,16 @@ input:checked:disabled + .bm-radio__box {
 }
 
 /* Reduced motion: part 1 removes every bm-* transition and animation; the dial's ticks and the
-   rise of a sheet, menu or sidebar go too. */
+   rise of a Dialog, menu or sidebar go too. */
 @media (prefers-reduced-motion: reduce) {
   .bm-dial .bmf-tick {
     transition: none;
   }
-  .bm-sheet,
+  .bm-dialog,
+  .bm-toast {
+    translate: none;
+  }
+  .bm-toast,
   .bm-menu,
   .bm-sidebar,
   .bm-iconbtn:active,

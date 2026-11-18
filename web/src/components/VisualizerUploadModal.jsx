@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { Button } from './Button.jsx';
 import { Checkbox, Field, Input } from './Field.jsx';
 import { Icon } from './Icon.jsx';
-import { Sheet } from './Sheet.jsx';
+import { Dialog } from './Dialog.jsx';
 import { Loader } from './Loader.jsx';
 import { Cell } from './Tile.jsx';
 import { dateTime } from '../utils/time.js';
@@ -82,7 +82,8 @@ export default function VisualizerUploadModal({
   ];
 
   return (
-    <Sheet
+    <Dialog
+      close
       open={isOpen}
       onClose={handleClose}
       title='Upload to Visualizer'
@@ -153,20 +154,21 @@ export default function VisualizerUploadModal({
           choose to remember them.
         </p>
 
-        <div className='flex justify-end gap-2 pt-2'>
+        <div className='bm-dialog__actions'>
           <Button onClick={handleClose} disabled={isUploading}>
-            Cancel
+            Keep it here
           </Button>
           <Button
             type='submit'
             variant='primary'
             disabled={isUploading || !username.trim() || !password.trim()}
+            aria-busy={isUploading}
           >
             {isUploading && <Loader size={18} />}
             {isUploading ? 'Uploading' : 'Upload'}
           </Button>
         </div>
       </form>
-    </Sheet>
+    </Dialog>
   );
 }

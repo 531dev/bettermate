@@ -10,7 +10,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'p
 import { Button } from '../../components/Button.jsx';
 import { Input } from '../../components/Field.jsx';
 import { Icon } from '../../components/Icon.jsx';
-import { Menu, MenuItem } from '../../components/Menu.jsx';
+import { Menu, MenuItem, MenuSeparator } from '../../components/Menu.jsx';
 import { prefersReducedMotion, tokenMs } from '../../components/motion.js';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
@@ -19,7 +19,7 @@ import { Loader } from '../../components/Loader.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { downloadJson } from '../../utils/download.js';
-import { ConfirmMenuItem } from './ConfirmMenuItem.jsx';
+import { ConfirmDialog } from '../../components/Dialog.jsx';
 import { ProfileRow } from './ProfileRow.jsx';
 import { parseProfile } from './utils.js';
 
@@ -39,6 +39,7 @@ export function ProfileList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('extraction');
   const [isDragging, setIsDragging] = useState(false);
+  const [askClear, setAskClear] = useState(false);
   const containerRef = useRef(null);
   const importRef = useRef(null);
   const favoriteCount = profiles.map(p => (p.favorite ? 1 : 0)).reduce((a, b) => a + b, 0);
@@ -384,11 +385,10 @@ export function ProfileList() {
               <MenuItem icon='download' onClick={onExport}>
                 Export all
               </MenuItem>
-              <ConfirmMenuItem
-                label='Delete all'
-                confirmLabel='Confirm delete all'
-                onConfirm={onClear}
-              />
+              <MenuSeparator />
+              <MenuItem danger onClick={() => setAskClear(true)}>
+                Delete all profiles
+              </MenuItem>
             </Menu>
             <Button variant='ink' size='sm' href='/profiles/new' aria-label='New profile'>
               <Icon name='plus' size={18} />
@@ -481,6 +481,14 @@ export function ProfileList() {
           )}
         </Tile>
       )}
+      <ConfirmDialog
+        open={askClear}
+        onClose={() => setAskClear(false)}
+        onConfirm={onClear}
+        title='Delete all profiles?'
+        body='Every profile is removed from the machine. Shots stay in History.'
+        confirmLabel='Delete all'
+      />
     </PageLayout>
   );
 }

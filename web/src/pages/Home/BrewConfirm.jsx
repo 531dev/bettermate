@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'preact/hooks';
 import { Button } from '../../components/Button.jsx';
-import { Sheet } from '../../components/Sheet.jsx';
+import { Dialog } from '../../components/Dialog.jsx';
 import { Notice } from '../../components/Notice.jsx';
 import { ApiServiceContext, machine } from '../../services/ApiService.js';
 import { activeWarnings, parseWarningStates, warningTone } from '../../utils/warnings.js';
@@ -40,8 +40,20 @@ export function BrewConfirm() {
   };
 
   return (
-    <Sheet open={!!warnings} onClose={back} title='Start the shot anyway?'>
-      <p className='bm-help'>The machine has something to tell you first.</p>
+    <Dialog
+      open={!!warnings}
+      onClose={back}
+      title='Start the shot anyway?'
+      body='The machine has something to tell you first.'
+      actions={[
+        <Button key='back' onClick={back} data-autofocus>
+          Back
+        </Button>,
+        <Button key='start' variant='primary' onClick={startAnyway}>
+          Start anyway
+        </Button>,
+      ]}
+    >
       <ul className='flex flex-col gap-2'>
         {shown.current.map(w => (
           <li key={w.key}>
@@ -49,14 +61,6 @@ export function BrewConfirm() {
           </li>
         ))}
       </ul>
-      <div className='flex justify-end gap-2'>
-        <Button onClick={back} data-autofocus>
-          Back
-        </Button>
-        <Button variant='primary' onClick={startAnyway}>
-          Start anyway
-        </Button>
-      </div>
-    </Sheet>
+    </Dialog>
   );
 }

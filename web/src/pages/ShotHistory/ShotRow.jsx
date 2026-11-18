@@ -1,7 +1,7 @@
 import { useCallback, useContext, useId, useState } from 'preact/hooks';
 import { Button } from '../../components/Button.jsx';
 import { Chip } from '../../components/Chip.jsx';
-import { ConfirmButton } from '../../components/ConfirmButton.jsx';
+import { ConfirmDialog } from '../../components/Dialog.jsx';
 import { ListRow } from '../../components/ListRow.jsx';
 import { SkeletonBlock } from '../../components/SkeletonBlock.jsx';
 import VisualizerUploadModal from '../../components/VisualizerUploadModal.jsx';
@@ -29,6 +29,7 @@ export function ShotRow({ shot, when, compact, onDelete, onLoad, onNotesChanged 
   const [expanded, setExpanded] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [askDelete, setAskDelete] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const detailId = useId();
 
@@ -205,15 +206,20 @@ export function ShotRow({ shot, when, compact, onDelete, onLoad, onNotesChanged 
             </Button>
             {uploaded && <Chip tone='success'>Uploaded</Chip>}
             <span className='ml-auto'>
-              <ConfirmButton
-                icon='trash-2'
-                btnSize='md'
-                tooltip='Delete shot'
-                confirmTooltip='Confirm delete'
-                onAction={() => onDelete(shot.id)}
-              />
+              <Button variant='ghost' onClick={() => setAskDelete(true)}>
+                Delete
+              </Button>
             </span>
           </div>
+
+          <ConfirmDialog
+            open={askDelete}
+            onClose={() => setAskDelete(false)}
+            onConfirm={() => onDelete(shot.id)}
+            title='Delete this shot?'
+            body='Its chart and notes are removed. It cannot be brought back.'
+            confirmLabel='Delete shot'
+          />
 
           <VisualizerUploadModal
             isOpen={showUploadModal}

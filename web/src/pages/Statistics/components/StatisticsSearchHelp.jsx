@@ -1,4 +1,4 @@
-import { Sheet } from '../../../components/Sheet.jsx';
+import { Dialog } from '../../../components/Dialog.jsx';
 import { Cell } from '../../../components/Tile.jsx';
 import { IconButton } from '../../../components/IconButton.jsx';
 import { Popover } from '../../../components/Popover.jsx';
@@ -88,9 +88,9 @@ export function StatisticsSearchHelp() {
         onClick={popover.toggle}
       />
       {isPhone ? (
-        <Sheet open={popover.open} onClose={popover.close} title='Search syntax'>
+        <Dialog close open={popover.open} onClose={popover.close} title='Search syntax'>
           <StatisticsSearchHelpContent onSheet />
-        </Sheet>
+        </Dialog>
       ) : (
         <Popover
           {...FLOATING_PANEL_PROPS}

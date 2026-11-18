@@ -5,12 +5,12 @@ import { cx } from '../../components/cx.js';
 import { ExtendedProfileChart } from '../../components/ExtendedProfileChart.jsx';
 import { Icon } from '../../components/Icon.jsx';
 import { ListRow } from '../../components/ListRow.jsx';
-import { Menu, MenuItem } from '../../components/Menu.jsx';
+import { Menu, MenuItem, MenuSeparator } from '../../components/Menu.jsx';
+import { ConfirmDialog } from '../../components/Dialog.jsx';
 import { Cell } from '../../components/Tile.jsx';
 import { Tooltip } from '../../components/Tooltip.jsx';
 import { downloadJson } from '../../utils/download.js';
 import { buildStatisticsProfileHref } from '../Statistics/utils/statisticsRoute.js';
-import { ConfirmMenuItem } from './ConfirmMenuItem.jsx';
 
 const PhaseLabels = {
   preinfusion: 'Pre-infusion',
@@ -38,6 +38,7 @@ export function ProfileRow({
   isLast,
 }) {
   const [tooltipsDisabled, setTooltipsDisabled] = useState(false);
+  const [asking, setAsking] = useState(false);
 
   const handleMoveTop = useCallback(() => {
     setTooltipsDisabled(true);
@@ -144,11 +145,10 @@ export function ProfileRow({
             <MenuItem icon='plus' onClick={() => onDuplicate(data.id)}>
               Duplicate
             </MenuItem>
-            <ConfirmMenuItem
-              label='Delete'
-              confirmLabel='Confirm delete'
-              onConfirm={() => onDelete(data.id)}
-            />
+            <MenuSeparator />
+            <MenuItem danger onClick={() => setAsking(true)}>
+              Delete profile
+            </MenuItem>
           </Menu>
         }
       />
@@ -209,6 +209,14 @@ export function ProfileRow({
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={asking}
+        onClose={() => setAsking(false)}
+        onConfirm={() => onDelete(data.id)}
+        title={`Delete ${data.label}?`}
+        body='Its shots stay in History. The profile cannot be brought back.'
+        confirmLabel='Delete profile'
+      />
     </div>
   );
 }

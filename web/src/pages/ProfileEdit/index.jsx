@@ -7,7 +7,7 @@ import { computed } from '@preact/signals';
 import { Button } from '../../components/Button.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import PageLayout from '../../components/PageLayout.jsx';
-import { Sheet } from '../../components/Sheet.jsx';
+import { Dialog } from '../../components/Dialog.jsx';
 import { Loader } from '../../components/Loader.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import { ExtendedProfileForm } from './ExtendedProfileForm.jsx';
@@ -191,17 +191,21 @@ export function ProfileEdit() {
         />
       )}
 
-      <Sheet open={guard.pending !== null} onClose={guard.stay} title='Discard changes?'>
-        <p className='bm-help'>This profile has edits that are not saved.</p>
-        <div className='flex justify-end gap-2 pt-2'>
-          <Button onClick={guard.stay} data-autofocus>
+      <Dialog
+        alert
+        open={guard.pending !== null}
+        onClose={guard.stay}
+        title='Discard changes?'
+        body='This profile has edits that are not saved.'
+        actions={[
+          <Button key='stay' onClick={guard.stay} data-autofocus>
             Keep editing
-          </Button>
-          <Button variant='danger' onClick={guard.leave}>
-            Discard
-          </Button>
-        </div>
-      </Sheet>
+          </Button>,
+          <Button key='leave' variant='danger' onClick={guard.leave}>
+            Discard changes
+          </Button>,
+        ]}
+      />
     </PageLayout>
   );
 }
