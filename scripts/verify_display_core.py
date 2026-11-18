@@ -248,7 +248,8 @@ for line in sim.log.splitlines():
             start = ms
         groups.setdefault(start, []).append((*map(int, corner.split(",")), *map(int, size.split("x"))))
 pill_rect = (146 + SHOT_SHIFT, 334 + SHOT_SHIFT, 188, 64)
-handle_rect = (212 + SHOT_SHIFT, 418 + SHOT_SHIFT, 56, 56)
+# On a 466 px panel the handle's box reaches past the bottom edge, and the repaint stops at the edge.
+handle_rect = (212 + SHOT_SHIFT, 418 + SHOT_SHIFT, 56, min(56, PANEL - (418 + SHOT_SHIFT)))
 order = sorted(groups)
 # The swap: the frame that repaints the pill followed by the frame where the handle goes. Besides the pill it may only
 # carry what runs on its own cadence anyway: a tick of the heating pulse, a digit of the reading (one cell).

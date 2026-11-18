@@ -205,9 +205,8 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
       stays). A profile save that fails used to leave SAVING forever; it now keeps the form, shows a danger
       Notice above it and repeats it in a Toast. Offline, both Saves are disabled with "The machine is
       offline. Save once it is back."
-    - **Not done:** Hardware not present (the Weight tile's EmptyState, settings disabled with "Connect a
-      scale to use this") and the Wi-Fi scan states of Setup (a "Scanning" Select, "No networks found" with
-      SCAN AGAIN, the 15 s limit). The first start screen was not touched.
+    - **Not done:** the Wi-Fi scan states of Setup (a "Scanning" Select, "No networks found" with SCAN AGAIN,
+      the 15 s limit): see item 22. The first start screen was not touched. (Hardware not present: item 22.)
 21. Display, design revision of 2026-11-16 (Lane D of `DS-1116-LANES.md`, 2026-11-17):
     - **Content limits.** `ui::fit` takes a character limit as well as a width and cuts one short with `…`. Brew's
       name group is 312 px (was 284): 18 characters of screen-title need about 263 px, and 17 plus the ellipsis
@@ -235,15 +234,37 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
       5 s Standby shows the comet and "Waiting for the controller". "Boiler sensor lost" and RETRY from the design
       have nothing behind them: the controller reports no such fault.
     - **Updating** shows the progress of the part being installed: the OTA plugin reports 0 to 100 for the
-      controller's firmware and again for the display's, so when both are updated the ring walks up twice. 0 until
-      the first report. Not seen on hardware; the simulator injects progress (`update-progress`).
+      controller's firmware and again for the display's; since item 22 each takes half the ring when both
+      install. 0 until the first report. Not seen on hardware; the simulator injects progress (`update-progress`).
     - **Wi-Fi setup** stands in for Standby while the machine's access point is up, and a tap anywhere wakes the
       machine as on Standby. The design gives it no action and ranks it above Running; taken literally it would
       lock out a machine that is never put on Wi-Fi. Information in access-point mode uses the same words (JOIN
       THIS WI-FI, SCAN TO SET UP).
     - The design re-import changed screen-body's line height (26 to 27); the checks that compared it were updated.
-    - Captures refreshed at 480 px only; `docs/display/v2/466/` still holds the earlier ones for the screens that
-      changed.
+    - Captures refreshed at 480 px only here; item 22 refreshed `docs/display/v2/466/`.
+22. Follow-ups to items 20 and 21 (2026-11-18):
+    - **One TRY AGAIN.** Offline, the Dashboard's ActionBanner says TRY AGAIN and the danger Notice above it has
+      no button (one action, in one place). Every other page has no banner, so its Notice keeps TRY AGAIN.
+    - **No scale** (`bta` false, Product states: Hardware not present). Simple still leaves the weight out.
+      Advanced and Customize keep the Weight tile as an EmptyState ("No scale connected", PAIR A SCALE to
+      Settings, Bluetooth); it is taller than a reading, so it goes last on a row of its own (phone and desktop),
+      and a reading left alone before it takes its row too. Stop shot by and Stop grinding by show Time,
+      disabled, with "Connect a scale to use this." (the firmware stops by time without a scale). The Settings
+      tile Predictive scale delay stays editable: a scale sleeps between shots, and the setting would then
+      almost never be open.
+    - **Updating, both parts.** The web plugin's internal `ota:update:start` carries `parts` (how many will
+      install); the controller's firmware fills the first half of the ring and the display's the second. The web
+      app installs one part per INSTALL, so its bar was never affected. Simulator verbs `update-start <parts>`
+      and `update-phase <phase>`.
+    - **Wi-Fi scan states not built.** The firmware has no Wi-Fi scan request: Setup takes the network's name
+      as typed. The design's Select of networks, "Scanning" and SCAN AGAIN need a new request (for example
+      `GET /api/wifi/networks`), which is a change to the REST contract; left for the user to decide.
+    - **Boiler sensor lost** stays out: the controller (pinned to v1.9.0) reports no such fault.
+    - **466 px.** Every check passes there again (core 180, menu 916, modes 520, profiles 1414, shot 565) and
+      `docs/display/v2/466/` is refreshed, with the new Fault, Updating, Wi-Fi setup, STARTING and folded-letter
+      captures. The one failure was the check's: at 466 the handle's box ends past the panel's edge, so its
+      repaint is 56 by 55, not 56 by 56. At 480 the same counts pass. `pio run -e display`: 3,076,297 bytes of
+      flash (+488), RAM unchanged. `verify_web_ui.mjs`: 1,198 pass plus the desktop no-scale case.
 
 ## 4. Restarting — one prompt per session
 
