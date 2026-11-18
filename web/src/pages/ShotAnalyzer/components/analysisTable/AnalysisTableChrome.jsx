@@ -1,6 +1,7 @@
 /** The table's header row, its scroll buttons, and the chips that speak about the whole shot. */
 
 import { useRef, useState } from 'preact/hooks';
+import { TONE_GLYPH } from '../../../../components/Chip.jsx';
 import { cx } from '../../../../components/cx.js';
 import { Icon } from '../../../../components/Icon.jsx';
 import { IconButton } from '../../../../components/IconButton.jsx';
@@ -81,6 +82,7 @@ export function StatusBadge({ label, tone, details }) {
         aria-haspopup='dialog'
         onClick={() => setIsOpen(current => !current)}
       >
+        {TONE_GLYPH[tone] && <Icon name={TONE_GLYPH[tone]} size={14} />}
         {label}
         <Icon name='info' size={14} />
       </button>
