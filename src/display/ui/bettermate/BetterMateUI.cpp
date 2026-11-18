@@ -167,21 +167,29 @@ void BetterMateUI::init() {
         markDirty();
     });
     // While an update installs, the plugin reports each part's progress from 0 to 100 (the controller's firmware,
-    // then the display's): the ring walks with the part being installed.
+    // then the display's). When both install, each takes half of one walk round the ring, so it fills once.
     pluginManager->on("ota:update:phase", [this](Event const &event) {
         // 1 to 3 start a part (display firmware, file system, controller firmware); 4 is finished, 5 failed.
         const int phase = event.getInt("phase");
-        if (phase >= 1 && phase <= 3)
-            updateProgress = 0;
-        else if (phase == 4)
+        if (phase >= 1 && phase <= 3) {
+            // The controller's part always goes first, so the display's is the second of two.
+            updatePart = phase == 3 ? 0 : updateParts - 1;
+            updateProgress = updatePart * 100 / updateParts;
+        } else if (phase == 4) {
             updateProgress = 100;
+        }
         markDirty();
     });
     pluginManager->on("ota:update:progress", [this](Event const &event) {
-        updateProgress = event.getInt("progress");
+        const int progress = std::clamp(event.getInt("progress"), 0, 100);
+        updateProgress = (updatePart * 100 + progress) / updateParts;
         markDirty();
     });
-    pluginManager->on("ota:update:start", [this](Event const &) { updateProgress = -1; });
+    pluginManager->on("ota:update:start", [this](Event const &event) {
+        updateParts = std::clamp(event.getInt("parts"), 1, 2);
+        updatePart = 0;
+        updateProgress = -1;
+    });
     // Whatever was on the glass, these send the machine back to Standby. An update and a fault take the glass
     // themselves while they last (route()); Standby is what is left when they end.
     for (const char *name : {"ota:update:start", "ota:update:end", "controller:error", "controller:protocol:mismatch",
@@ -889,6 +897,16 @@ void BetterMateUI::simulateUpdateReady(const char *version) {
 }
 
 void BetterMateUI::simulateUpdateProgress(int percent) { pluginManager->trigger("ota:update:progress", "progress", percent); }
+
+void BetterMateUI::simulateUpdateStart(int parts) {
+    Event event;
+    event.id = "ota:update:start";
+    event.setString("component", "");
+    event.setInt("parts", parts);
+    pluginManager->trigger(event);
+}
+
+void BetterMateUI::simulateUpdatePhase(int phase) { pluginManager->trigger("ota:update:phase", "phase", phase); }
 #endif
 
 void BetterMateUI::loopProfiles() {

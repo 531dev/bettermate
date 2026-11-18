@@ -69,6 +69,8 @@ class BetterMateUI : private bm::Host {
     // What the OTA plugin reports: an update found by the check, and progress while one installs.
     void simulateUpdateReady(const char *version);
     void simulateUpdateProgress(int percent);
+    void simulateUpdateStart(int parts);
+    void simulateUpdatePhase(int phase);
 #endif
 
   private:
@@ -146,6 +148,8 @@ class BetterMateUI : private bm::Host {
     std::atomic<bool> previewDirty{true};
     std::atomic<float> scaleWeight{0.0f};
     std::atomic<int> updateProgress{-1};
+    std::atomic<int> updateParts{1}; // how many parts this update installs (the controller's firmware, the display's)
+    std::atomic<int> updatePart{0};  // the one installing now, from 0
     std::mutex versionMutex;
     std::string updateVersion; // under versionMutex: the OTA plugin's task writes it
 

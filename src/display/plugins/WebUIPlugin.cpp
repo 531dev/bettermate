@@ -79,8 +79,14 @@ void WebUIPlugin::loop() {
     if (updating) {
         // Pass which component is being flashed: a controller update streams the
         // firmware over BLE (wants a low-latency link), a display update is over
-        // Wi-Fi (wants BLE to stay out of the radio's way). "" = both.
-        pluginManager->trigger("ota:update:start", "component", updateComponent);
+        // Wi-Fi (wants BLE to stay out of the radio's way). "" = both. `parts` says how many will install, so the
+        // display can show one progress across both.
+        Event start;
+        start.id = "ota:update:start";
+        start.setString("component", updateComponent);
+        start.setInt("parts", std::max(1, (updateComponent != "display" && ota->isUpdateAvailable(true) ? 1 : 0) +
+                                              (updateComponent != "controller" && ota->isUpdateAvailable() ? 1 : 0)));
+        pluginManager->trigger(start);
         ota->update(updateComponent != "display", updateComponent != "controller",
                     controller->getClientController()->getClient());
         pluginManager->trigger("ota:update:end");

@@ -17,6 +17,8 @@
 //   error <code>                   report a controller error (0 clears, 4 is temperature runaway)
 //   autotune                       start a mocked autotune (finishes after 1.5 s)
 //   update                         enter the OTA updating state
+//   update-start <parts>           start an OTA update of 1 or 2 parts, as the web plugin does
+//   update-phase <phase>           report an OTA phase: 1 display firmware, 3 controller firmware, 4 done, 5 failed
 //   update-progress <percent>      report OTA progress of the part being installed, as the OTA plugin does
 //   update-ready <version>         report that the update check found <version>
 //   unanswered <0|1>               the controller does not answer START (the press goes nowhere)
@@ -75,6 +77,8 @@ class SimScript {
         Panel,
         Unanswered,
         UpdateReady,
+        UpdateStart,
+        UpdatePhase,
         UpdateProgress,
         Mode,
         Expect,

@@ -286,6 +286,11 @@ bool SimScript::parse(const char *text) {
             std::string version;
             ok = static_cast<bool>(words >> version);
             steps.push_back({Kind::UpdateReady, 0, 0, false, version});
+        } else if (verb == "update-start" || verb == "update-phase") {
+            int value = 0;
+            const bool start = verb == "update-start";
+            ok = static_cast<bool>(words >> value) && (start ? value == 1 || value == 2 : value >= 1 && value <= 5);
+            steps.push_back({start ? Kind::UpdateStart : Kind::UpdatePhase, value, 0, false, {}});
         } else if (verb == "update-progress") {
             int value = 0;
             ok = static_cast<bool>(words >> value) && value >= 0 && value <= 100;
@@ -370,6 +375,12 @@ bool SimScript::run(SdlDriver *driver) {
             break;
         case Kind::UpdateReady:
             controller.getUI()->simulateUpdateReady(step.path.c_str());
+            break;
+        case Kind::UpdateStart:
+            controller.getUI()->simulateUpdateStart(step.a);
+            break;
+        case Kind::UpdatePhase:
+            controller.getUI()->simulateUpdatePhase(step.a);
             break;
         case Kind::UpdateProgress:
             controller.getUI()->simulateUpdateProgress(step.a);

@@ -177,6 +177,22 @@ checks.at_most(max(walk), 8.0, "the update walk: continuous motion stays under 8
 sim.save("ready.bmp", "docs/display/v2/core/standby-update-ready.png")
 sim.save("updating.bmp", "docs/display/v2/core/updating.png")
 
+# Both parts at once: the controller's firmware fills the first half of the ring, the display's the second, so the
+# ring walks round once.
+sim = Sim("core-update-both")
+sim.run(
+    "wait 3500; expect screen standby; update-start 2; wait 1500; expect screen updating;"
+    "update-phase 3; update-progress 50; wait 900; layout controller.json;"
+    "update-progress 100; wait 900; layout half.json;"
+    "update-phase 1; wait 900; layout display-start.json; update-progress 50; wait 900; layout display.json; quit"
+)
+checks.count(sim)
+for name, percent in (("controller", 25), ("half", 50), ("display-start", 50), ("display", 75)):
+    page = sim.layout(f"{name}.json")
+    reading = next((o for o in page.objects if o["kind"] == "reading"), None)
+    checks.true(reading is not None and reading["text"] == str(percent), f"both parts: {name} reads {percent}%")
+    checks.equal(page.ring["lit"][0], round(percent / 100 * 76), f"both parts: {name} lights {percent}% of the ring")
+
 # Wi-Fi setup stands in for Standby while the machine's own network is up: Information's QR layout with its own
 # words and no action. A tap anywhere still wakes the machine, as on Standby.
 sim = Sim("core-setup")
