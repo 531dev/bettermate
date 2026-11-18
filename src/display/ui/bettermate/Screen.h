@@ -8,7 +8,26 @@
 
 namespace bm {
 
-enum class ScreenId : uint8_t { Standby, Brew, Shot, Steam, Water, Grind, Menu, Profiles, Adjust, Sheet, Warnings, Info, Count };
+// Fault, Updating and Setup are never asked for: the host puts them up while their state lasts
+// (design/reference/product-states.md, When several are true).
+enum class ScreenId : uint8_t {
+    Standby,
+    Brew,
+    Shot,
+    Steam,
+    Water,
+    Grind,
+    Menu,
+    Profiles,
+    Adjust,
+    Sheet,
+    Warnings,
+    Info,
+    Fault,
+    Updating,
+    Setup,
+    Count
+};
 
 enum class Intent : uint8_t {
     Refresh, // something the screen keeps to itself changed: update on the next frame
@@ -48,8 +67,13 @@ enum class Intent : uint8_t {
     GrindUp,
     PreviousProfile,
     NextProfile,
-    SelectProfile
+    SelectProfile,
+    Unanswered, // START was not answered within 2 s: raise the warning
+    Restart     // restart the display (a fault the link causes)
 };
+
+// The UI's own warning, after WarningManager's: the controller did not answer a START.
+constexpr WarningType NO_ANSWER = WARNING_TYPE_COUNT;
 
 // What a screen may ask of the UI that owns it. A screen never reaches into the controller or another screen:
 // it states an intent here and the owner carries it out.

@@ -16,8 +16,9 @@ static constexpr int TAP_MS = 120;
 static constexpr int SETTLE_MS = 80;
 static constexpr int SWIPE_STEP_MS = 16;
 
-static const char *const SCREEN_NAMES[] = {"standby", "brew",     "shot",   "steam", "water",    "grind",
-                                           "menu",    "profiles", "adjust", "sheet", "warnings", "info"};
+static const char *const SCREEN_NAMES[] = {"standby", "brew",  "shot",     "steam", "water", "grind",
+                                           "menu",    "profiles", "adjust", "sheet", "warnings", "info",
+                                           "fault",   "updating", "setup"};
 static constexpr int SCREEN_COUNT = sizeof(SCREEN_NAMES) / sizeof(SCREEN_NAMES[0]);
 
 // Every LVGL refresh that drew something, with the pixels it redrew: the simulator renders a frame in a
@@ -277,6 +278,18 @@ bool SimScript::parse(const char *text) {
             std::string panel;
             ok = static_cast<bool>(words >> panel) && (panel == "amoled" || panel == "lcd");
             steps.push_back({Kind::Panel, 0, 0, panel == "amoled", {}});
+        } else if (verb == "unanswered") {
+            int value = 0;
+            ok = static_cast<bool>(words >> value) && (value == 0 || value == 1);
+            steps.push_back({Kind::Unanswered, 0, 0, value == 1, {}});
+        } else if (verb == "update-ready") {
+            std::string version;
+            ok = static_cast<bool>(words >> version);
+            steps.push_back({Kind::UpdateReady, 0, 0, false, version});
+        } else if (verb == "update-progress") {
+            int value = 0;
+            ok = static_cast<bool>(words >> value) && value >= 0 && value <= 100;
+            steps.push_back({Kind::UpdateProgress, value, 0, false, {}});
         } else if (verb == "shot" || verb == "layout" || verb == "redraw") {
             std::string path;
             ok = static_cast<bool>(words >> path);
@@ -351,6 +364,15 @@ bool SimScript::run(SdlDriver *driver) {
             break;
         case Kind::Panel:
             controller.getUI()->simulatePanel(step.flag);
+            break;
+        case Kind::Unanswered:
+            controller.getUI()->simulateUnanswered(step.flag);
+            break;
+        case Kind::UpdateReady:
+            controller.getUI()->simulateUpdateReady(step.path.c_str());
+            break;
+        case Kind::UpdateProgress:
+            controller.getUI()->simulateUpdateProgress(step.a);
             break;
         case Kind::Mode:
             controller.deactivate();

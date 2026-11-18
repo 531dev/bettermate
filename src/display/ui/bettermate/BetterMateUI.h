@@ -9,6 +9,7 @@
 #include <display/ui/bettermate/Screen.h>
 #include <display/ui/bettermate/screens/AdjustScreen.h>
 #include <display/ui/bettermate/screens/BrewScreen.h>
+#include <display/ui/bettermate/screens/FaultScreen.h>
 #include <display/ui/bettermate/screens/InfoScreen.h>
 #include <display/ui/bettermate/screens/MenuScreen.h>
 #include <display/ui/bettermate/screens/ModeScreen.h>
@@ -16,6 +17,7 @@
 #include <display/ui/bettermate/screens/SheetScreen.h>
 #include <display/ui/bettermate/screens/ShotScreen.h>
 #include <display/ui/bettermate/screens/StandbyScreen.h>
+#include <display/ui/bettermate/screens/UpdateScreen.h>
 #include <display/ui/bettermate/screens/WarningsScreen.h>
 #include <mutex>
 #include <vector>
@@ -62,6 +64,11 @@ class BetterMateUI : private bm::Host {
         amoledPanel = amoled;
         markDirty();
     }
+    // A START the controller never answers (a lost link between the snapshot and the press).
+    void simulateUnanswered(bool on) { ignoreStart = on; }
+    // What the OTA plugin reports: an update found by the check, and progress while one installs.
+    void simulateUpdateReady(const char *version);
+    void simulateUpdateProgress(int percent);
 #endif
 
   private:
@@ -75,6 +82,11 @@ class BetterMateUI : private bm::Host {
         dirty = true;
     }
     void runFrame(unsigned long now);
+    // The screen to show for the one asked for: an update or a fault takes the glass while it lasts, and the
+    // Wi-Fi setup screen stands in for Standby while the access point is up.
+    bm::ScreenId route(bm::ScreenId asked) const;
+    // Works out the fault that blocks brewing, if any (currentFault).
+    void watchFault(unsigned long now);
     void beginChange(bm::ScreenId next);
     void applyTheme();
     void gather(unsigned long now, bm::ScreenId target);
@@ -105,8 +117,11 @@ class BetterMateUI : private bm::Host {
     bm::SheetScreen sheet{*this};
     bm::WarningsScreen warnings{*this};
     bm::InfoScreen info{*this};
-    bm::Screen *const screens[static_cast<size_t>(bm::ScreenId::Count)] = {&standby, &brew,     &shot,   &steam, &water,    &grind,
-                                                                         &menu,    &profiles, &adjust, &sheet, &warnings, &info};
+    bm::FaultScreen fault{*this};
+    bm::UpdateScreen updating{*this};
+    bm::InfoScreen setup{*this, true};
+    bm::Screen *const screens[static_cast<size_t>(bm::ScreenId::Count)] = {
+        &standby, &brew, &shot, &steam, &water, &grind, &menu, &profiles, &adjust, &sheet, &warnings, &info, &fault, &updating, &setup};
 
     // Screen change: the requested screen may be set from any task; everything else is the UI task's.
     std::atomic<uint8_t> requested{static_cast<uint8_t>(bm::ScreenId::Standby)};
@@ -130,6 +145,17 @@ class BetterMateUI : private bm::Host {
     std::atomic<bool> confirming{false};
     std::atomic<bool> previewDirty{true};
     std::atomic<float> scaleWeight{0.0f};
+    std::atomic<int> updateProgress{-1};
+    std::mutex versionMutex;
+    std::string updateVersion; // under versionMutex: the OTA plugin's task writes it
+
+    // Command pending: START raised a warning when the controller did not answer it.
+    std::atomic<bool> noAnswer{false};
+    bool ignoreStart = false; // the simulator's stand-in for a controller that does not answer
+    // The controller has been missing since this time (0 while it is there): after 5 s it is a fault.
+    static constexpr unsigned long MISSING_FAULT_MS = 5000;
+    unsigned long missingSince = 0;
+    bm::Fault currentFault = bm::Fault::None;
 
     bool touchFlushHeld = false;
     bool profileDirty = false;

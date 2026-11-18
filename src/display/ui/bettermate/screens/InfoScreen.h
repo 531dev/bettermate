@@ -9,14 +9,23 @@ namespace bm {
 // Information: the network the display is on, a QR code that opens the web app (or joins the setup network),
 // and the address. ABOUT swaps the code for the display and controller versions. The handle leads back to
 // the menu.
+//
+// The same layout is the Wi-Fi setup screen (DisplayStates card), which the host shows in Standby's place while
+// the machine's own access point is up: JOIN THIS WI-FI, the network's name, the code that joins it, the address
+// and SCAN TO SET UP, and no action, since setup goes on in the phone. As on Standby, a tap anywhere wakes the
+// machine: a machine that is never put on Wi-Fi still brews.
 class InfoScreen : public Screen {
   public:
-    using Screen::Screen;
+    InfoScreen(Host &host, bool setup = false) : Screen(host), setup(setup) {}
     void update(const UiState &state) override;
     void tick(const UiState &state, uint32_t frame) override;
+    void tapped() override {
+        if (setup)
+            host.act(Intent::Wake);
+    }
     void swiped(lv_dir_t direction) override {
         // Down puts the screen away; up is how every other screen reaches the menu.
-        if (direction == LV_DIR_BOTTOM || direction == LV_DIR_TOP)
+        if (!setup && (direction == LV_DIR_BOTTOM || direction == LV_DIR_TOP))
             host.act(Intent::Back);
     }
 
@@ -27,7 +36,9 @@ class InfoScreen : public Screen {
   private:
     void present(const UiState &state, bool arriving);
 
+    const bool setup;
     lv_obj_t *label = nullptr;
+    lv_obj_t *handle = nullptr;
     lv_obj_t *title = nullptr;
     lv_obj_t *card = nullptr;
     lv_obj_t *qr = nullptr;

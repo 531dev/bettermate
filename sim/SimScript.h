@@ -17,6 +17,9 @@
 //   error <code>                   report a controller error (0 clears, 4 is temperature runaway)
 //   autotune                       start a mocked autotune (finishes after 1.5 s)
 //   update                         enter the OTA updating state
+//   update-progress <percent>      report OTA progress of the part being installed, as the OTA plugin does
+//   update-ready <version>         report that the update check found <version>
+//   unanswered <0|1>               the controller does not answer START (the press goes nowhere)
 //   pressure-sensor <0|1>          change the pressure capability (single/dual rings)
 //   scale <0|1>                    stop/resume mock scale telemetry (health expires after 1.5 s)
 //   weight <grams>                 set the mock scale reading
@@ -26,7 +29,7 @@
 //   mode <standby|brew|steam|water|grind> change the machine's mode, as the web UI would
 //   panel <amoled|lcd>             pretend the panel is an AMOLED (Standby rests after 30 s) or not
 //   expect screen <name>           check the screen on the glass (standby, brew, shot, steam, water, grind, menu,
-//                                  profiles, adjust, sheet, warnings, info); fail fast
+//                                  profiles, adjust, sheet, warnings, info, fault, updating, setup); fail fast
 //   expect <mode|active> <n>       check MODE_* or process active (0/1)
 //   expect <temperature|duration|target-weight> <n> check the selected profile (rounded)
 //   expect setpoint <degrees>      check the current mode's temperature target
@@ -70,6 +73,9 @@ class SimScript {
         Pumped,
         Wifi,
         Panel,
+        Unanswered,
+        UpdateReady,
+        UpdateProgress,
         Mode,
         Expect,
         ExpectText,

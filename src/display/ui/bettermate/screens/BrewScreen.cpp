@@ -2,11 +2,13 @@
 
 #include <cmath>
 #include <cstdio>
+#include <display/ui/bettermate/Motion.h>
 
 namespace bm {
 namespace {
-// 18 characters of screen-title are about 263 px (the design's 14.6 px a character), the chevron 4 px after.
-constexpr int PROFILE_WIDTH = 300;
+// 18 characters of screen-title are about 263 px (the design's 14.6 px a character), and 17 with the ellipsis,
+// which is wider than a letter, up to about 280: the name gets 284 px, the chevron 4 px after it.
+constexpr int PROFILE_WIDTH = 312;
 constexpr int PROFILE_HEIGHT = tokens::DISPLAY_TOUCH;
 // The name beside its chevron: at most 18 characters (a longer one is cut at 17), and never wider than the
 // group leaves it.
@@ -39,10 +41,53 @@ void BrewScreen::build(lv_obj_t *root) {
     bind(scale, Intent::Tare);
 
     start = part(ui::pill(root, 240, START_Y[0], 188, "START", Tone::Primary), 2);
-    bind(start, Intent::Start);
+    lv_obj_add_event_cb(start, started, LV_EVENT_SHORT_CLICKED, this);
     // Held, the same pill flushes until the finger lifts.
     bind(start, Intent::Flush, LV_EVENT_LONG_PRESSED);
-    addHandle();
+    handle = addHandle();
+    pending = Pending::None;
+}
+
+void BrewScreen::onEnter(const UiState &state) {
+    (void)state;
+    if (pending != Pending::None)
+        settle();
+}
+
+void BrewScreen::started(lv_event_t *e) {
+    auto *self = static_cast<BrewScreen *>(lv_event_get_user_data(e));
+    if (self->pending != Pending::None)
+        return; // STARTING is not a second START
+    self->pending = Pending::Pressed;
+    self->pressedAt = self->frameNow;
+    self->host.act(Intent::Start);
+}
+
+void BrewScreen::settle() {
+    pending = Pending::None;
+    ui::setPill(start, "START", Tone::Primary);
+    show(handle, true);
+}
+
+void BrewScreen::tick(const UiState &state, uint32_t frame) {
+    (void)state;
+    frameNow = frame;
+    if (pending == Pending::None)
+        return;
+    const uint32_t since = frame - pressedAt;
+    if (pending == Pending::Pressed && since >= motion::PRESS_FRAMES) {
+        // The press is over and nothing has answered yet: the quiet pill, in one frame of its own box (motion:
+        // Pending pill). The handle goes a frame later, so neither frame repaints more than the pill.
+        pending = Pending::Waiting;
+        ui::setPill(start, "STARTING", Tone::Surface2);
+        ui::setTone(start, Tone::Muted);
+    } else if (pending == Pending::Waiting && since >= motion::PRESS_FRAMES + motion::ANSWER_FRAMES) {
+        // Nothing waits forever (product-states.md, Time limits): START comes back and a warning says why.
+        settle();
+        host.act(Intent::Unanswered);
+    } else if (pending == Pending::Waiting) {
+        show(handle, false);
+    }
 }
 
 void BrewScreen::update(const UiState &s) {

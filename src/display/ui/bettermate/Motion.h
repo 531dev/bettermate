@@ -34,6 +34,11 @@ inline constexpr uint8_t EASE8[PAGE] = {33, 58, 76, 88, 95, 98, 100, 100};
 // and a screen redraws a number only when the shown text changes.
 constexpr uint8_t SNAPSHOT_EVERY = 6;
 
+// A press holds ink for two frames. A command not confirmed by then shows as pending, for at most 2 s (47
+// frames) before the control comes back (product-states.md, Time limits).
+constexpr uint32_t PRESS_FRAMES = 2;
+constexpr uint32_t ANSWER_FRAMES = 47;
+
 } // namespace bm::motion
 
 #endif // BETTERMATE_MOTION_H
