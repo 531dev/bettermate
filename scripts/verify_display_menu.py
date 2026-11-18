@@ -270,15 +270,15 @@ def menu_from_standby():
         "tap 240 240; wait 1700; expect screen standby; expect mode 0; redraw power.redraw; quit",
     )
     page = sim.layout("menu.json")
-    check_menu(page, MODES, "BREW", "opened with WAKE")
+    check_menu(page, MODES, "BREW", "opened from Standby")
     glyph = slot(page)
-    checks.true(glyph is not None and box(glyph) == (226, 432, 253, 459), "opened with WAKE: the warning glyph is 28 px at 6 o'clock")
+    checks.true(glyph is not None and box(glyph) == (226, 432, 253, 459), "opened from Standby: the warning glyph is 28 px at 6 o'clock")
     if glyph is not None:
-        checks.color(glyph["color"], WARNING, "opened with WAKE: the glyph is warning (flush recommended after waking)")
+        checks.color(glyph["color"], WARNING, "opened from Standby: the glyph is warning (flush recommended after waking)")
         lowest = max(parent(page, page.find(name))["y2"] for name in ("WATER", "GRIND"))
-        checks.true(lowest < glyph["y1"] - 14, "opened with WAKE: the slot's touch disc is clear of the bottom discs")
+        checks.true(lowest < glyph["y1"] - 14, "opened from Standby: the slot's touch disc is clear of the bottom discs")
     check_menu(sim.layout("back.json"), MODES, "BREW", "back from the warnings")
-    budget(sim, "wake.redraw", "Standby to Menu (WAKE)")
+    budget(sim, "wake.redraw", "Standby to Menu (tap)")
     budget(sim, "lens.redraw", "Menu to Warnings (glyph)")
     budget(sim, "done.redraw", "Warnings to Menu (DONE)")
     budget(sim, "power.redraw", "Menu to Standby (power disc)")
@@ -390,20 +390,20 @@ def menu_forced():
     )
     budget(sim, "brew.redraw", "Menu to Brew, forced (mode set elsewhere)")
     budget(sim, "steam.redraw", "Menu to Steam, forced (steam switch)")
-    # Standby's clock repaints on each of its three frames (13.2, 13.8 and 15.6% with its label, line and
-    # WAKE). With the menu's 34% that is over three quarters of the panel in three frames: it cannot fit.
+    # Standby's clock repaints on each of its frames, with its label and line. With the menu's 34% that is over
+    # three quarters of the panel in three frames: it cannot fit.
     note(sim, "standby.redraw", "Menu to Standby, forced (mode set elsewhere)")
 
 
 def menu_disconnected():
-    # Without the controller the display sits on Standby and WAKE is away, so the menu is only reached from
+    # Without the controller the display sits on Standby and a tap does not wake it, so the menu is only reached from
     # Information. The script's `mode brew` is a shortcut the display itself never offers; what it shows is
     # the menu while no mode can be entered.
     sim = Sim("menu-disconnected")
     drive(
         sim,
         "wait 3500; tap 240 362; wait 1300; expect screen menu; redraw skip.redraw;"
-        "controller disconnected; wait 2500; expect screen standby; expect hidden WAKE; redraw lost.redraw;"
+        "controller disconnected; wait 2500; expect screen standby; redraw lost.redraw;"
         "mode brew; wait 1500; expect screen brew; tap 240 446; wait 1300; expect screen menu;"
         "expect hidden BREW; expect hidden STEAM; expect hidden WATER; expect hidden GRIND; expect text INFO;"
         "shot alone.bmp; layout alone.json;"

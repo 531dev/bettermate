@@ -30,7 +30,7 @@ standby = sim.layout("standby.json")
 checks.equal(standby.ring["layout"], "single", "Standby draws the single ring")
 checks.equal(standby.ring["tone"][0], "faint", "Standby's ring is ink-faint")
 checks.equal(standby.ring["notch"][0], -1, "Standby's ring has no notch")
-checks.true(standby.has("WAKE"), "WAKE is visible on Standby")
+checks.true(not standby.has("WAKE"), "Standby has no WAKE pill: a tap anywhere wakes")
 checks.true(any("Boiler off" in t for t in standby.texts()), "Standby says what the boiler is doing")
 brew = sim.layout("brew.json")
 checks.equal(brew.ring["layout"], "split", "Brew draws the split ring")
@@ -67,9 +67,9 @@ sim.save("brew.bmp", "docs/display/v2/core/brew-heating.png")
 for attempt in range(3):
     sim = Sim("core-states")
     sim.run(
-        "wait 3500; controller disconnected; wait 2500; expect text CONNECTING; expect hidden WAKE; redraw settle.json;"
+        "wait 3500; controller disconnected; wait 2500; expect text CONNECTING; redraw settle.json;"
         "layout before.json; wait 2000; redraw comet.json; layout after.json; shot connecting.bmp; error 4; wait 1500;"
-        "expect text TEMPERATURE ERROR; expect hidden WAKE; shot error.bmp; quit"
+        "expect text TEMPERATURE ERROR; shot error.bmp; quit"
     )
     clocks = [[o["text"] for o in sim.layout(name).objects if o["kind"] == "reading"] for name in ("before.json", "after.json")]
     if clocks[0] == clocks[1]:
@@ -80,14 +80,15 @@ checks.at_most(max(sim.redraw("comet.json")), 1.0, "the busy comet repaints unde
 sim.save("connecting.bmp", "docs/display/v2/core/standby-connecting.png")
 sim.save("error.bmp", "docs/display/v2/core/standby-error.png")
 
-# Pressed parts invert, WAKE opens the menu, Light is a setting.
+# A tap anywhere on Standby opens the menu, Light is a setting, pressed parts invert.
 sim = Sim("core-input")
 sim.run(
-    "wait 3500; press 240 362; wait 130; layout pressed.json; release; wait 700; expect screen menu;"
-    "mode brew; wait 2500; theme 1; wait 600; layout light.json; shot light.bmp; quit"
+    "wait 3500; tap 240 362; wait 700; expect screen menu;"
+    "mode brew; wait 2500; theme 1; wait 600; layout light.json; shot light.bmp;"
+    "theme 0; wait 600; press 240 344; wait 130; layout pressed.json; release; quit"
 )
 checks.count(sim)
-pressed = sim.layout("pressed.json").find("WAKE")
+pressed = sim.layout("pressed.json").find("START")
 checks.color(pressed and pressed.get("fill"), "#f2f2f2", "a pressed pill inverts to ink")
 light = sim.layout("light.json")
 checks.color(light.objects[0]["fill"], "#e9e9e9", "the Light theme paints the face in surface-0")

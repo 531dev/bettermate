@@ -8,7 +8,10 @@ namespace {
 #define BM_DEGREE "\xC2\xB0"
 #define BM_MIDDOT "\xC2\xB7"
 
-constexpr int CLOCK_BASELINE = 256;
+// The date, the clock and the line under it are centred on the panel as one group.
+constexpr int LABEL_BASELINE = 166;
+constexpr int CLOCK_BASELINE = 286;
+constexpr int LINE_BASELINE = 328;
 // At rest the clock is alone, so it sits on the panel's centre line.
 constexpr int REST_BASELINE = 282;
 // On an AMOLED panel a still picture burns in: after this long only the clock stays lit, and it drifts.
@@ -44,7 +47,7 @@ int triangle(int step, int peak) {
 struct Status {
     const char *word;     // takes the date's place; nullptr while the machine is simply asleep
     const char *sentence; // takes the line under the clock
-    bool busy;            // the comet circles and WAKE is away
+    bool busy;            // the comet circles
     bool blocked;         // a fault: the word is drawn in danger
 };
 
@@ -72,12 +75,10 @@ Status describe(const UiState &s) {
 
 void StandbyScreen::build(lv_obj_t *root) {
     addException();
-    label = part(ui::text(root, 240, 136, Type::Label, Tone::Muted, "", 232), 0);
+    label = part(ui::text(root, 240, LABEL_BASELINE, Type::Label, Tone::Muted, "", 232), 0);
     clock.build(root, 240, CLOCK_BASELINE, Type::Hero, Tone::Ink);
     part(clock.obj(), 0);
-    line = part(ui::text(root, 240, 298, Type::Body, Tone::Muted, "", tokens::DISPLAY_SQUARE), 1);
-    wake = part(ui::pill(root, 240, 330, 176, "WAKE", Tone::Primary), 2);
-    bind(wake, Intent::Wake);
+    line = part(ui::text(root, 240, LINE_BASELINE, Type::Body, Tone::Muted, "", tokens::DISPLAY_SQUARE), 1);
 }
 
 void StandbyScreen::onEnter(const UiState &state) {
@@ -135,7 +136,6 @@ void StandbyScreen::update(const UiState &s) {
     }
     ui::setText(line, buf);
     show(line, !resting);
-    show(wake, s.canWake && !status.busy && !resting);
     // Warnings stay visible through rest.
     updateException(s, true);
     // The clock moves to the centre one snapshot after the rest of the screen has left: two small repaints

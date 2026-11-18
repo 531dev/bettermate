@@ -5,8 +5,9 @@
 
 namespace bm {
 
-// The display at rest: the clock as the one reading, the boiler's residual heat greyed on a single ring, and
-// WAKE as the one action. While the machine is busy or blocked the reason takes the line under the clock.
+// The display at rest: the clock as the one reading and the boiler's residual heat greyed on a single ring. There
+// is no control on the glass: a tap anywhere wakes the machine. While the machine is busy or blocked the reason
+// takes the line under the clock.
 class StandbyScreen : public Screen {
   public:
     using Screen::Screen;
@@ -23,7 +24,6 @@ class StandbyScreen : public Screen {
     lv_obj_t *label = nullptr;
     ui::Reading clock;
     lv_obj_t *line = nullptr;
-    lv_obj_t *wake = nullptr;
     unsigned long enteredAt = 0;
     int restStep = -2;
     bool wasResting = false;
