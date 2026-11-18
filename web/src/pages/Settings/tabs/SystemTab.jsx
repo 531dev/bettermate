@@ -289,11 +289,19 @@ export function SystemTab() {
     };
   }, [apiService]);
 
+  // Asked once the socket is open (and again after it comes back), never into a closed one.
+  const isConnected = machine.value.connected;
   useEffect(() => {
-    setTimeout(() => {
-      apiService.send({ tp: 'req:ota-settings' });
+    if (!isConnected) return undefined;
+    const timer = setTimeout(() => {
+      try {
+        apiService.send({ tp: 'req:ota-settings' });
+      } catch {
+        // Closed again in the meantime; the next connection asks.
+      }
     }, 500);
-  }, [apiService]);
+    return () => clearTimeout(timer);
+  }, [apiService, isConnected]);
 
   const channel = pickedChannel ?? (formData.channel === 'nightly' ? 'nightly' : 'latest');
 
