@@ -2035,7 +2035,8 @@ input:checked:disabled + .bm-radio__box {
   align-items: center;
   height: auto;
   padding: max(var(--space-3), env(safe-area-inset-top))
-    max(var(--space-2), env(safe-area-inset-right)) 0 max(var(--space-2), env(safe-area-inset-left));
+    max(var(--space-2), env(safe-area-inset-right)) var(--space-3)
+    max(var(--space-2), env(safe-area-inset-left));
 }
 .bm-topbar__btn {
   --bm-hover: var(--state-hover);
@@ -2071,7 +2072,8 @@ input:checked:disabled + .bm-radio__box {
   height: 40px;
 }
 .bm-sidebar__brand {
-  display: block;
+  display: flex;
+  justify-content: center;
   padding: var(--space-1) var(--space-2) var(--space-5);
 }
 .bm-sidebar__credit {
