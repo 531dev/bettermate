@@ -2066,6 +2066,10 @@ input:checked:disabled + .bm-radio__box {
   padding: var(--space-4) var(--space-3);
   overflow-y: auto;
 }
+/* The Gaggia Milano mark is two lines, so it stands taller than the wordmark to keep MILANO legible */
+.bm-wm--gaggia {
+  height: 40px;
+}
 .bm-sidebar__brand {
   display: block;
   padding: var(--space-1) var(--space-2) var(--space-5);
