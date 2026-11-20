@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.png" alt="BetterMate" width="100%" />
+</p>
+
 # BetterMate
 
 **Same machine, easier to use.**
