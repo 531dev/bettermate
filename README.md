@@ -1,69 +1,79 @@
 # BetterMate
 
-BetterMate is a fork of [GaggiMate](https://github.com/jniebuhr/gaggimate) that keeps all of its machine logic and
-replaces the interface: the 480 px round display and the web UI. It runs on the GaggiMate display and pairs with a
-stock, unmodified GaggiMate controller.
+**Same machine, easier to use.**
 
-- Forked from upstream tag `v1.9.0`. The wire protocol (`lib/NanoPbComm`) and the controller firmware are untouched.
-- The display updates itself from BetterMate releases. The controller's update stays pinned to upstream `v1.9.0`.
-- Same license as upstream, CC BY-NC-SA 4.0. GaggiMate is the work of its authors; what follows is their README.
-
----
+BetterMate is a new display and web interface for [GaggiMate](https://github.com/jniebuhr/gaggimate). It runs on the
+display you already have and pairs with the stock GaggiMate controller, which is never reflashed.
 
 <p align="center">
-<img src="docs/assets/logo.png" alt="Logo" width="250px" />
-<br />
-  
-[![](https://dcbadge.vercel.app/api/server/APw7rgPGPf)](https://discord.gg/APw7rgPGPf)
-[![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
-[![Sonar QG][sonar-shield]][sonar-url]
-[![Sonar Violations][sonar-violations]][sonar-url]
-[![Sonar Tech Debt][sonar-tech-debt]][sonar-url]
-
-
-
+  <img src="docs/display/v2/core/standby.png" alt="Standby: the time, with the boiler off" width="220" />
+  <img src="docs/display/v2/core/brew-heating.png" alt="Brew, heating towards the target" width="220" />
+  <img src="docs/display/v2/shot/complete.png" alt="Shot complete: 0:29, 36.4 g, ratio 1:2.0" width="220" />
 </p>
 
-This project upgrades a Gaggia espresso machine with smart controls to improve your coffee-making experience. By adding a display and custom electronics, you can monitor and control the machine more easily.
+## Only the screens change
 
-<img src="docs/assets/gaggimate_poster.jpg" alt="Gaggia Classic Installation" width="500" />
+GaggiMate's machine logic stays exactly as it is. BetterMate replaces the two things you look at and touch, and nothing
+behind them.
 
-## Features
+**BetterMate replaces**
 
-- **Temperature Control**: Monitor the boiler temperature to ensure optimal brewing conditions.
-- **Brew timer**: Set a target duration and run the brewing for the specific time.
-- **Steam and Hot Water mode**: Control the pump and valve to run the respective task.
-- **Safety Features**: Automatic shutoff if the system becomes unresponsive or overheats.
-- **User Interface**: Simple, intuitive display to control and monitor the machine.
+- The round display's interface: every screen, redrawn to be read from arm's length with a wet hand.
+- The web app the machine serves: dashboard, profiles, shot history, settings and first-run setup.
+- The name of the setup Wi-Fi network.
 
-## Screenshots and Images
+**GaggiMate keeps**
 
-<img src="docs/assets/standby-screen.png" alt="Standby Screen" width="300px" />
-<img src="docs/assets/brew-screen.png" alt="Brew Screen" width="300px" />
-<img src="docs/assets/pcb_render.png" alt="PCB Render" width="300px" />
+- The controller and its firmware, on stock `v1.9.0`. It is never reflashed.
+- Heater, pump and valve control, and every safety limit.
+- The link between display and controller, untouched, so the controller never reports a version mismatch.
+- The REST and WebSocket API, the storage keys, the `gaggimate` network name, MQTT topics and the HomeKit name. Your
+  integrations see the same machine.
 
-### How to buy
+## Five rules for the round display
 
-You can buy your kit on https://shop.gaggimate.eu/
+1. One large reading and one primary action per screen.
+2. Normal states stay hidden. Only exceptions appear.
+3. Data sits on the rim: lit ticks for the value, a notch for the target.
+4. A control that cannot be used is hidden, not greyed.
+5. One unit style: a small label under every large reading.
 
-## How It Works
+## The web app
 
-The display allows you to control the espresso machine and see live temperature updates. If the machine becomes unresponsive or the temperature goes too high, it will automatically turn off for safety.
+The app your machine serves over Wi-Fi draws the boiler the way the display does, puts the next thing you can do in one
+banner, and keeps the modes in one bar you can reach with your thumb. It ships inside the display's flash, so it stays
+small: two fonts in 41 KB, 53 icons in about 3 KB, and no images in the interface.
 
-## Docs
+<p align="center">
+  <img src="docs/webui/dashboard-dark.png" alt="Web dashboard, dark theme" width="560" />
+  <img src="docs/webui/phone-dashboard.png" alt="Web dashboard on a phone" width="180" />
+</p>
 
-The docs were moved to [https://gaggimate.eu/](https://gaggimate.eu/). You can find all sourcing and assembly information there.
-Additional documentation for the WebSocket API can be found in [docs/websocket-api.yaml](docs/websocket-api.yaml).
+## Where it stands
 
+BetterMate is still in development.
+
+| | |
+| --- | --- |
+| Round display | Every screen built and checked in the simulator, at 480 and 466 px. |
+| Web app | Every page rebuilt and checked in Chromium. Not yet tried in Safari or on a phone. |
+| On a real machine | Next: flashing it onto a display and measuring motion on the panel itself. |
+| Release | No public release or browser installer yet. Panels: LilyGo T-RGB, Waveshare and CO5300 AMOLED. |
+
+## Build
+
+PlatformIO and Node 22 are required.
+
+```shell
+scripts/build_webui.sh                     # build the web app and pack it into the display firmware
+pio run -e display                         # build the display firmware
+pio run -e display -t upload -t monitor    # flash it and open the serial console
+pio run -e display-sim -t run              # desktop simulator (needs `brew install sdl2`)
+pio test -e native                         # unit tests
+```
 
 ## License
 
-This work is licensed under CC BY-NC-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
-
-[sonar-violations]: https://img.shields.io/sonar/blocker_violations/jniebuhr_gaggimate?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge
-[sonar-shield]: https://img.shields.io/sonar/quality_gate/jniebuhr_gaggimate?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge
-[sonar-tech-debt]: https://img.shields.io/sonar/tech_debt/jniebuhr_gaggimate?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge
-[sonar-url]: https://sonarcloud.io/project/overview?id=jniebuhr_gaggimate
-[cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
-[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
-[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg?style=for-the-badge
+BetterMate is forked from GaggiMate `v1.9.0`, which is the work of its authors. Like GaggiMate, it is licensed under
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Funnel Display and Geist Mono are under the SIL
+Open Font License.
