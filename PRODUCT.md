@@ -58,7 +58,7 @@ BetterMate has two surfaces, and `Platform` above describes only the second. The
 - Gauges keep fixed scales of 0–160 °C and 0–16 bar, with a target marker on each.
 - The device is far slower than the simulator. On 2026-11-07 the LilyGo panel refreshed at about 23.5 Hz and a full-screen frame took 57–83 ms, reaching 105–134 ms during transitions. Judge motion on hardware.
 - The web bundle ships inside the firmware's flash, so its weight counts.
-- The fork is local only: never push it or create anything on GitHub.
+- The fork is public at `github.com/531dev/bettermate`, where local `ui/v2` is pushed as `main`. Push only when asked.
 - The license is CC BY-NC-SA 4.0, the same as upstream: non-commercial, share-alike, with GaggiMate credited.
 
 **Undecided:**

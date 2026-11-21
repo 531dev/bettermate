@@ -18,7 +18,7 @@ motion the panel can actually show. Anything the v2 design does not need is dele
 
 - Never touch `lib/NanoPbComm/`, the proto, the `controller` env or `lib/GaggiMateController`.
 - No change to the REST/WebSocket contract (`docs/websocket-api.yaml`), storage keys, routes, mDNS/MQTT/HomeKit names.
-- Local only: never push, never create anything on GitHub.
+- Published as `main` at `github.com/531dev/bettermate`. Push only when asked, never to `upstream`.
 - `design/` is an unchanged copy of the design system. Do not edit it; generators read it.
 - Machine behaviour stays exactly as it is: every control the stock UI offers stays reachable (`../stock-screens.md`).
 - Voice and content rules of `design/reference/README.md` apply to every string a person reads.
