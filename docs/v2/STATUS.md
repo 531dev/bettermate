@@ -169,7 +169,7 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
       1.5 px and an estimate (puck flow, weight flow) a fine dash-dot, so neither reads as flow or weight. Shot
       history still draws up to six readings where the design says at most four.
     - **Times.** The web is always on the 24-hour clock (Content: "no AM or PM"); the machine's "Use 24h format"
-      now says it sets the display's clock. A recent shot older than yesterday shows `11 Nov` on a phone instead
+      now says it sets the display's clock. (Changed by item 23: the setting is the web's too.) A recent shot older than yesterday shows `11 Nov` on a phone instead
       of the weekday (amends item 14). History's day tiles read `11 November`.
     - **Favourites.** Up to ten favourites in a scrolling track (was three squeezed into thirds).
 20. Lane W2 of `DS-1116-LANES.md`, web components and product states (2026-11-17):
@@ -217,7 +217,8 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
       where the design draws two (label 112, cards from 138), so the label takes the label zone at 86 and the cards
       start at 104, 68 px apart, the count at 328. One card a rank of the screen change (two in one rank went over
       the 25% step budget with a reading stepping in).
-    - **Standby** is always 24-hour: the display ignores the 12-hour setting (the web still offers it). While
+    - **Standby** is always 24-hour: the display ignores the 12-hour setting (the web still offers it; changed
+      by item 23). While
       connecting the date stays and no state word replaces it. With an update waiting the line reads "Update 1.9.1
       is ready" (the release tag's `v` dropped; "An update is ready" when the version is unknown or over 9
       characters). For this the OTA plugin's internal `ota:update:status` event now carries `version`; no REST or
@@ -266,6 +267,28 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
       captures. The one failure was the check's: at 466 the handle's box ends past the panel's edge, so its
       repaint is 56 by 55, not 56 by 56. At 480 the same counts pass. `pio run -e display`: 3,076,297 bytes of
       flash (+488), RAM unchanged. `verify_web_ui.mjs`: 1,198 pass plus the desktop no-scale case.
+23. The controller requirement and the 12-hour clock (2026-11-20, both asked for by the user):
+    - **Controller on v1.9.0.** BetterMate speaks link protocol 5, which only GaggiMate `v1.9.0` controllers
+      speak (upstream `v1.10.0`, released 2026-11-18, is on 16). `CONTROLLER_REQUIRED_VERSION` in
+      `core/constants.h` is the one place that says so; the OTA pin is built from it. The README has a
+      Requirements section. On the display a mismatch is "Controller too new" / "BetterMate needs v1.9.0." or
+      "Controller too old" / "Update it to v1.9.0." (was "Version mismatch" and "Update the display", which no
+      BetterMate update could answer). On the web the newer side names v1.9.0 and has no link, since Settings
+      cannot put a controller back; the older side keeps "Open updates". `getSystemStateMessage()` is unchanged.
+      Nothing downgrades a controller: the user reflashes it with GaggiMate's own tools.
+    - **12-hour clock.** "Use 24h format" (`clk_24h`, default on) is one setting for the display and the web
+      again, as Content allows: `2:41 PM`, no leading zero. On Standby the hero face has figures only, so AM or
+      PM is a screen-label word in ink-muted, 10 px after the clock on its baseline, and the two are centred as
+      one (the user's choice among three placements). It rests and drifts with the clock on an AMOLED panel.
+      The wake line reads "Wakes at 6:30 AM". On the web `utils/time.js` reads `clock24hSignal`, which the mode
+      bar sets from the settings it already loads; until they arrive a page shows 24-hour times. The live
+      chart's strip shows `9:41` without AM or PM. Time inputs (`<input type="time">`) follow the browser.
+    - Simulator: `clock <12|24> [tz]`; a POSIX zone moves its local time, which is how the check reaches
+      midnight, 13 h and 22 h. Captures `docs/display/v2/core/standby-12h*.png` and `fault-controller-*.png`.
+    - Checked 2026-11-20 in the simulator: display core 232 at 480 and at 466 px, menu 916, modes 520,
+      profiles 1414, shot 565 (those four at 480 only); `verify_web_ui.mjs` 1,201 against Vite and the seeded
+      simulator (not against the embedded bundle); native tests 57 pass, 7 skipped; `pio run -e display`
+      3,099,053 bytes of flash (47.3%), RAM 84,000. Not on hardware, like the rest of v2.
 
 ## 4. Restarting — one prompt per session
 
@@ -327,3 +350,5 @@ The web page lanes, the web integration and the display loose ends are done; the
 | `a8a7aaf9`, `60863d34`, `cad656c2`, `989b33cd`, `61d3a45a`, `21b27d42`, `4930eb7f` | Lane W1 (2026-11-16 revision, web fixes): `bm.css` part 1 re-synced and no opacity for state; field help linked and no instructions in placeholders; readable locked modes; chart dashes, end labels and spoken labels; glyphs on warning and danger Chips; 44 px targets; favourites scroll, 24-hour times, 320 px. `verify_web_ui.mjs` passes 1,008 assertions against Vite and the seeded simulator. |
 | `d7d1c7b4`, `915ce19b`, `4f569fc1`, `393905cc`, `d6ab70bc`, `0a4b9f43`, `08ec8925`, `b8d68cc8` | Lane W2 (2026-11-16 revision, web components and product states): Notice and Loader; one Toast region and one status region; Dialog and ConfirmDialog for deletions, Menu details; EmptyState, NumberField, Tooltip, Tile and top bar details; Connecting, Offline, fault, command pending, update ready, updating, saving; the Updating page lazy; `verify_web_ui.mjs` gains a states part; it passes 1,190 assertions against Vite and the seeded simulator. Web bundle 370,154 bytes gzipped (+4,766), entry script 24,663 (+5,999). |
 | `8240451f`, `36ece42b`, `4cdf84d3` | Lane D (design revision of 2026-11-16): `…` and folded letters, content limits, three warnings, Standby's lines, command pending, Fault, Updating, Wi-Fi setup; a fault's title on one line. Checks: core 170, shot 565, modes 520, menu 916, profiles 1414 (480 px only). `pio run -e display`: 3,075,909 bytes of flash, 84,000 of RAM. Decisions in section 3, item 21. |
+| `413b56b2` | The controller requirement: `CONTROLLER_REQUIRED_VERSION`, the mismatch words on both faces, the README's Requirements. Section 3, item 23. |
+| `b4172511` | The 12-hour clock on the display and the web, from the one setting; the simulator's `clock` verb. Section 3, item 23. |
