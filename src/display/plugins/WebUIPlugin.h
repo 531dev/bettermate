@@ -17,7 +17,7 @@ constexpr size_t UPDATE_CHECK_INTERVAL = 30 * 60 * 1000;
 constexpr size_t DNS_PERIOD = 50;
 
 const String LOCAL_URL = "http://4.4.4.1/";
-const String RELEASE_URL = "https://github.com/mohamadSherif/bettermate/releases/";
+const String RELEASE_URL = "https://github.com/531dev/bettermate/releases/";
 // The controller stays on stock GaggiMate firmware. Its OTA is pinned to the upstream release that speaks the
 // same wire protocol as this display build (lib/NanoPbComm is untouched), never to a BetterMate release.
 const String CONTROLLER_PINNED_VERSION = CONTROLLER_REQUIRED_VERSION;

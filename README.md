@@ -69,8 +69,8 @@ BetterMate is still in development.
 | --- | --- |
 | Round display | Every screen built and checked in the simulator, at 480 and 466 px. |
 | Web app | Every page rebuilt and checked in Chromium. Not yet tried in Safari or on a phone. |
-| On a real machine | Next: flashing it onto a display and measuring motion on the panel itself. |
-| Release | No public release or browser installer yet. Panels: LilyGo T-RGB, Waveshare and CO5300 AMOLED. |
+| On a real machine | Tested on hardware before `v1.0.0`. |
+| Release | [`v1.0.0`](https://github.com/531dev/bettermate/releases/tag/v1.0.0). No browser installer yet. Panels: LilyGo T-RGB, Waveshare and CO5300 AMOLED. |
 
 ## Build
 

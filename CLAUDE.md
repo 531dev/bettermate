@@ -6,16 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BetterMate is a **hard fork of GaggiMate** (upstream `jniebuhr/gaggimate`, forked at `v1.9.0`) that keeps all of its machine logic and replaces the two interfaces: the round 480×480 display (hand-written LVGL) and the web UI the display serves (Preact). Users flash BetterMate onto the display; it pairs with a **stock, unmodified GaggiMate controller on `v1.9.0`**.
 
-This directory is a clone of `git@github.com:531dev/bettermate.git` (remote `origin`, public). Work happens on `main`. The repository has **no tags and no releases**, and there is no upstream clone here. To compare with stock GaggiMate, add it as a remote that cannot push (`git remote add upstream https://github.com/jniebuhr/gaggimate.git && git remote set-url --push upstream no-push`) and read tag `v1.9.0`, without editing it.
+This directory is a clone of `git@github.com:531dev/bettermate.git` (remote `origin`, public). Work happens on `main`. Releases are tags `vX.Y.Z` (the first is `v1.0.0`); pushing one runs `build.yml`, which builds the display and publishes a GitHub release. There is no upstream clone here. To compare with stock GaggiMate, add it as a remote that cannot push (`git remote add upstream https://github.com/jniebuhr/gaggimate.git && git remote set-url --push upstream no-push`) and read tag `v1.9.0`, without editing it.
 
 ## Where the work stands (2026-11-21)
 
-The v2 redesign is **built and checked in the simulator on both faces, and not yet on hardware**:
+The v2 redesign is **built, checked in the simulator on both faces, tested on hardware by the user, and released as `v1.0.0`**:
 
 - **Display:** every screen is implemented and passes its simulator checks at 480 and 466 px.
 - **Web:** every page is converted to the v2 system and passes `scripts/verify_web_ui.mjs` in Chromium. Not tried in Safari, on a phone, or served from an ESP32.
-- **Left:** the hardware session (flash `display-frame-stats`, read the `FrameStats` lines, try a real shot; back up the flash first) and the decisions the user has not confirmed. Both are in `docs/v2/STATUS.md`, sections 2 and 3.
-- **Open, not yet decided by the user:** a profile of more than 16 phases on the display's stage row; six Customize options the Dashboard lost; a Wi-Fi scan in Setup (needs a new REST request, so a contract change); whether and how to release.
+- **Left:** the decisions the user has not confirmed (`docs/v2/STATUS.md`, sections 2 and 3).
+- **Open, not yet decided by the user:** a profile of more than 16 phases on the display's stage row; six Customize options the Dashboard lost; a Wi-Fi scan in Setup (needs a new REST request, so a contract change).
 
 Read `docs/v2/STATUS.md` first for anything beyond this summary, then the doc for the face you will touch:
 
@@ -106,7 +106,7 @@ node scripts/verify_web_ui.mjs http://127.0.0.1:5199/ --playwright-module <path 
 
 A display change is verified by the check for its screens at 480 px, and at 466 px when it moves or sizes anything. A web change is verified by `verify_web_ui.mjs`. Say which checks ran and which did not.
 
-CI on GitHub runs `pio check` for both firmwares (`check.yml`) and the OTA test bench on every push. The release pipelines are upstream's and do not run here as they are: `build-nightly.yml` triggers on `master`, `build.yml` on tags.
+CI on GitHub runs `pio check` for both firmwares (`check.yml`) and the OTA test bench on every push. A pushed `v*` tag runs `build.yml`: the web UI, `display` and `display-headless` firmware, the filesystem image and a merged `display-full.bin` for a first USB install, attached to a GitHub release. No controller build and no update-server upload: the controller stays on GaggiMate `v1.9.0`. `build-nightly.yml` is still upstream's and triggers on `master`, so it never runs.
 
 ## Architecture
 
@@ -129,8 +129,8 @@ On the web (`web/`): Preact 10, `@preact/signals`, `preact-iso` routing with eve
 
 ## Known gaps
 
-- `RELEASE_URL` in `src/display/plugins/WebUIPlugin.h` points at `github.com/mohamadSherif/bettermate/releases/`, which does not exist; the repository is `531dev/bettermate` and has no releases. The display's own update check therefore finds nothing. Fixing it belongs with the release decision.
-- With no tags, `git describe` is empty, so `BUILD_GIT_VERSION` in a local build is `""`.
+- The display's update check reads `RELEASE_URL` (`src/display/plugins/WebUIPlugin.h`), `github.com/531dev/bettermate/releases/latest`, and compares its tag with `BUILD_GIT_VERSION` (`git describe`) as semver. A local build without the tags fetched reports `""`.
+- The nightly OTA channel reads `releases/tag/nightly`, which does not exist.
 - No browser installer exists yet.
 
 ## Working preferences

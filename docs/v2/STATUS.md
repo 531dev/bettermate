@@ -298,6 +298,14 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
     column beside the sidebar. Checked in Chromium: `verify_web_ui.mjs` 1,201 against Vite and the seeded
     simulator, plus a probe at 390 and 1440 px that the window scrolls and the top bar, mode bar and sidebar
     hold their place. Not tried in Safari or on a phone, where the toolbar collapse is the point.
+25. Release `v1.0.0` (2026-11-21, asked for by the user after testing it on hardware). Releases are tags `vX.Y.Z`
+    on `main`; pushing one runs `build.yml`, rewritten for the fork: the web UI, `display` and `display-headless`
+    firmware and the filesystem image, as upstream named them (the display's OTA asks for `display-firmware.bin`
+    or `display-headless-firmware.bin`), plus `display-full.bin`, the `display` image merged for a first install
+    at 0x0 (it carries the filesystem, so it replaces profiles and history). No controller build and no
+    update-server upload: the controller stays on GaggiMate `v1.9.0` from upstream's release. `RELEASE_URL`
+    pointed at `github.com/mohamadSherif/bettermate`, which does not exist, so no display could see a release; it
+    is now `github.com/531dev/bettermate/releases/`. The release was tagged on the commit that carries this item.
 
 ## 4. Restarting — one prompt per session
 
