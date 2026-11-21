@@ -289,6 +289,15 @@ face you will work on. `../../../CLAUDE.md` and `../../../progress.md` at the wo
       profiles 1414, shot 565 (those four at 480 only); `verify_web_ui.mjs` 1,201 against Vite and the seeded
       simulator (not against the embedded bundle); native tests 57 pass, 7 skipped; `pio run -e display`
       3,099,053 bytes of flash (47.3%), RAM 84,000. Not on hardware, like the rest of v2.
+24. The web page scrolls the document (2026-11-21, asked for by the user): a phone's browser hides its address
+    and tool bars only when the document scrolls, and the shell scrolled `<main>` inside a box one window tall,
+    so Safari's bar never collapsed. The shell is now `min-h-dvh` and `<main>` grows with its content
+    (`overflow-x-clip`, so it is not a scroll box). To keep what stood still: the top bar is sticky on the page
+    ground (`html` has a `scroll-padding-top` of its height, so a field or section scrolled to clears it); from
+    1024 px the sidebar is sticky and one window tall; the floating mode bar is `fixed`, centred on the page
+    column beside the sidebar. Checked in Chromium: `verify_web_ui.mjs` 1,201 against Vite and the seeded
+    simulator, plus a probe at 390 and 1440 px that the window scrolls and the top bar, mode bar and sidebar
+    hold their place. Not tried in Safari or on a phone, where the toolbar collapse is the point.
 
 ## 4. Restarting — one prompt per session
 

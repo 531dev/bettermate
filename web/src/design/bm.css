@@ -2027,10 +2027,20 @@ input:checked:disabled + .bm-radio__box {
   padding-bottom: calc(var(--space-16) + var(--space-6) + env(safe-area-inset-bottom));
 }
 
-/* Top bar: menu, wordmark, and a warning glyph only when a warning exists. */
+/* Top bar: menu, wordmark, and a warning glyph only when a warning exists. It sticks to the top of
+   the scrolling document, on the page's ground, and anything scrolled to stops below it. */
+html {
+  scroll-padding-top: calc(
+    var(--touch-min) + var(--space-3) + max(var(--space-3), env(safe-area-inset-top))
+  );
+}
 .bm-topbar {
+  position: sticky;
+  z-index: 30;
+  top: 0;
   display: grid;
   flex-shrink: 0;
+  background: var(--surface-0);
   grid-template-columns: var(--touch-min) 1fr var(--touch-min);
   align-items: center;
   height: auto;
@@ -2081,15 +2091,23 @@ input:checked:disabled + .bm-radio__box {
   padding: var(--space-5) var(--space-2) 0;
 }
 @media (min-width: 1024px) {
+  html {
+    scroll-padding-top: 0;
+  }
   .bm-page {
     padding-top: var(--space-3);
   }
   .bm-topbar {
     display: none;
   }
+  /* The sidebar holds its place beside the scrolling document, one window tall. */
   .bm-sidebar {
+    position: sticky;
+    top: var(--space-3);
     flex-shrink: 0;
+    align-self: flex-start;
     width: var(--sidebar);
+    height: calc(100dvh - var(--space-6));
     margin: var(--space-3) 0 var(--space-3) var(--space-3);
   }
 }
@@ -2120,9 +2138,10 @@ input:checked:disabled + .bm-radio__box {
 }
 
 /* The mode bar floats space-3 above the bottom edge and the safe area, at most 400px wide. Beside
-   the sidebar it floats space-6 above the window's bottom, level with the tiles' bottom line. */
+   the sidebar it floats space-6 above the window's bottom, level with the tiles' bottom line, and
+   centred on the page column. */
 .bm-modebar--float {
-  position: absolute;
+  position: fixed;
   z-index: 40;
   right: 0;
   bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
@@ -2138,6 +2157,7 @@ input:checked:disabled + .bm-radio__box {
 @media (min-width: 1024px) {
   .bm-modebar--float {
     bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+    left: calc(var(--space-3) + var(--sidebar));
   }
   .bm-page--modebar {
     padding-bottom: calc(var(--space-16) + var(--space-8) + env(safe-area-inset-bottom));

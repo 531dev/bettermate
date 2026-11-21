@@ -96,15 +96,12 @@ function Shell() {
           Skip to content
         </a>
       )}
-      <div className='flex h-dvh overflow-hidden'>
+      {/* The document scrolls, not an inner box: a phone's browser hides its toolbars only then. */}
+      <div className='flex min-h-dvh'>
         {!bare && <Navigation open={navOpen} onClose={closeNav} />}
-        <div className='relative flex min-w-0 flex-1 flex-col' inert={navOpen}>
+        <div className='flex min-w-0 flex-1 flex-col' inert={navOpen}>
           {!bare && <AppBar onOpenNav={() => setNavOpen(true)} navOpen={navOpen} />}
-          <main
-            id='main'
-            tabIndex={-1}
-            className='min-h-0 flex-1 overflow-x-hidden overflow-y-auto outline-none'
-          >
+          <main id='main' tabIndex={-1} className='flex-1 overflow-x-clip outline-none'>
             <div className={cx('bm-page', !hidesModeBar(path) && 'bm-page--modebar')}>
               <div className='grid min-w-0 flex-1 grid-cols-1'>
                 <div className='min-w-0'>
