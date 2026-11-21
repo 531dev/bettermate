@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstring>
+#include <display/core/constants.h>
 
 namespace bm {
 namespace {
@@ -54,7 +56,7 @@ Status describe(const UiState &s) {
     case SystemPhase::Autotuning:
         return {"Tuning the boiler", true};
     case SystemPhase::ProtocolMismatch:
-        return {s.displayOutdated ? "Update the display" : "Update the controller", false};
+        return {"Controller needs " CONTROLLER_REQUIRED_VERSION, false};
     case SystemPhase::Error:
         return {"Switch the machine off", false};
     case SystemPhase::Ready:

@@ -1,5 +1,7 @@
 #include "FaultScreen.h"
 
+#include <display/core/constants.h>
+
 namespace bm {
 namespace {
 // The ERROR chip as the design draws it: 90 x 36 at y 84, centred.
@@ -28,10 +30,12 @@ Words words(Fault fault) {
     case Fault::Link:
         // The link itself failed: a restart of the display builds it again.
         return {"Connection error", {"Brewing is stopped.", "Restart to reconnect."}, "RESTART"};
+    // The link protocols differ. This display works with one controller release only, so both sides of the
+    // mismatch name it: no display update answers a newer controller, and the web app updates an older one.
     case Fault::DisplayOutdated:
-        return {"Version mismatch", {"Brewing is blocked.", "Update the display."}, nullptr};
+        return {"Controller too new", {"Brewing is blocked.", "BetterMate needs " CONTROLLER_REQUIRED_VERSION "."}, nullptr};
     case Fault::ControllerOutdated:
-        return {"Version mismatch", {"Brewing is blocked.", "Update the controller."}, nullptr};
+        return {"Controller too old", {"Brewing is blocked.", "Update it to " CONTROLLER_REQUIRED_VERSION "."}, nullptr};
     case Fault::Controller:
     case Fault::None:
     default:

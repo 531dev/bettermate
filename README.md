@@ -30,9 +30,17 @@ behind them.
 
 - The controller and its firmware, on stock `v1.9.0`. It is never reflashed.
 - Heater, pump and valve control, and every safety limit.
-- The link between display and controller, untouched, so the controller never reports a version mismatch.
+- The link between display and controller, untouched, so a controller on `v1.9.0` never reports a version mismatch.
 - The REST and WebSocket API, the storage keys, the `gaggimate` network name, MQTT topics and the HomeKit name. Your
   integrations see the same machine.
+
+## Requirements
+
+- A GaggiMate display: LilyGo T-RGB, Waveshare or CO5300 AMOLED.
+- A controller on stock GaggiMate `v1.9.0`. This is the only controller firmware BetterMate works with.
+  - **Older than `v1.9.0`:** BetterMate offers the update to `v1.9.0` in Settings, System.
+  - **`v1.10.0` or later:** not supported yet. Those releases speak a newer link protocol, so BetterMate blocks
+    brewing and says the controller is too new. Put the controller back on `v1.9.0` first.
 
 ## Five rules for the round display
 

@@ -26,6 +26,9 @@
 #define DEFAULT_PUMP_SLIP_COEFFS "0,0,0,0"
 #define DEFAULT_MDNS_NAME "gaggimate"
 #define DEFAULT_OTA_CHANNEL "latest"
+// The one controller firmware this display works with: the stock GaggiMate release whose link protocol
+// lib/NanoPbComm speaks. The controller's OTA is pinned to it and the mismatch screens name it.
+#define CONTROLLER_REQUIRED_VERSION "v1.9.0"
 #define DEFAULT_TIMEZONE "Europe/Rome"
 #define DEFAULT_HOME_ASSISTANT_TOPIC "homeassistant"
 #define DEFAULT_STEAM_PUMP_PERCENTAGE 4.f

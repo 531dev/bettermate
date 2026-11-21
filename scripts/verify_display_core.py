@@ -128,7 +128,8 @@ sim.run(
     "tap 240 240; swipe 240 400 240 200; wait 900; expect screen fault;"
     "error 1; wait 900; expect screen fault; shot link.bmp; layout link.json;"
     "error 0; wait 1500; expect screen standby; redraw from-fault.json;"
-    "protocol 99; wait 1500; expect screen fault; layout mismatch.json; protocol 3; wait 1500; expect screen standby;"
+    "protocol 99; wait 1500; expect screen fault; layout mismatch.json; shot newer.bmp; protocol 3; wait 1500; expect screen standby;"
+    "protocol 1; wait 1500; expect screen fault; layout older.json; shot older.bmp; protocol 3; wait 1500; expect screen standby;"
     # The controller missing: first a wait on Standby, after 5 s a fault; back when it answers again.
     "mode brew; wait 2500; controller disconnected; wait 2500; expect screen standby; expect text Waiting for the controller;"
     "wait 3500; expect screen fault;"
@@ -137,7 +138,9 @@ sim.run(
 checks.count(sim)
 check_fault(sim.layout("runaway.json"), "Temperature runaway", ["Heating is off.", "Switch the machine off."], False, "boiler runaway")
 check_fault(sim.layout("link.json"), "Connection error", ["Brewing is stopped.", "Restart to reconnect."], True, "link error")
-check_fault(sim.layout("mismatch.json"), "Version mismatch", ["Brewing is blocked.", "Update the display."], False, "a newer controller")
+# The display works with one controller release, and both sides of a mismatch name it.
+check_fault(sim.layout("mismatch.json"), "Controller too new", ["Brewing is blocked.", "BetterMate needs v1.9.0."], False, "a newer controller")
+check_fault(sim.layout("older.json"), "Controller too old", ["Brewing is blocked.", "Update it to v1.9.0."], False, "an older controller")
 check_fault(sim.layout("missing.json"), "Controller not found", ["Check power and cable.", "Still trying to connect."], False, "controller missing")
 checks.true(sim.layout("reconnected.json").screen != "fault", "the fault ends when the controller answers again")
 checks.at_most(max(sim.redraw("to-fault.json")), 25.0, "Brew to Fault: no frame repaints over a quarter of the panel")
@@ -145,6 +148,8 @@ checks.at_most(max(sim.redraw("from-fault.json")), 25.0, "Fault to Standby: no f
 sim.save("runaway.bmp", "docs/display/v2/core/fault-runaway.png")
 sim.save("link.bmp", "docs/display/v2/core/fault-restart.png")
 sim.save("missing.bmp", "docs/display/v2/core/fault-controller-missing.png")
+sim.save("newer.bmp", "docs/display/v2/core/fault-controller-newer.png")
+sim.save("older.bmp", "docs/display/v2/core/fault-controller-older.png")
 
 # An update that waits: the download glyph in the slot and the line under the clock. While one installs, the Updating
 # screen: progress on the single ring in ink, the percentage as the reading; it cannot be left.

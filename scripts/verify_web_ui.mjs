@@ -1254,6 +1254,48 @@ async function states() {
     await context.close();
   }
 
+  // The controller is not on the one release BetterMate works with. A newer controller names the
+  // release and offers no way out through Settings; an older one links to the update.
+  for (const [side, message, title, text, linked] of [
+    [
+      "newer",
+      "Version mismatch, update display",
+      "The controller is newer than BetterMate supports",
+      "Put the controller back on GaggiMate v1.9.0.",
+      false,
+    ],
+    [
+      "older",
+      "Version mismatch, update controller",
+      "The controller needs an update",
+      "Brewing is off until the controller is on v1.9.0.",
+      true,
+    ],
+  ]) {
+    const { context, page } = await open("phone", "dark");
+    await relay(page, {
+      edit: (msg) =>
+        msg.tp === "evt:status"
+          ? { ...msg, sys: { s: "mismatch", m: message, c: 0 } }
+          : msg,
+    });
+    await goto(page, "/", "Dashboard");
+    await step(
+      `mismatch, ${side} controller: the Notice names v1.9.0${linked ? " and opens updates" : " and has no link"}`,
+      async () => {
+        const notice = noticeTitled(page, title);
+        await notice.waitFor();
+        const words = await notice.innerText();
+        const links = await notice.getByRole("link").allInnerTexts();
+        if (!words.includes(text)) throw new Error(words);
+        if (linked !== links.some((l) => /open updates/i.test(l)))
+          throw new Error(`links: ${links.join() || "none"}`);
+      },
+    );
+    await capture(page, `state-mismatch-${side}`);
+    await context.close();
+  }
+
   // Hardware not present: no scale (`bta` false). Simple leaves the weight out; Advanced keeps its
   // tile with an EmptyState; the choice of stopping by weight shows Time, disabled, with the reason.
   for (const size of ["phone", "desktop"]) {

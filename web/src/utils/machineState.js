@@ -35,10 +35,13 @@ export function retryConnection() {
 // ── Faults: what blocks brewing ──────────────────────────────────────────────────────────────
 
 const RUNAWAY = 4;
+/** The one controller firmware BetterMate works with (CONTROLLER_REQUIRED_VERSION in the firmware). */
+export const CONTROLLER_REQUIRED_VERSION = 'v1.9.0';
 
 /**
  * The fault that blocks brewing, as its Notice says it, or null: the controller reports an error,
- * the display cannot find the controller, or the two do not match.
+ * the display cannot find the controller, or the controller is not on the release BetterMate
+ * works with.
  *   { key, title, text, chip, link? }
  */
 export const fault = computed(() => {
@@ -64,14 +67,20 @@ export const fault = computed(() => {
         text: 'The display cannot reach the controller. Check the cable between them, then switch the machine off and on again.',
       };
     case 'mismatch':
-      return {
-        key: 'mismatch',
-        title: 'The display and controller do not match',
-        text: /display/i.test(sys.message)
-          ? 'Brewing is off until they match. Update the display in Settings.'
-          : 'Brewing is off until they match. Update the controller in Settings.',
-        link: { href: '/settings/system', label: 'Open updates' },
-      };
+      // The firmware says "update display" when the controller is the newer side. No BetterMate
+      // update answers that, and Settings cannot put a controller back, so that side has no link.
+      return /display/i.test(sys.message)
+        ? {
+            key: 'mismatch',
+            title: 'The controller is newer than BetterMate supports',
+            text: `Brewing is off. BetterMate works with controller firmware ${CONTROLLER_REQUIRED_VERSION}. Put the controller back on GaggiMate ${CONTROLLER_REQUIRED_VERSION}.`,
+          }
+        : {
+            key: 'mismatch',
+            title: 'The controller needs an update',
+            text: `Brewing is off until the controller is on ${CONTROLLER_REQUIRED_VERSION}.`,
+            link: { href: '/settings/system', label: 'Open updates' },
+          };
     default:
       return null;
   }
