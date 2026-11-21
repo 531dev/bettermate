@@ -3,7 +3,8 @@
 Written 2026-11-14 at the end of the session that started the redesign, and kept current by the session that
 followed the same day: the web lanes, the web integration and the display loose ends are done in the simulator.
 What is left is the hardware session and the user's decisions (section 3; items 12 to 18 are from the second
-session). Branch `ui/v2`, local only (never push). Everything described here is committed; the tree is clean.
+session). Branch `ui/v2`, published as `main` at `github.com/531dev/bettermate` (push only when asked). Everything
+described here is committed; the tree is clean.
 
 **The task** (the user, 2026-11-11): implement the BetterMate v2 design system "in a way that's efficient and takes
 up less resources while allowing for clean animations. Tear down anything that's not needed and rewrite it for this
