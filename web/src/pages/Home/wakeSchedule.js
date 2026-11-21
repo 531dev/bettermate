@@ -22,7 +22,7 @@ export function daysLabel(days) {
   return on.map(i => DAY_NAMES[i]).join(', ');
 }
 
-/** A wake time on the 24-hour clock: '06:30'. `hour12` is no longer read; the web is 24-hour. */
+/** A wake time: '06:30', or '6:30 AM'. `hour12` is not read: `clockOf` follows the clock setting. */
 export const timeLabel = time => clockOf(time);
 
 // When the machine next wakes on its own, as a short phrase. Empty when no wake is scheduled.

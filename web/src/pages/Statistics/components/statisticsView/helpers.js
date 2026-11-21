@@ -11,6 +11,7 @@ import {
   MAX_PINNED_SHOTS_PER_PROFILE,
   PINNED_NO_PROFILE_BUCKET,
 } from '../../../ShotAnalyzer/utils/analyzerUtils';
+import { clock24hSignal } from '../../../../utils/dashboardManager.js';
 import { resolveShotEffectiveTimestampMs } from '../../utils/statisticsSearchDsl';
 import { STATISTICS_SOURCE_FALLBACK } from '../../utils/statisticsRoute';
 
@@ -107,7 +108,7 @@ export function formatShotDateTime(ms) {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hourCycle: 'h23',
+      hourCycle: clock24hSignal.value ? 'h23' : 'h12',
     });
   } catch {
     return 'No date';

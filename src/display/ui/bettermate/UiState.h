@@ -136,6 +136,7 @@ struct UiState {
 
     // Clock
     bool timeValid = false;
+    bool clock24h = true; // the setting: "14:41", or "2:41" with PM written beside it
     struct tm time{};
 
     // Next scheduled auto wake-up, if any: weekday as in tm_wday, and how far away it is

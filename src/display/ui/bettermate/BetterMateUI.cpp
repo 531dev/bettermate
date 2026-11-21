@@ -474,6 +474,7 @@ void BetterMateUI::gather(unsigned long now, ScreenId target) {
         const time_t clock = time(nullptr);
         localtime_r(&clock, &state.time);
         state.timeValid = state.time.tm_year > 2016 - 1900;
+        state.clock24h = settings.isClock24hFormat();
         state.wakeScheduled = false;
         if (state.timeValid && settings.isAutoWakeupEnabled()) {
             const bm::NextWakeup next = bm::nextWakeup(state.time, settings.getAutoWakeupSchedules());

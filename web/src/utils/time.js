@@ -1,9 +1,17 @@
+import { clock24hSignal } from './dashboardManager.js';
+
 // Times and dates as the design's Content section writes them: a 24-hour clock with a leading
-// zero, no AM or PM, no comma between day and time. `14:41`, `Today 14:41`, `12 Nov 07:12`,
-// `12 Nov 2025`; a day heading is `Today`, `Yesterday` or `12 November`. The machine's 24-hour
-// setting is the round display's; the web always reads 24-hour.
+// zero, no comma between day and time. `14:41`, `Today 14:41`, `12 Nov 07:12`, `12 Nov 2025`; a
+// day heading is `Today`, `Yesterday` or `12 November`. With the machine's 24-hour setting off,
+// every time of day is on the 12-hour clock instead, as Content writes that one: `2:41 PM`, no
+// leading zero, a space, capitals. One setting for the display and the web.
 
 const pad = n => String(n).padStart(2, '0');
+// Read where a time is drawn, so a component that shows one follows the setting when it changes.
+const timeOfDay = (hours, minutes) =>
+  clock24hSignal.value
+    ? `${pad(hours)}:${pad(minutes)}`
+    : `${hours % 12 || 12}:${pad(minutes)} ${hours < 12 ? 'AM' : 'PM'}`;
 const MONTHS = [
   'January',
   'February',
@@ -23,16 +31,16 @@ const MONTHS = [
 export const toDate = value =>
   value instanceof Date ? value : new Date(value < 1e11 ? value * 1000 : value);
 
-/** `14:41`. */
+/** `14:41`, or `2:41 PM`. */
 export const clock = value => {
   const date = toDate(value);
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return timeOfDay(date.getHours(), date.getMinutes());
 };
 
-/** A wall-clock time of day stored as 'H:MM' (a wake schedule): `06:30`. */
+/** A wall-clock time of day stored as 'H:MM' (a wake schedule): `06:30`, or `6:30 AM`. */
 export const clockOf = time => {
   const [hours, minutes] = String(time).split(':').map(Number);
-  return `${pad(hours || 0)}:${pad(minutes || 0)}`;
+  return timeOfDay(hours || 0, minutes || 0);
 };
 
 const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate());

@@ -1,4 +1,6 @@
 // Pure helper functions for StatisticsToolbar: label formatting and summaries
+import { clock, clockOf } from '../../../../utils/time.js';
+import { clock24hSignal } from '../../../../utils/dashboardManager.js';
 import { MISSING } from '../../utils/format';
 import { DATE_ONLY_PATTERN, DATE_TIME_PATTERN, TOOLBAR_FLOATING_PANEL_ATTR } from './constants';
 
@@ -15,7 +17,7 @@ export function formatToolbarDateTimeDisplay(value) {
   const match = DATE_TIME_PATTERN.exec(valueText);
   if (match) {
     const [, year, month, day, hour, minute] = match;
-    return `${day}.${month}.${year}, ${hour}:${minute}`;
+    return `${day}.${month}.${year}, ${clockOf(`${hour}:${minute}`)}`;
   }
   const parsed = new Date(value);
   const time = parsed.getTime();
@@ -27,7 +29,7 @@ export function formatToolbarDateTimeDisplay(value) {
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false,
+      hour12: !clock24hSignal.value,
     });
   } catch {
     return value;
@@ -72,7 +74,7 @@ export function formatCountLabel(value, singular, plural) {
   return `${numericValue} ${numericValue === 1 ? singular : plural}`;
 }
 
-// A moment as the toolbar writes dates: 11.11.2026 and 13:28, in local time.
+// A moment as the toolbar writes dates: 11.11.2026 and 13:28 (or 1:28 PM), in local time.
 function getLocalDateTimeParts(value) {
   const ms = Number(value);
   if (!Number.isFinite(ms) || ms <= 0) return null;
@@ -80,7 +82,7 @@ function getLocalDateTimeParts(value) {
   if (!Number.isFinite(date.getTime())) return null;
   return {
     date: `${pad2(date.getDate())}.${pad2(date.getMonth() + 1)}.${date.getFullYear()}`,
-    time: `${pad2(date.getHours())}:${pad2(date.getMinutes())}`,
+    time: clock(date),
   };
 }
 

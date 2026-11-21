@@ -5,6 +5,8 @@
 """
 
 import math
+import re
+import time
 
 from display_sim import PANEL, SHOT_SHIFT, Checks, Sim, pixels
 
@@ -78,11 +80,63 @@ checks.equal(clocks[0], clocks[1], "the clock stood still while the comet was me
 checks.at_most(max(sim.redraw("comet.json")), 1.0, "the busy comet repaints under 1% a frame")
 connecting = sim.layout("after.json")
 checks.true(not connecting.has("CONNECTING") and not connecting.has("WAKE"), "Connecting: the date stays, no state word and no pill")
+
+
+DANGER, DANGER_SOFT, PRIMARY, MUTED, INK, SURFACE_2 = "#ff6b6b", "#4a1414", "#5361ff", "#a6a6a6", "#f2f2f2", "#232323"
+
+
+# The clock follows the machine's setting. 24-hour: "06:30", nothing after it. 12-hour: "6:30" with AM or PM beside
+# it in screen-label, the pair centred as one (the hero face has figures only). The simulator shows the host's
+# time, so each case moves the time zone to reach its hour; near the turn of an hour the check waits for it.
+def zone_for(hour):
+    ahead = (hour - time.gmtime().tm_hour) % 24
+    ahead = ahead - 24 if ahead > 12 else ahead
+    return f"SIM{'-' if ahead >= 0 else '+'}{abs(ahead)}"
+
+
+if time.gmtime().tm_min == 59:
+    time.sleep(61 - time.gmtime().tm_sec)
+CLOCKS = (("midnight", 0, "12", "AM"), ("afternoon", 13, "1", "PM"), ("evening", 22, "10", "PM"))
+sim = Sim("core-clock")
+sim.run(
+    f"wait 3500; expect screen standby; clock 24 {zone_for(0)}; wait 700; layout h24.json; redraw skip.json;"
+    + "".join(
+        f"clock 12 {zone_for(hour)}; wait 700; redraw to-{name}.json; layout {name}.json; shot {name}.bmp;"
+        for name, hour, _, _ in CLOCKS
+    )
+    + "clock 24; wait 700; redraw to-24.json; layout back.json; quit"
+)
+checks.count(sim)
+for name, shown in (("h24.json", r"00:[0-5]\d"), ("back.json", r"22:[0-5]\d")):
+    page = sim.layout(name)
+    reading = next((o for o in page.objects if o["kind"] == "reading"), None)
+    what = f"24-hour clock ({name})"
+    checks.true(reading is not None and re.fullmatch(shown, reading["text"]), f"{what}: two figures for the hour, {reading and reading['text']}")
+    checks.true(not page.has("AM") and not page.has("PM"), f"{what}: nothing after the clock")
+    checks.true(reading is not None and abs(reading["x1"] + reading["x2"] + 1 - 480) <= 1, f"{what}: the clock alone is centred")
+for name, hour, figures, half in CLOCKS:
+    page = sim.layout(f"{name}.json")
+    reading = next((o for o in page.objects if o["kind"] == "reading"), None)
+    word = page.find(half)
+    what = f"12-hour clock at {hour:02d}h"
+    checks.true(reading is not None and re.fullmatch(figures + r":[0-5]\d", reading["text"]), f"{what}: '{figures}:MM' with no leading zero, {reading and reading['text']}")
+    checks.true(word is not None and not page.has("PM" if half == "AM" else "AM"), f"{what}: {half} beside the clock, and only that")
+    if reading is None or word is None:
+        continue
+    checks.true(word["font"] == 25 and word["baseline"] == reading["baseline"] == 286, f"{what}: {half} in screen-label on the clock's baseline")
+    checks.color(word["color"], MUTED, f"{what}: {half} is ink-muted")
+    checks.equal(word["x1"] - reading["x2"], 11, f"{what}: 10 px between the last figure and {half}")
+    checks.true(abs(reading["x1"] + word["x2"] + 1 - 480) <= 1, f"{what}: clock and {half} are centred as one, {reading['x1']} to {word['x2']}")
+    reach = math.hypot(word["x2"] - 240, word["y2"] - 240)
+    checks.true(reach < 205, f"{what}: {half} stays clear of the ring's ticks, {reach:.0f} px from the centre")
+    checks.at_most(max(sim.redraw(f"to-{name}.json")), 25.0, f"{what}: the change repaints under a quarter of the panel")
+checks.at_most(max(sim.redraw("to-24.json")), 25.0, "back to the 24-hour clock: the change repaints under a quarter of the panel")
+sim.save("afternoon.bmp", "docs/display/v2/core/standby-12h.png")
+sim.save("midnight.bmp", "docs/display/v2/core/standby-12h-widest.png")
 sim.save("connecting.bmp", "docs/display/v2/core/standby-connecting.png")
 
 # ---- product states (design/reference/product-states.md, the DisplayStates card) --------------------------------
 
-DANGER, DANGER_SOFT, PRIMARY, MUTED, INK, SURFACE_2 = "#ff6b6b", "#4a1414", "#5361ff", "#a6a6a6", "#f2f2f2", "#232323"
 
 
 def box(obj):

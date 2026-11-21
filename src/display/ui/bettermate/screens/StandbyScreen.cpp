@@ -20,13 +20,27 @@ constexpr int REST_BASELINE = 282;
 constexpr unsigned long REST_AFTER_MS = 30000;
 constexpr unsigned long DRIFT_EVERY_MS = 60000;
 constexpr int DRIFT_STEP_PX = 2;
+// Between the clock's last figure and its AM or PM.
+constexpr int MERIDIEM_GAP = 10;
 
 const char *const WEEKDAYS[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 const char *const WEEKDAYS_TITLE[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 const char *const MONTHS[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 
-// The clock is 24-hour everywhere in the system (design/reference/content.md): "06:30", never a suffix.
-void formatClock(int hour, int minute, char *buf, size_t len) { snprintf(buf, len, "%02d:%02d", hour, minute); }
+// "06:30" on the 24-hour clock. On the 12-hour one "6:30", no leading zero, with AM or PM written apart
+// (design/reference/content.md: `2:41 PM`).
+void formatClock(int hour, int minute, bool clock24h, char *buf, size_t len) {
+    if (clock24h)
+        snprintf(buf, len, "%02d:%02d", hour, minute);
+    else
+        snprintf(buf, len, "%d:%02d", hour % 12 == 0 ? 12 : hour % 12, minute);
+}
+
+const char *meridiemOf(int hour) { return hour < 12 ? "AM" : "PM"; }
+
+int labelWidth(const char *str) {
+    return lv_txt_get_width(str, strlen(str), font(Type::Label), static_cast<lv_coord_t>(tracking(Type::Label)), LV_TEXT_FLAG_NONE);
+}
 
 // A triangle wave in whole steps: 0, 1, .., peak, .., 0, .., -peak, .., 0
 int triangle(int step, int peak) {
@@ -71,12 +85,16 @@ void StandbyScreen::build(lv_obj_t *root) {
     label = part(ui::text(root, 240, LABEL_BASELINE, Type::Label, Tone::Muted, "", 232), 0);
     clock.build(root, 240, CLOCK_BASELINE, Type::Hero, Tone::Ink);
     part(clock.obj(), 0);
+    // One box for either word, so noon and midnight repaint the same pixels. place() puts it after the clock.
+    meridiemWidth = LV_MAX(labelWidth("AM"), labelWidth("PM"));
+    meridiem = part(ui::textLeft(root, 240, CLOCK_BASELINE, Type::Label, Tone::Muted, "AM", meridiemWidth), 0);
     line = part(ui::text(root, 240, LINE_BASELINE, Type::Body, Tone::Muted, "", tokens::DISPLAY_SQUARE), 1);
 }
 
 void StandbyScreen::onEnter(const UiState &state) {
     enteredAt = state.now;
     restStep = -2;
+    placedClock = placedTail = -1;
     wasResting = false;
 }
 
@@ -96,10 +114,16 @@ void StandbyScreen::update(const UiState &s) {
 
     char time[8] = "";
     if (s.timeValid)
-        formatClock(s.time.tm_hour, s.time.tm_min, time, sizeof(time));
+        formatClock(s.time.tm_hour, s.time.tm_min, s.clock24h, time, sizeof(time));
     clock.set(time);
     ui::setTone(clock.obj(), resting ? Tone::Faint : Tone::Ink);
     show(clock.obj(), s.timeValid);
+    // AM or PM rests with the clock: without it the resting clock would not say which half of the day it is.
+    const bool halves = s.timeValid && !s.clock24h;
+    if (halves)
+        ui::setText(meridiem, meridiemOf(s.time.tm_hour));
+    ui::setTone(meridiem, resting ? Tone::Faint : Tone::Muted);
+    show(meridiem, halves);
 
     // "THU 12 NOV": weekday, day, month, three letters each.
     if (s.timeValid) {
@@ -118,8 +142,10 @@ void StandbyScreen::update(const UiState &s) {
         else
             snprintf(buf, sizeof(buf), "An update is ready");
     } else if (s.canWake && s.wakeScheduled) {
-        char wakeTime[8];
-        formatClock(s.wakeHour, s.wakeMinute, wakeTime, sizeof(wakeTime));
+        char wakeTime[12];
+        formatClock(s.wakeHour, s.wakeMinute, s.clock24h, wakeTime, sizeof(wakeTime));
+        if (!s.clock24h)
+            snprintf(wakeTime + strlen(wakeTime), sizeof(wakeTime) - strlen(wakeTime), " %s", meridiemOf(s.wakeHour));
         if (s.wakeInMinutes < 24 * 60)
             snprintf(buf, sizeof(buf), "Wakes at %s", wakeTime);
         else
@@ -135,19 +161,25 @@ void StandbyScreen::update(const UiState &s) {
     updateException(s, true);
     // The clock moves to the centre one snapshot after the rest of the screen has left: two small repaints
     // instead of one over the budget.
-    place(s, resting && wasResting);
+    place(s, resting && wasResting, halves ? MERIDIEM_GAP + meridiemWidth : 0);
     wasResting = resting;
 }
 
-void StandbyScreen::place(const UiState &s, bool resting) {
+// `tail` is the room AM or PM takes after the clock, 0 on the 24-hour clock: the two are centred as one.
+void StandbyScreen::place(const UiState &s, bool resting, int tail) {
     const int step = resting ? static_cast<int>((s.now - enteredAt - REST_AFTER_MS) / DRIFT_EVERY_MS) : -1;
-    if (step == restStep)
+    if (step == restStep && clock.extent() == placedClock && tail == placedTail)
         return;
     restStep = step;
+    placedClock = clock.extent();
+    placedTail = tail;
     // One move of two pixels a minute, alternating between the axes, inside a 12 x 8 px box.
     const int dx = resting ? triangle((step + 1) / 2, 3) * DRIFT_STEP_PX : 0;
     const int dy = resting ? triangle(step / 2, 2) * DRIFT_STEP_PX : 0;
-    clock.moveTo(240 + dx, (resting ? REST_BASELINE : CLOCK_BASELINE) + dy);
+    const int baseline = (resting ? REST_BASELINE : CLOCK_BASELINE) + dy;
+    const int left = 240 + dx - (placedClock + tail) / 2;
+    clock.moveTo(left + placedClock / 2, baseline);
+    lv_obj_set_pos(meridiem, left + placedClock + MERIDIEM_GAP, baseline - ascent(Type::Label));
 }
 
 } // namespace bm

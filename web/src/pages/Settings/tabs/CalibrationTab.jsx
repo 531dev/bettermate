@@ -3,6 +3,7 @@ import { ApiServiceContext } from '../../../services/ApiService.js';
 import { Button } from '../../../components/Button.jsx';
 import { Chip } from '../../../components/Chip.jsx';
 import { OverviewChart } from '../../../components/OverviewChart.jsx';
+import { clock24hSignal } from '../../../utils/dashboardManager.js';
 import { Loader } from '../../../components/Loader.jsx';
 import { Cell, Tile } from '../../../components/Tile.jsx';
 import PumpFlowCalibration from '../../../components/PumpFlowCalibration/index.jsx';
@@ -76,7 +77,7 @@ export function CalibrationTab({ formData, setField, onPidTuned }) {
         {autotuneActive && (
           <>
             <div className='flex h-64 w-full'>
-              <OverviewChart hour12={false} />
+              <OverviewChart hour12={!clock24hSignal.value} />
             </div>
             <div className='flex items-center gap-3'>
               <Loader size={24} />

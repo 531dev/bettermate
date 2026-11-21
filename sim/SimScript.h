@@ -12,6 +12,8 @@
 //   swipe <x1> <y1> <x2> <y2> [ms] drag from one point to another (default 250 ms)
 //   key <1|2> <down|up>            the controller board's brew / steam inputs
 //   theme <n>                      set the display theme setting (0 dark, 1 light, 2 AMOLED)
+//   clock <12|24> [tz]             set the clock setting; with a POSIX time zone ("SIM-5" is five hours ahead
+//                                  of UTC) the simulator's local time moves there too, to reach an hour
 //   controller <connected|disconnected> simulate controller link availability
 //   protocol <version>             report a controller protocol version (the sim uses 3)
 //   error <code>                   report a controller error (0 clears, 4 is temperature runaway)
@@ -64,6 +66,7 @@ class SimScript {
         Pointer,
         Key,
         Theme,
+        Clock,
         Connection,
         Protocol,
         Error,

@@ -184,8 +184,10 @@ export const setProfileChartHeight = n => {
 };
 
 // ── Clock 24h mirror ───────────────────────────────────────────────────────
+// The machine's clock setting, for the display and the web together. True, the firmware's
+// default, until the settings have loaded; utils/time.js reads it for every time of day.
 
-export const clock24hSignal = signal(false);
+export const clock24hSignal = signal(true);
 
 export const setClock24h = value => {
   clock24hSignal.value = !!value;

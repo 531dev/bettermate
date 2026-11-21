@@ -12,6 +12,7 @@ import { StatTile } from '../../components/StatTile.jsx';
 import { Tile } from '../../components/Tile.jsx';
 import {
   DASHBOARD_LAYOUTS,
+  clock24hSignal,
   dashboardLayoutSignal,
   metricOrderSignal,
   panelOrderSignal,
@@ -146,9 +147,8 @@ export function Dashboard({ view: mode }) {
   const stages = useShotStages(shot.phases, ds);
   const recent = useRecentShots(!custom || showRecentShotsSignal.value);
 
-  // The web reads the 24-hour clock everywhere (design, Content); the machine's clock setting is
-  // the round display's.
-  const hour12 = false;
+  // The machine's clock setting, for the display and the web together.
+  const hour12 = !clock24hSignal.value;
 
   const view = describeMachine(ds, {
     shot,

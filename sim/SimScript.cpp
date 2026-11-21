@@ -209,6 +209,12 @@ bool SimScript::parse(const char *text) {
             int mode = 0;
             ok = static_cast<bool>(words >> mode);
             steps.push_back({Kind::Theme, mode, 0, false, {}});
+        } else if (verb == "clock") {
+            int hours = 0;
+            std::string zone;
+            ok = static_cast<bool>(words >> hours) && (hours == 12 || hours == 24);
+            words >> zone;
+            steps.push_back({Kind::Clock, hours, 0, false, zone});
         } else if (verb == "controller") {
             std::string state;
             ok = static_cast<bool>(words >> state) && (state == "connected" || state == "disconnected");
@@ -329,6 +335,13 @@ bool SimScript::run(SdlDriver *driver) {
             break;
         case Kind::Theme:
             controller.getSettings().setThemeMode(step.a);
+            break;
+        case Kind::Clock:
+            controller.getSettings().setClockFormat(step.a == 24);
+            if (!step.path.empty()) {
+                setenv("TZ", step.path.c_str(), 1);
+                tzset();
+            }
             break;
         case Kind::Connection:
             controller.getClientController()->simulateConnection(step.flag);

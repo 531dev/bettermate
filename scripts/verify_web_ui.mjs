@@ -917,6 +917,53 @@ async function flows() {
     },
   );
 
+  // The machine's clock setting is the web's too: off, every time of day reads 2:41 PM.
+  await step(
+    "clock: with the 24-hour setting off History reads 2:41 PM; on again it reads 14:41",
+    async () => {
+      const TWELVE = /\b(1[0-2]|[1-9]):[0-5]\d (AM|PM)\b/;
+      const save = async (on) => {
+        await goto(page, "/settings/general", "Settings");
+        const toggle = page.locator("#clock24hFormat");
+        await toggle.waitFor();
+        await toggle.click();
+        const posted = page.waitForResponse(
+          (r) =>
+            r.url().endsWith("/api/settings") &&
+            r.request().method() === "POST",
+        );
+        await page.getByRole("button", { name: "Save", exact: true }).click();
+        await posted;
+        await page
+          .locator(".bm-toast", { hasText: "Settings saved" })
+          .waitFor();
+        if ((await settings()).clock24hFormat !== on)
+          throw new Error(`the machine did not take 24-hour ${on}`);
+      };
+      const history = async () => {
+        await goto(page, "/history", "Shot history");
+        await page.locator("button.bm-item").first().waitFor();
+        return page.locator("#main").innerText();
+      };
+      if (!(await settings()).clock24hFormat)
+        throw new Error("the seeded machine is not on the 24-hour clock");
+      await save(false);
+      try {
+        const words = await history();
+        if (!TWELVE.test(words))
+          throw new Error(`no 12-hour time on History: ${words.slice(0, 160)}`);
+        await capture(page, "flow-clock-12h");
+      } finally {
+        await save(true);
+      }
+      const words = await history();
+      if (/\d\s?(AM|PM)\b/.test(words))
+        throw new Error(
+          `still 12-hour: ${words.match(/.{0,12}\d\s?(AM|PM)\b/)?.[0]}`,
+        );
+    },
+  );
+
   // Open a shot in history.
   await step("history: a row opens its shot with the chart", async () => {
     await goto(page, "/history", "Shot history");

@@ -1,11 +1,12 @@
 import { computed } from '@preact/signals';
-import { useContext } from 'preact/hooks';
+import { useContext, useEffect } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { useQuery } from 'preact-fetching';
 import { Icon } from './Icon.jsx';
 import { toast } from './Toast.jsx';
 import { ApiServiceContext, machine } from '../services/ApiService.js';
 import { pendingCommand } from '../utils/commands.js';
+import { setClock24h } from '../utils/dashboardManager.js';
 import { connection, fault } from '../utils/machineState.js';
 
 // The machine's modes by firmware id. Each glyph's meaning is fixed across both faces.
@@ -69,6 +70,11 @@ function ModeBarItems() {
     async () => (await fetch('/api/settings')).json(),
     { staleTime: 30000, refetchOnWindowFocus: false },
   );
+  // The mode bar is on every page, so this is where the machine's clock setting reaches the web.
+  const clock24h = settings?.clock24hFormat;
+  useEffect(() => {
+    if (clock24h !== undefined) setClock24h(clock24h);
+  }, [clock24h]);
   const showGrind =
     settings?.smartGrindActive || (settings?.altRelayFunction ?? 1) === 1 || mode === GRIND_MODE;
 

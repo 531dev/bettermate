@@ -102,6 +102,8 @@ class Reading {
     // Keeps the text centred on a new point.
     void moveTo(int cx, int baseline);
     const char *text() const { return chars; }
+    // The width of the glyphs it shows, for a part that sits beside it.
+    int extent() const { return count > 0 ? width : 0; }
     lv_obj_t *obj() const { return box; }
     // For the simulator's checks: the text this object shows, or nullptr when it is not a Reading.
     static const char *textOf(const lv_obj_t *obj);
